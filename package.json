@@ -1,0 +1,16 @@
+{
+  "name": "mak",
+  "version": "0.0.1",
+  "description": "Markdown editor",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "mocha -R spec test"
+  },
+  "author": "Shu Ding",
+  "license": "MIT",
+  "dependencies": {
+    "marked": "^0.3.5",
+    "modernizr": "^3.0.0-alpha.4"
+  }
+}
