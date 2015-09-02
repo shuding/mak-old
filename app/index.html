@@ -6,13 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Mak</title>
   <link rel="stylesheet" type="text/css" href="app.css">
+
   <script src="../bower_components/modernizr/modernizr.js"></script>
   <script src="../bower_components/angular/angular.min.js"></script>
 </head>
 <body ng-controller="mainEditorCtrl">
 
 <div class="mak-container">
-  <textarea class="mak-editor" ng-model="editor.context"></textarea>
+  <textarea class="mak-editor" ng-model="editor.context" autofocus></textarea>
   <iframe class="mak-preview" preview-iframe></iframe>
 </div>
 

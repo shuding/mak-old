@@ -25,10 +25,12 @@ body {
   overflow: scroll;
   padding: 10px;
   -webkit-appearance: none;
+  resize: none;
   outline: none;
   border: none;
   border-right: 1px solid #999;
   font-size: 16px;
+  font-family: "Consolas", "Menlo", "Monaco", monospace, serif;
 }
 
 .mak-preview {
