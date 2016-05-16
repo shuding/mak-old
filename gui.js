@@ -20,9 +20,14 @@ function mainEditorCtrl($scope, $sce) {
     function init() {
         // Bind change event
         $scope.$watch('editor.context', function (newContext) {
+            if (localStorage.setItem)
+                localStorage.setItem('mak', newContext);
             $scope.editor.compiled = $sce.trustAsHtml(mak.marked(newContext));
         });
-        $scope.editor.context = '# Mak\n\nA minimal Markdown editor on the web.\n\n---\n\n```js\nconsole.log("hello"); /* code highlighting */\n```\n\nLaTeX expression: $x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}$.\n\n---\n\n[GitHub](https://github.com/quietshu/mak), MIT licensed.\n\n<3\n';
+        
+        var context = (localStorage.getItem && localStorage.getItem('mak')) || '# Mak\n\nA minimal Markdown editor on the web.\n\n---\n\n```js\nconsole.log("hello"); /* code highlighting */\n```\n\nLaTeX expression: $x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}$.\n\n---\n\n[GitHub](https://github.com/quietshu/mak), MIT licensed.\n\n<3\n';
+        
+        $scope.editor.context = context;
 
         $scope.preview.styleElement      = document.createElement('link');
         $scope.preview.styleElement.rel  = 'stylesheet';
