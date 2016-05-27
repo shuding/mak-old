@@ -9,21 +9,14 @@ var katex     = require('katex');
 var highlight = require('highlight.js');
 
 var katexRender = new marked.Renderer();
+var tags = {};
 
 katexRender.paragraph = function (text) {
     // TODO
-    var texRegExp = /\$([^\$]+?)\$/g;
-
-    text = text.replace(texRegExp, function (wrap, match) {
-        var ret = match;
-        try {
-            ret = katex.renderToString(match);
-        } catch (err) {
-            ret = match;
-        }
-        return ret;
-    });
-
+    for (var t in tags) {
+		text = text.replace(t, tags[t]);
+    }
+    
     return '<p>' + text + '</p>';
 };
 
@@ -35,10 +28,43 @@ marked.setOptions({
 });
 
 module.exports = {
-    marked: marked
+    marked: function (val) {
+    	tags = {};
+
+	    var texRegExpDisp = /\$\$([^\$]+?)\$\$/g;
+
+	    val = val.replace(texRegExpDisp, function (wrap, match) {
+	        var ret = match;
+	        try {
+	            ret = katex.renderToString('\\displaystyle{' + match + '}', { displayMode: true });
+	        } catch (err) {
+	            ret = match;
+	        }
+	        var rand = '' + Math.random() + '' + Math.random();
+	        tags[rand] = ret;
+	        return rand;
+	    });
+
+	    var texRegExp = /\$([^\$]+?)\$/g;
+
+	    val = val.replace(texRegExp, function (wrap, match) {
+	        var ret = match;
+	        //console.log(ret);
+	        try {
+	            ret = katex.renderToString('\\displaystyle{' + match + '}');
+	        } catch (err) {
+	            ret = match;
+	        }
+	        var rand = '' + Math.random() + '' + Math.random();
+	        tags[rand] = ret;
+	        return rand;
+	    });
+
+		return marked(val);
+    }
 };
 
-},{"highlight.js":4,"katex":135,"marked":158}],2:[function(require,module,exports){
+},{"highlight.js":4,"katex":142,"marked":164}],2:[function(require,module,exports){
 /**
  * Created by shuding on 9/1/15.
  * <ds303077135@gmail.com>
@@ -89,7 +115,7 @@ https://highlightjs.org/
   }
 
   function isNotHighlighted(language) {
-    return /no-?highlight|plain|text/.test(language);
+    return (/^(no-?highlight|plain|text)$/i).test(language);
   }
 
   function blockLanguage(block) {
@@ -98,19 +124,18 @@ https://highlightjs.org/
 
     classes += block.parentNode ? block.parentNode.className : '';
 
-    // language-* takes precedence over non-prefixed class names and
-    match = /\blang(?:uage)?-([\w-]+)\b/.exec(classes);
+    // language-* takes precedence over non-prefixed class names
+    match = (/\blang(?:uage)?-([\w-]+)\b/i).exec(classes);
     if (match) {
       return getLanguage(match[1]) ? match[1] : 'no-highlight';
     }
 
     classes = classes.split(/\s+/);
-    for(i = 0, length = classes.length; i < length; i++) {
-      if(getLanguage(classes[i]) || isNotHighlighted(classes[i])) {
+    for (i = 0, length = classes.length; i < length; i++) {
+      if (getLanguage(classes[i]) || isNotHighlighted(classes[i])) {
         return classes[i];
       }
     }
-
   }
 
   function inherit(parent, obj) {
@@ -700,6 +725,7 @@ https://highlightjs.org/
   }
 
   function getLanguage(name) {
+    name = (name || '').toLowerCase();
     return languages[name] || languages[aliases[name]];
   }
 
@@ -742,7 +768,7 @@ https://highlightjs.org/
     contains: [hljs.BACKSLASH_ESCAPE]
   };
   hljs.PHRASAL_WORDS_MODE = {
-    begin: /\b(a|an|the|are|I|I'm|isn't|don't|doesn't|won't|but|just|should|pretty|simply|enough|gonna|going|wtf|so|such)\b/
+    begin: /\b(a|an|the|are|I|I'm|isn't|don't|doesn't|won't|but|just|should|pretty|simply|enough|gonna|going|wtf|so|such|will|you|your|like)\b/
   };
   hljs.COMMENT = function (begin, end, inherits) {
     var mode = hljs.inherit(
@@ -823,6 +849,7 @@ https://highlightjs.org/
 var hljs = require('./highlight');
 
 hljs.registerLanguage('1c', require('./languages/1c'));
+hljs.registerLanguage('accesslog', require('./languages/accesslog'));
 hljs.registerLanguage('actionscript', require('./languages/actionscript'));
 hljs.registerLanguage('apache', require('./languages/apache'));
 hljs.registerLanguage('applescript', require('./languages/applescript'));
@@ -844,6 +871,8 @@ hljs.registerLanguage('clojure-repl', require('./languages/clojure-repl'));
 hljs.registerLanguage('cmake', require('./languages/cmake'));
 hljs.registerLanguage('coffeescript', require('./languages/coffeescript'));
 hljs.registerLanguage('cpp', require('./languages/cpp'));
+hljs.registerLanguage('crmsh', require('./languages/crmsh'));
+hljs.registerLanguage('crystal', require('./languages/crystal'));
 hljs.registerLanguage('cs', require('./languages/cs'));
 hljs.registerLanguage('css', require('./languages/css'));
 hljs.registerLanguage('d', require('./languages/d'));
@@ -865,10 +894,12 @@ hljs.registerLanguage('erlang', require('./languages/erlang'));
 hljs.registerLanguage('fix', require('./languages/fix'));
 hljs.registerLanguage('fortran', require('./languages/fortran'));
 hljs.registerLanguage('fsharp', require('./languages/fsharp'));
+hljs.registerLanguage('gams', require('./languages/gams'));
 hljs.registerLanguage('gcode', require('./languages/gcode'));
 hljs.registerLanguage('gherkin', require('./languages/gherkin'));
 hljs.registerLanguage('glsl', require('./languages/glsl'));
 hljs.registerLanguage('go', require('./languages/go'));
+hljs.registerLanguage('golo', require('./languages/golo'));
 hljs.registerLanguage('gradle', require('./languages/gradle'));
 hljs.registerLanguage('groovy', require('./languages/groovy'));
 hljs.registerLanguage('haml', require('./languages/haml'));
@@ -878,6 +909,7 @@ hljs.registerLanguage('haxe', require('./languages/haxe'));
 hljs.registerLanguage('http', require('./languages/http'));
 hljs.registerLanguage('inform7', require('./languages/inform7'));
 hljs.registerLanguage('ini', require('./languages/ini'));
+hljs.registerLanguage('irpf90', require('./languages/irpf90'));
 hljs.registerLanguage('java', require('./languages/java'));
 hljs.registerLanguage('javascript', require('./languages/javascript'));
 hljs.registerLanguage('json', require('./languages/json'));
@@ -930,6 +962,7 @@ hljs.registerLanguage('scss', require('./languages/scss'));
 hljs.registerLanguage('smali', require('./languages/smali'));
 hljs.registerLanguage('smalltalk', require('./languages/smalltalk'));
 hljs.registerLanguage('sml', require('./languages/sml'));
+hljs.registerLanguage('sqf', require('./languages/sqf'));
 hljs.registerLanguage('sql', require('./languages/sql'));
 hljs.registerLanguage('stata', require('./languages/stata'));
 hljs.registerLanguage('step21', require('./languages/step21'));
@@ -954,7 +987,7 @@ hljs.registerLanguage('xquery', require('./languages/xquery'));
 hljs.registerLanguage('zephir', require('./languages/zephir'));
 
 module.exports = hljs;
-},{"./highlight":3,"./languages/1c":5,"./languages/actionscript":6,"./languages/apache":7,"./languages/applescript":8,"./languages/armasm":9,"./languages/asciidoc":10,"./languages/aspectj":11,"./languages/autohotkey":12,"./languages/autoit":13,"./languages/avrasm":14,"./languages/axapta":15,"./languages/bash":16,"./languages/brainfuck":17,"./languages/cal":18,"./languages/capnproto":19,"./languages/ceylon":20,"./languages/clojure":22,"./languages/clojure-repl":21,"./languages/cmake":23,"./languages/coffeescript":24,"./languages/cpp":25,"./languages/cs":26,"./languages/css":27,"./languages/d":28,"./languages/dart":29,"./languages/delphi":30,"./languages/diff":31,"./languages/django":32,"./languages/dns":33,"./languages/dockerfile":34,"./languages/dos":35,"./languages/dust":36,"./languages/elixir":37,"./languages/elm":38,"./languages/erb":39,"./languages/erlang":41,"./languages/erlang-repl":40,"./languages/fix":42,"./languages/fortran":43,"./languages/fsharp":44,"./languages/gcode":45,"./languages/gherkin":46,"./languages/glsl":47,"./languages/go":48,"./languages/gradle":49,"./languages/groovy":50,"./languages/haml":51,"./languages/handlebars":52,"./languages/haskell":53,"./languages/haxe":54,"./languages/http":55,"./languages/inform7":56,"./languages/ini":57,"./languages/java":58,"./languages/javascript":59,"./languages/json":60,"./languages/julia":61,"./languages/kotlin":62,"./languages/lasso":63,"./languages/less":64,"./languages/lisp":65,"./languages/livecodeserver":66,"./languages/livescript":67,"./languages/lua":68,"./languages/makefile":69,"./languages/markdown":70,"./languages/mathematica":71,"./languages/matlab":72,"./languages/mel":73,"./languages/mercury":74,"./languages/mizar":75,"./languages/mojolicious":76,"./languages/monkey":77,"./languages/nginx":78,"./languages/nimrod":79,"./languages/nix":80,"./languages/nsis":81,"./languages/objectivec":82,"./languages/ocaml":83,"./languages/openscad":84,"./languages/oxygene":85,"./languages/parser3":86,"./languages/perl":87,"./languages/pf":88,"./languages/php":89,"./languages/powershell":90,"./languages/processing":91,"./languages/profile":92,"./languages/prolog":93,"./languages/protobuf":94,"./languages/puppet":95,"./languages/python":96,"./languages/q":97,"./languages/r":98,"./languages/rib":99,"./languages/roboconf":100,"./languages/rsl":101,"./languages/ruby":102,"./languages/ruleslanguage":103,"./languages/rust":104,"./languages/scala":105,"./languages/scheme":106,"./languages/scilab":107,"./languages/scss":108,"./languages/smali":109,"./languages/smalltalk":110,"./languages/sml":111,"./languages/sql":112,"./languages/stata":113,"./languages/step21":114,"./languages/stylus":115,"./languages/swift":116,"./languages/tcl":117,"./languages/tex":118,"./languages/thrift":119,"./languages/tp":120,"./languages/twig":121,"./languages/typescript":122,"./languages/vala":123,"./languages/vbnet":124,"./languages/vbscript":126,"./languages/vbscript-html":125,"./languages/verilog":127,"./languages/vhdl":128,"./languages/vim":129,"./languages/x86asm":130,"./languages/xl":131,"./languages/xml":132,"./languages/xquery":133,"./languages/zephir":134}],5:[function(require,module,exports){
+},{"./highlight":3,"./languages/1c":5,"./languages/accesslog":6,"./languages/actionscript":7,"./languages/apache":8,"./languages/applescript":9,"./languages/armasm":10,"./languages/asciidoc":11,"./languages/aspectj":12,"./languages/autohotkey":13,"./languages/autoit":14,"./languages/avrasm":15,"./languages/axapta":16,"./languages/bash":17,"./languages/brainfuck":18,"./languages/cal":19,"./languages/capnproto":20,"./languages/ceylon":21,"./languages/clojure":23,"./languages/clojure-repl":22,"./languages/cmake":24,"./languages/coffeescript":25,"./languages/cpp":26,"./languages/crmsh":27,"./languages/crystal":28,"./languages/cs":29,"./languages/css":30,"./languages/d":31,"./languages/dart":32,"./languages/delphi":33,"./languages/diff":34,"./languages/django":35,"./languages/dns":36,"./languages/dockerfile":37,"./languages/dos":38,"./languages/dust":39,"./languages/elixir":40,"./languages/elm":41,"./languages/erb":42,"./languages/erlang":44,"./languages/erlang-repl":43,"./languages/fix":45,"./languages/fortran":46,"./languages/fsharp":47,"./languages/gams":48,"./languages/gcode":49,"./languages/gherkin":50,"./languages/glsl":51,"./languages/go":52,"./languages/golo":53,"./languages/gradle":54,"./languages/groovy":55,"./languages/haml":56,"./languages/handlebars":57,"./languages/haskell":58,"./languages/haxe":59,"./languages/http":60,"./languages/inform7":61,"./languages/ini":62,"./languages/irpf90":63,"./languages/java":64,"./languages/javascript":65,"./languages/json":66,"./languages/julia":67,"./languages/kotlin":68,"./languages/lasso":69,"./languages/less":70,"./languages/lisp":71,"./languages/livecodeserver":72,"./languages/livescript":73,"./languages/lua":74,"./languages/makefile":75,"./languages/markdown":76,"./languages/mathematica":77,"./languages/matlab":78,"./languages/mel":79,"./languages/mercury":80,"./languages/mizar":81,"./languages/mojolicious":82,"./languages/monkey":83,"./languages/nginx":84,"./languages/nimrod":85,"./languages/nix":86,"./languages/nsis":87,"./languages/objectivec":88,"./languages/ocaml":89,"./languages/openscad":90,"./languages/oxygene":91,"./languages/parser3":92,"./languages/perl":93,"./languages/pf":94,"./languages/php":95,"./languages/powershell":96,"./languages/processing":97,"./languages/profile":98,"./languages/prolog":99,"./languages/protobuf":100,"./languages/puppet":101,"./languages/python":102,"./languages/q":103,"./languages/r":104,"./languages/rib":105,"./languages/roboconf":106,"./languages/rsl":107,"./languages/ruby":108,"./languages/ruleslanguage":109,"./languages/rust":110,"./languages/scala":111,"./languages/scheme":112,"./languages/scilab":113,"./languages/scss":114,"./languages/smali":115,"./languages/smalltalk":116,"./languages/sml":117,"./languages/sqf":118,"./languages/sql":119,"./languages/stata":120,"./languages/step21":121,"./languages/stylus":122,"./languages/swift":123,"./languages/tcl":124,"./languages/tex":125,"./languages/thrift":126,"./languages/tp":127,"./languages/twig":128,"./languages/typescript":129,"./languages/vala":130,"./languages/vbnet":131,"./languages/vbscript":133,"./languages/vbscript-html":132,"./languages/verilog":134,"./languages/vhdl":135,"./languages/vim":136,"./languages/x86asm":137,"./languages/xl":138,"./languages/xml":139,"./languages/xquery":140,"./languages/zephir":141}],5:[function(require,module,exports){
 module.exports = function(hljs){
   var IDENT_RE_RU = '[a-zA-Zа-яА-Я][a-zA-Z0-9_а-яА-Я]*';
   var OneS_KEYWORDS = 'возврат дата для если и или иначе иначеесли исключение конецесли ' +
@@ -1042,6 +1075,44 @@ module.exports = function(hljs){
 };
 },{}],6:[function(require,module,exports){
 module.exports = function(hljs) {
+  return {
+    contains: [
+      // IP
+      {
+        className: 'number',
+        begin: '\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(:\\d{1,5})?\\b'
+      },
+      // Other numbers
+      {
+        className: 'number',
+        begin: '\\b\\d+\\b',
+        relevance: 0
+      },
+      // Requests
+      {
+        className: 'string',
+        begin: '"(GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|PATCH|TRACE)', end: '"',
+        keywords: 'GET POST HEAD PUT DELETE CONNECT OPTIONS PATCH TRACE',
+        illegal: '\\n',
+        relevance: 10
+      },
+      // Dates
+      {
+        className: 'string',
+        begin: /\[/, end: /\]/,
+        illegal: '\\n'
+      },
+      // Strings
+      {
+        className: 'string',
+        begin: '"', end: '"',
+        illegal: '\\n'
+      }
+    ]
+  };
+};
+},{}],7:[function(require,module,exports){
+module.exports = function(hljs) {
   var IDENT_RE = '[a-zA-Z_$][a-zA-Z0-9_$]*';
   var IDENT_FUNC_RETURN_TYPE_RE = '([*]|[a-zA-Z_$][a-zA-Z0-9_$]*)';
 
@@ -1115,7 +1186,7 @@ module.exports = function(hljs) {
     illegal: /#/
   };
 };
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = function(hljs) {
   var NUMBER = {className: 'number', begin: '[\\$%]\\d+'};
   return {
@@ -1161,7 +1232,7 @@ module.exports = function(hljs) {
     illegal: /\S/
   };
 };
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 module.exports = function(hljs) {
   var STRING = hljs.inherit(hljs.QUOTE_STRING_MODE, {illegal: ''});
   var PARAMS = {
@@ -1258,7 +1329,7 @@ module.exports = function(hljs) {
     illegal: '//|->|=>|\\[\\['
   };
 };
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports = function(hljs) {
     //local labels: %?[FB]?[AT]?\d{1,2}\w+
   return {
@@ -1350,7 +1421,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['adoc'],
@@ -1542,7 +1613,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = function (hljs) {
   var KEYWORDS =
     'false synchronized int abstract float private char boolean static null if const ' +
@@ -1680,7 +1751,7 @@ module.exports = function (hljs) {
     ]
   };
 };
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 module.exports = function(hljs) {
   var BACKTICK_ESCAPE = {
     className: 'escape',
@@ -1742,7 +1813,7 @@ module.exports = function(hljs) {
     ])
   }
 };
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = function(hljs) {
     var KEYWORDS = 'ByRef Case Const ContinueCase ContinueLoop ' +
         'Default Dim Do Else ElseIf EndFunc EndIf EndSelect ' +
@@ -3480,6 +3551,7 @@ module.exports = function(hljs) {
 
     return {
         case_insensitive: true,
+        illegal: /\/\*/,
         keywords: {
             keyword: KEYWORDS,
             built_in: BUILT_IN,
@@ -3496,7 +3568,7 @@ module.exports = function(hljs) {
         ]
     }
 };
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     case_insensitive: true,
@@ -3558,7 +3630,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     keywords: 'false int abstract private char boolean static null if for true ' +
@@ -3589,7 +3661,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 module.exports = function(hljs) {
   var VAR = {
     className: 'variable',
@@ -3665,7 +3737,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 module.exports = function(hljs){
   var LITERAL = {
     className: 'literal',
@@ -3702,7 +3774,7 @@ module.exports = function(hljs){
     ]
   };
 };
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 module.exports = function(hljs) {
   var KEYWORDS =
     'div mod in and or not xor asserterror begin case do downto else end exit for if of repeat then to ' +
@@ -3772,6 +3844,7 @@ module.exports = function(hljs) {
   return {
     case_insensitive: true,
     keywords: { keyword: KEYWORDS, literal: LITERALS },
+    illegal: /\/\*/,
     contains: [
       STRING, CHAR_STRING,
       DATE, DBL_QUOTED_VARIABLE,
@@ -3781,7 +3854,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['capnp'],
@@ -3830,7 +3903,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = function(hljs) {
   // 2.3. Identifiers and keywords
   var KEYWORDS =
@@ -3870,7 +3943,7 @@ module.exports = function(hljs) {
       // character literal
       className: 'string',
       begin: "'",
-      end: "'",
+      end: "'"
     },
     {
       // numeric literal
@@ -3898,7 +3971,7 @@ module.exports = function(hljs) {
     ].concat(EXPRESSIONS)
   };
 };
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     contains: [
@@ -3913,12 +3986,12 @@ module.exports = function(hljs) {
     ]
   }
 };
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports = function(hljs) {
   var keywords = {
     built_in:
       // Clojure keywords
-      'def cond apply if-not if-let if not not= = < > <= >= == + / * - rem '+
+      'def defonce cond apply if-not if-let if not not= = < > <= >= == + / * - rem '+
       'quot neg? pos? delay? symbol? keyword? true? false? integer? empty? coll? list? '+
       'set? ifn? fn? associative? sequential? sorted? counted? reversible? number? decimal? '+
       'class? distinct? isa? float? rational? reduced? ratio? odd? even? char? seq? vector? '+
@@ -4010,7 +4083,7 @@ module.exports = function(hljs) {
     contains: [LIST, STRING, HINT, HINT_COL, COMMENT, KEY, COLLECTION, NUMBER, LITERAL]
   }
 };
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['cmake.in'],
@@ -4049,7 +4122,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports = function(hljs) {
   var KEYWORDS = {
     keyword:
@@ -4190,7 +4263,7 @@ module.exports = function(hljs) {
     ])
   };
 };
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 module.exports = function(hljs) {
   var CPP_PRIMATIVE_TYPES = {
     className: 'keyword',
@@ -4220,6 +4293,33 @@ module.exports = function(hljs) {
     ]
   };
 
+  var PREPROCESSOR =       {
+    className: 'preprocessor',
+    begin: '#', end: '$',
+    keywords: 'if else elif endif define undef warning error line ' +
+              'pragma ifdef ifndef',
+    contains: [
+      {
+        begin: /\\\n/, relevance: 0
+      },
+      {
+        beginKeywords: 'include', end: '$',
+        contains: [
+          STRINGS,
+          {
+            className: 'string',
+            begin: '<', end: '>',
+            illegal: '\\n',
+          }
+        ]
+      },
+      STRINGS,
+      NUMBERS,
+      hljs.C_LINE_COMMENT_MODE,
+      hljs.C_BLOCK_COMMENT_MODE
+    ]
+  };
+
   var FUNCTION_TITLE = hljs.IDENT_RE + '\\s*\\(';
 
   var CPP_KEYWORDS = {
@@ -4244,6 +4344,7 @@ module.exports = function(hljs) {
       'vfprintf vprintf vsprintf',
     literal: 'true false nullptr NULL'
   };
+
   return {
     aliases: ['c', 'cc', 'h', 'c++', 'h++', 'hpp'],
     keywords: CPP_KEYWORDS,
@@ -4254,32 +4355,7 @@ module.exports = function(hljs) {
       hljs.C_BLOCK_COMMENT_MODE,
       NUMBERS,
       STRINGS,
-      {
-        className: 'preprocessor',
-        begin: '#', end: '$',
-        keywords: 'if else elif endif define undef warning error line ' +
-                  'pragma ifdef ifndef',
-        contains: [
-          {
-            begin: /\\\n/, relevance: 0
-          },
-          {
-            beginKeywords: 'include', end: '$',
-            contains: [
-              STRINGS,
-              {
-                className: 'string',
-                begin: '<', end: '>',
-                illegal: '\\n',
-              }
-            ]
-          },
-          STRINGS,
-          NUMBERS,
-          hljs.C_LINE_COMMENT_MODE,
-          hljs.C_BLOCK_COMMENT_MODE,
-        ]
-      },
+      PREPROCESSOR,
       {
         begin: '\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<', end: '>',
         keywords: CPP_KEYWORDS,
@@ -4301,6 +4377,7 @@ module.exports = function(hljs) {
         returnBegin: true, end: /[{;=]/,
         excludeEnd: true,
         keywords: CPP_KEYWORDS,
+        illegal: /[^\w\s\*&]/,
         contains: [
           {
             begin: FUNCTION_TITLE, returnBegin: true,
@@ -4320,13 +4397,304 @@ module.exports = function(hljs) {
             ]
           },
           hljs.C_LINE_COMMENT_MODE,
-          hljs.C_BLOCK_COMMENT_MODE
+          hljs.C_BLOCK_COMMENT_MODE,
+          PREPROCESSOR
         ]
       }
     ]
   };
 };
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
+module.exports = function(hljs) {
+  var RESOURCES = 'primitive rsc_template';
+
+  var COMMANDS = 'group clone ms master location colocation order fencing_topology ' +
+      'rsc_ticket acl_target acl_group user role ' +
+      'tag xml';
+
+  var PROPERTY_SETS = 'property rsc_defaults op_defaults';
+
+  var KEYWORDS = 'params meta operations op rule attributes utilization';
+
+  var OPERATORS = 'read write deny defined not_defined in_range date spec in ' +
+      'ref reference attribute type xpath version and or lt gt tag ' +
+      'lte gte eq ne \\';
+
+  var TYPES = 'number string';
+
+  var LITERALS = 'Master Started Slave Stopped start promote demote stop monitor true false';
+
+  return {
+    aliases: ['crm', 'pcmk'],
+    case_insensitive: true,
+    keywords: {
+      keyword: KEYWORDS,
+      operator: OPERATORS,
+      type: TYPES,
+      literal: LITERALS
+    },
+    contains: [
+      hljs.HASH_COMMENT_MODE,
+      {
+        beginKeywords: 'node',
+        starts: {
+          className: 'identifier',
+          end: '\\s*([\\w_-]+:)?',
+          starts: {
+            className: 'title',
+            end: '\\s*[\\$\\w_][\\w_-]*'
+          }
+        }
+      },
+      {
+        beginKeywords: RESOURCES,
+        starts: {
+          className: 'title',
+          end: '\\s*[\\$\\w_][\\w_-]*',
+          starts: {
+            className: 'pragma',
+            end: '\\s*@?[\\w_][\\w_\\.:-]*',
+          }
+        }
+      },
+      {
+        begin: '\\b(' + COMMANDS.split(' ').join('|') + ')\\s+',
+        keywords: COMMANDS,
+        starts: {
+          className: 'title',
+          end: '[\\$\\w_][\\w_-]*',
+        }
+      },
+      {
+        beginKeywords: PROPERTY_SETS,
+        starts: {
+          className: 'title',
+          end: '\\s*([\\w_-]+:)?'
+        }
+      },
+      hljs.QUOTE_STRING_MODE,
+      {
+        className: 'pragma',
+        begin: '(ocf|systemd|service|lsb):[\\w_:-]+',
+        relevance: 0
+      },
+      {
+        className: 'number',
+        begin: '\\b\\d+(\\.\\d+)?(ms|s|h|m)?',
+        relevance: 0
+      },
+      {
+        className: 'number',
+        begin: '[-]?(infinity|inf)',
+        relevance: 0
+      },
+      {
+        className: 'variable',
+        begin: /([A-Za-z\$_\#][\w_-]+)=/,
+        relevance: 0
+      },
+      {
+        className: 'tag',
+        begin: '</?',
+        end: '/?>',
+        relevance: 0
+      }
+    ]
+  };
+};
+},{}],28:[function(require,module,exports){
+module.exports = function(hljs) {
+  var NUM_SUFFIX = '(_[uif](8|16|32|64))?';
+  var CRYSTAL_IDENT_RE = '[a-zA-Z_]\\w*[!?=]?';
+  var RE_STARTER = '!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|-|-=|/=|/|:|;|<<|<<=|<=|<|===|==|=|>>>=|>>=|>=|>>>|' +
+    '>>|>|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~';
+  var CRYSTAL_METHOD_RE = '[a-zA-Z_]\\w*[!?=]?|[-+~]\\@|<<|>>|=~|===?|<=>|[<>]=?|\\*\\*|[-/+%^&*~`|]|\\[\\][=?]?';
+  var CRYSTAL_KEYWORDS = {
+    keyword:
+      'abstract alias as asm begin break case class def do else elsif end ensure enum extend for fun if ifdef ' +
+      'include instance_sizeof is_a? lib macro module next of out pointerof private protected rescue responds_to? ' +
+      'return require self sizeof struct super then type typeof union unless until when while with yield ' +
+      '__DIR__ __FILE__ __LINE__',
+    literal: 'false nil true'
+  };
+  var SUBST = {
+    className: 'subst',
+    begin: '#{', end: '}',
+    keywords: CRYSTAL_KEYWORDS
+  };
+  var EXPANSION = {
+    className: 'expansion',
+    variants: [
+      {begin: '\\{\\{', end: '\\}\\}'},
+      {begin: '\\{%', end: '%\\}'}
+    ],
+    keywords: CRYSTAL_KEYWORDS,
+    relevance: 10
+  };
+
+  function recursiveParen(begin, end) {
+    var
+    contains = [{begin: begin, end: end}];
+    contains[0].contains = contains;
+    return contains;
+  }
+  var STRING = {
+    className: 'string',
+    contains: [hljs.BACKSLASH_ESCAPE, SUBST],
+    variants: [
+      {begin: /'/, end: /'/},
+      {begin: /"/, end: /"/},
+      {begin: /`/, end: /`/},
+      {begin: '%w?\\(', end: '\\)', contains: recursiveParen('\\(', '\\)')},
+      {begin: '%w?\\[', end: '\\]', contains: recursiveParen('\\[', '\\]')},
+      {begin: '%w?{', end: '}', contains: recursiveParen('{', '}')},
+      {begin: '%w?<', end: '>', contains: recursiveParen('<', '>')},
+      {begin: '%w?/', end: '/'},
+      {begin: '%w?%', end: '%'},
+      {begin: '%w?-', end: '-'},
+      {begin: '%w?\\|', end: '\\|'},
+    ],
+    relevance: 0,
+  };
+  var REGEXP = {
+    begin: '(' + RE_STARTER + ')\\s*',
+    contains: [
+      {
+        className: 'regexp',
+        contains: [hljs.BACKSLASH_ESCAPE, SUBST],
+        variants: [
+          {begin: '/', end: '/[a-z]*'},
+          {begin: '%r\\(', end: '\\)', contains: recursiveParen('\\(', '\\)')},
+          {begin: '%r\\[', end: '\\]', contains: recursiveParen('\\[', '\\]')},
+          {begin: '%r{', end: '}', contains: recursiveParen('{', '}')},
+          {begin: '%r<', end: '>', contains: recursiveParen('<', '>')},
+          {begin: '%r/', end: '/'},
+          {begin: '%r%', end: '%'},
+          {begin: '%r-', end: '-'},
+          {begin: '%r\\|', end: '\\|'},
+        ]
+      }
+    ],
+    relevance: 0
+  };
+  var REGEXP2 = {
+    className: 'regexp',
+    contains: [hljs.BACKSLASH_ESCAPE, SUBST],
+    variants: [
+      {begin: '%r\\(', end: '\\)', contains: recursiveParen('\\(', '\\)')},
+      {begin: '%r\\[', end: '\\]', contains: recursiveParen('\\[', '\\]')},
+      {begin: '%r{', end: '}', contains: recursiveParen('{', '}')},
+      {begin: '%r<', end: '>', contains: recursiveParen('<', '>')},
+      {begin: '%r/', end: '/'},
+      {begin: '%r%', end: '%'},
+      {begin: '%r-', end: '-'},
+      {begin: '%r\\|', end: '\\|'},
+    ],
+    relevance: 0
+  };
+  var ATTRIBUTE = {
+    className: 'annotation',
+    begin: '@\\[', end: '\\]',
+    relevance: 5
+  };
+  var CRYSTAL_DEFAULT_CONTAINS = [
+    EXPANSION,
+    STRING,
+    REGEXP,
+    REGEXP2,
+    ATTRIBUTE,
+    hljs.HASH_COMMENT_MODE,
+    {
+      className: 'class',
+      beginKeywords: 'class module struct', end: '$|;',
+      illegal: /=/,
+      contains: [
+        hljs.HASH_COMMENT_MODE,
+        hljs.inherit(hljs.TITLE_MODE, {begin: '[A-Za-z_]\\w*(::\\w+)*(\\?|\\!)?'}),
+        {
+          className: 'inheritance',
+          begin: '<\\s*',
+          contains: [{
+            className: 'parent',
+            begin: '(' + hljs.IDENT_RE + '::)?' + hljs.IDENT_RE
+          }]
+        }
+      ]
+    },
+    {
+      className: 'class',
+      beginKeywords: 'lib enum union', end: '$|;',
+      illegal: /=/,
+      contains: [
+        hljs.HASH_COMMENT_MODE,
+        hljs.inherit(hljs.TITLE_MODE, {begin: '[A-Za-z_]\\w*(::\\w+)*(\\?|\\!)?'}),
+      ],
+      relevance: 10
+    },
+    {
+      className: 'function',
+      beginKeywords: 'def', end: /\B\b/,
+      contains: [
+        hljs.inherit(hljs.TITLE_MODE, {
+          begin: CRYSTAL_METHOD_RE,
+          endsParent: true
+        })
+      ]
+    },
+    {
+      className: 'function',
+      beginKeywords: 'fun macro', end: /\B\b/,
+      contains: [
+        hljs.inherit(hljs.TITLE_MODE, {
+          begin: CRYSTAL_METHOD_RE,
+          endsParent: true
+        })
+      ],
+      relevance: 5
+    },
+    {
+      className: 'constant',
+      begin: '(::)?(\\b[A-Z]\\w*(::)?)+',
+      relevance: 0
+    },
+    {
+      className: 'symbol',
+      begin: hljs.UNDERSCORE_IDENT_RE + '(\\!|\\?)?:',
+      relevance: 0
+    },
+    {
+      className: 'symbol',
+      begin: ':',
+      contains: [STRING, {begin: CRYSTAL_METHOD_RE}],
+      relevance: 0
+    },
+    {
+      className: 'number',
+      variants: [
+        { begin: '\\b0b([01_]*[01])' + NUM_SUFFIX },
+        { begin: '\\b0o([0-7_]*[0-7])' + NUM_SUFFIX },
+        { begin: '\\b0x([A-Fa-f0-9_]*[A-Fa-f0-9])' + NUM_SUFFIX },
+        { begin: '\\b(([0-9][0-9_]*[0-9]|[0-9])(\\.[0-9_]*[0-9])?([eE][+-]?[0-9_]*[0-9])?)' + NUM_SUFFIX}
+      ],
+      relevance: 0
+    },
+    {
+      className: 'variable',
+      begin: '(\\$\\W)|((\\$|\\@\\@?|%)(\\w+))'
+    }
+  ];
+  SUBST.contains = CRYSTAL_DEFAULT_CONTAINS;
+  ATTRIBUTE.contains = CRYSTAL_DEFAULT_CONTAINS;
+  EXPANSION.contains = CRYSTAL_DEFAULT_CONTAINS.slice(1); // without EXPANSION
+
+  return {
+    aliases: ['cr'],
+    lexemes: CRYSTAL_IDENT_RE,
+    keywords: CRYSTAL_KEYWORDS,
+    contains: CRYSTAL_DEFAULT_CONTAINS
+  };
+};
+},{}],29:[function(require,module,exports){
 module.exports = function(hljs) {
   var KEYWORDS =
     // Normal keywords.
@@ -4445,7 +4813,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],27:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 module.exports = function(hljs) {
   var IDENT_RE = '[a-zA-Z-][a-zA-Z0-9_-]*';
   var FUNCTION = {
@@ -4488,7 +4856,6 @@ module.exports = function(hljs) {
     illegal: /[=\/|'\$]/,
     contains: [
       hljs.C_BLOCK_COMMENT_MODE,
-      RULE,
       {
         className: 'id', begin: /\#[A-Za-z0-9_-]+/
       },
@@ -4548,7 +4915,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],28:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 module.exports = /**
  * Known issues:
  *
@@ -4806,7 +5173,7 @@ function(hljs) {
     ]
   };
 };
-},{}],29:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 module.exports = function (hljs) {
   var SUBST = {
     className: 'subst',
@@ -4907,7 +5274,7 @@ module.exports = function (hljs) {
     ]
   }
 };
-},{}],30:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 module.exports = function(hljs) {
   var KEYWORDS =
     'exports register file shl array record property for mod while set ally label uses raise not ' +
@@ -4974,7 +5341,7 @@ module.exports = function(hljs) {
     ].concat(COMMENT_MODES)
   };
 };
-},{}],31:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['patch'],
@@ -5014,7 +5381,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],32:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 module.exports = function(hljs) {
   var FILTER = {
     className: 'filter',
@@ -5064,7 +5431,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],33:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['bind', 'zone'],
@@ -5092,21 +5459,21 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],34:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['docker'],
     case_insensitive: true,
     keywords: {
-      built_ins: 'from maintainer cmd expose add copy entrypoint volume user workdir onbuild run env'
+      built_ins: 'from maintainer cmd expose add copy entrypoint volume user workdir onbuild run env label'
     },
     contains: [
       hljs.HASH_COMMENT_MODE,
       {
         keywords : {
-          built_in: 'run cmd entrypoint volume add copy workdir onbuild'
+          built_in: 'run cmd entrypoint volume add copy workdir onbuild label'
         },
-        begin: /^ *(onbuild +)?(run|cmd|entrypoint|volume|add|copy|workdir) +/,
+        begin: /^ *(onbuild +)?(run|cmd|entrypoint|volume|add|copy|workdir|label) +/,
         starts: {
           end: /[^\\]\n/,
           subLanguage: 'bash'
@@ -5127,7 +5494,7 @@ module.exports = function(hljs) {
     ]
   }
 };
-},{}],35:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 module.exports = function(hljs) {
   var COMMENT = hljs.COMMENT(
     /@?rem\b/, /$/,
@@ -5143,6 +5510,7 @@ module.exports = function(hljs) {
   return {
     aliases: ['bat', 'cmd'],
     case_insensitive: true,
+    illegal: /\/\*/,
     keywords: {
       flow: 'if else goto for in do call exit not exist errorlevel defined',
       operator: 'equ neq lss leq gtr geq',
@@ -5175,7 +5543,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],36:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 module.exports = function(hljs) {
   var EXPRESSION_KEYWORDS = 'if eq ne lt lte gt gte select default math sep';
   return {
@@ -5210,7 +5578,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],37:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 module.exports = function(hljs) {
   var ELIXIR_IDENT_RE = '[a-zA-Z_][a-zA-Z0-9_]*(\\!|\\?)?';
   var ELIXIR_METHOD_RE = '[a-zA-Z_]\\w*[!?=]?|[-+~]\\@|<<|>>|=~|===?|<=>|[<>]=?|\\*\\*|[-/+%^&*~`|]|\\[\\]=?';
@@ -5312,7 +5680,7 @@ module.exports = function(hljs) {
     contains: ELIXIR_DEFAULT_CONTAINS
   };
 };
-},{}],38:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 module.exports = function(hljs) {
   var COMMENT_MODES = [
     hljs.COMMENT('--', '$'),
@@ -5336,8 +5704,7 @@ module.exports = function(hljs) {
     begin: '\\(', end: '\\)',
     illegal: '"',
     contains: [
-      {className: 'type', begin: '\\b[A-Z][\\w]*(\\((\\.\\.|,|\\w+)\\))?'},
-      hljs.inherit(hljs.TITLE_MODE, {begin: '[_a-z][\\w\']*'})
+      {className: 'type', begin: '\\b[A-Z][\\w]*(\\((\\.\\.|,|\\w+)\\))?'}
     ].concat(COMMENT_MODES)
   };
 
@@ -5399,7 +5766,7 @@ module.exports = function(hljs) {
     ].concat(COMMENT_MODES)
   };
 };
-},{}],39:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     subLanguage: 'xml',
@@ -5414,7 +5781,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],40:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     keywords: {
@@ -5462,7 +5829,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],41:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 module.exports = function(hljs) {
   var BASIC_ATOM_RE = '[a-z\'][a-zA-Z0-9_\']*';
   var FUNCTION_NAME_RE = '(' + BASIC_ATOM_RE + ':' + BASIC_ATOM_RE + '|' + BASIC_ATOM_RE + ')';
@@ -5614,7 +5981,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],42:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     contains: [
@@ -5643,7 +6010,7 @@ module.exports = function(hljs) {
     case_insensitive: true
   };
 };
-},{}],43:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 module.exports = function(hljs) {
   var PARAMS = {
     className: 'params',
@@ -5670,7 +6037,7 @@ module.exports = function(hljs) {
       'c_new_line c_carriage_return c_horizontal_tab c_vertical_tab iso_c_binding c_loc c_funloc c_associated  c_f_pointer ' +
       'c_ptr c_funptr iso_fortran_env character_storage_size error_unit file_storage_size input_unit iostat_end iostat_eor ' +
       'numeric_storage_size output_unit c_f_procpointer ieee_arithmetic ieee_support_underflow_control ' +
-      'ieee_get_underflow_mode ieee_set_underflow_mode newunit contiguous ' +
+      'ieee_get_underflow_mode ieee_set_underflow_mode newunit contiguous recursive ' +
       'pad position action delim readwrite eor advance nml interface procedure namelist include sequence elemental pure',
     built_in: 'alog alog10 amax0 amax1 amin0 amin1 amod cabs ccos cexp clog csin csqrt dabs dacos dasin datan datan2 dcos dcosh ddim dexp dint ' +
       'dlog dlog10 dmax1 dmin1 dmod dnint dsign dsin dsinh dsqrt dtan dtanh float iabs idim idint idnint ifix isign max0 max1 min0 min1 sngl ' +
@@ -5695,9 +6062,10 @@ module.exports = function(hljs) {
     case_insensitive: true,
     aliases: ['f90', 'f95'],
     keywords: F_KEYWORDS,
+    illegal: /\/\*/,
     contains: [
       hljs.inherit(hljs.APOS_STRING_MODE, {className: 'string', relevance: 0}),
-      hljs.inherit(hljs.QUOTE_STRING_MODE,{className: 'string', relevance: 0}),
+      hljs.inherit(hljs.QUOTE_STRING_MODE, {className: 'string', relevance: 0}),
       {
         className: 'function',
         beginKeywords: 'subroutine function program',
@@ -5713,7 +6081,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],44:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 module.exports = function(hljs) {
   var TYPEPARAM = {
     begin: '<', end: '>',
@@ -5725,16 +6093,19 @@ module.exports = function(hljs) {
   return {
     aliases: ['fs'],
     keywords:
-      // monad builder keywords (at top, matches before non-bang kws)
-      'yield! return! let! do!' +
-      // regular keywords
       'abstract and as assert base begin class default delegate do done ' +
       'downcast downto elif else end exception extern false finally for ' +
       'fun function global if in inherit inline interface internal lazy let ' +
       'match member module mutable namespace new null of open or ' +
       'override private public rec return sig static struct then to ' +
       'true try type upcast use val void when while with yield',
+    illegal: /\/\*/,
     contains: [
+      {
+        // monad builder keywords (matches before non-bang kws)
+        className: 'keyword',
+        begin: /\b(yield|return|let|do)!/
+      },
       {
         className: 'string',
         begin: '@"', end: '"',
@@ -5769,7 +6140,44 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],45:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
+module.exports = function (hljs) {
+  var KEYWORDS =
+    'abort acronym acronyms alias all and assign binary card diag display else1 eps eq equation equations file files ' +
+    'for1 free ge gt if inf integer le loop lt maximizing minimizing model models na ne negative no not option ' +
+    'options or ord parameter parameters positive prod putpage puttl repeat sameas scalar scalars semicont semiint ' +
+    'set1 sets smax smin solve sos1 sos2 sum system table then until using variable variables while1 xor yes';
+
+  return {
+    aliases: ['gms'],
+    case_insensitive: true,
+    keywords: KEYWORDS,
+    contains: [
+      {
+        className: 'section',
+        beginKeywords: 'sets parameters variables equations',
+        end: ';',
+        contains: [
+          {
+            begin: '/',
+            end: '/',
+            contains: [hljs.NUMBER_MODE]
+          }
+        ]
+      },
+      {
+        className: 'string',
+        begin: '\\*{3}', end: '\\*{3}'
+      },
+      hljs.NUMBER_MODE,
+      {
+        className: 'number',
+        begin: '\\$[a-zA-Z0-9]+'
+      }
+    ]
+  };
+};
+},{}],49:[function(require,module,exports){
 module.exports = function(hljs) {
     var GCODE_IDENT_RE = '[A-Z_][A-Z0-9_.]*';
     var GCODE_CLOSE_RE = '\\%';
@@ -5842,7 +6250,7 @@ module.exports = function(hljs) {
         ].concat(GCODE_CODE)
     };
 };
-},{}],46:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 module.exports = function (hljs) {
   return {
     aliases: ['feature'],
@@ -5875,7 +6283,7 @@ module.exports = function (hljs) {
     ]
   };
 };
-},{}],47:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     keywords: {
@@ -5969,7 +6377,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],48:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 module.exports = function(hljs) {
   var GO_KEYWORDS = {
     keyword:
@@ -6008,7 +6416,31 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],49:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
+module.exports = function(hljs) {
+    return {
+      keywords: {
+        keyword:
+          'println readln print import module function local return let var ' +
+          'while for foreach times in case when match with break continue ' +
+          'augment augmentation each find filter reduce ' +
+          'if then else otherwise try catch finally raise throw orIfNull',
+        typename:
+          'DynamicObject|10 DynamicVariable struct Observable map set vector list array',
+        literal:
+          'true false null'
+      },
+      contains: [
+        hljs.HASH_COMMENT_MODE,
+        hljs.QUOTE_STRING_MODE,
+        hljs.C_NUMBER_MODE,
+        {
+          className: 'annotation', begin: '@[A-Za-z]+'
+        }
+      ]
+    }
+};
+},{}],54:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     case_insensitive: true,
@@ -6043,7 +6475,7 @@ module.exports = function(hljs) {
     ]
   }
 };
-},{}],50:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 module.exports = function(hljs) {
     return {
         keywords: {
@@ -6131,7 +6563,7 @@ module.exports = function(hljs) {
         illegal: /#/
     }
 };
-},{}],51:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 module.exports = // TODO support filter tags like :javascript, support inline HTML
 function(hljs) {
   return {
@@ -6239,7 +6671,7 @@ function(hljs) {
     ]
   };
 };
-},{}],52:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 module.exports = function(hljs) {
   var EXPRESSION_KEYWORDS = 'each in with if else unless bindattr action collection debugger log outlet template unbound view yield';
   return {
@@ -6272,7 +6704,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],53:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 module.exports = function(hljs) {
   var COMMENT_MODES = [
     hljs.COMMENT('--', '$'),
@@ -6396,7 +6828,7 @@ module.exports = function(hljs) {
     ].concat(COMMENT_MODES)
   };
 };
-},{}],54:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 module.exports = function(hljs) {
   var IDENT_RE = '[a-zA-Z_$][a-zA-Z0-9_$]*';
   var IDENT_FUNC_RETURN_TYPE_RE = '([*]|[a-zA-Z_$][a-zA-Z0-9_$]*)';
@@ -6457,7 +6889,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],55:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['https'],
@@ -6492,7 +6924,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],56:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 module.exports = function(hljs) {
   var START_BRACKET = '\\[';
   var END_BRACKET = '\\]';
@@ -6503,14 +6935,14 @@ module.exports = function(hljs) {
       // Some keywords more or less unique to I7, for relevance.
       keyword:
         // kind:
-        'thing|10 room|10 person|10 man|10 woman|10 animal|10 container ' +
-        'supporter|10 backdrop|10 door|10 ' +
+        'thing room person man woman animal container ' +
+        'supporter backdrop door ' +
         // characteristic:
-        'scenery|10 open closed|10 locked|10 inside|10 gender|10 ' +
+        'scenery open closed locked inside gender ' +
         // verb:
-        'is are say|10 understand|10 ' +
+        'is are say understand ' +
         // misc keyword:
-        'kind|10 of rule|10'
+        'kind of rule'
     },
     contains: [
       {
@@ -6526,31 +6958,21 @@ module.exports = function(hljs) {
       },
       {
         className: 'title',
-        beginKeywords: '^Volume ^Book ^Part ^Chapter ^Section',
-        end: '$',
-        relevance: 10
-      },
-      {
-        // Table
-        className: 'title',
-        beginKeywords: '^Table',
-        end: '$',
-        relevance: 10
+        begin: /^(Volume|Book|Part|Chapter|Section|Table)\b/,
+        end: '$'
       },
       {
         // Rule definition
         // This is here for relevance.
-        begin: '^\\b(Check|Carry out|Report|Instead of|To|Rule|When|Before|After)',
+        begin: /^(Check|Carry out|Report|Instead of|To|Rule|When|Before|After)\b/,
         end: ':',
         contains: [
           {
             //Rule name
             begin: '\\b\\(This',
-            end: '\\)',
-            relevance: 10
+            end: '\\)'
           }
-        ],
-        relevance: 10
+        ]
       },
       {
         className: 'comment',
@@ -6560,7 +6982,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],57:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 module.exports = function(hljs) {
   var STRING = {
     className: "string",
@@ -6620,7 +7042,83 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],58:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
+module.exports = function(hljs) {
+  var PARAMS = {
+    className: 'params',
+    begin: '\\(', end: '\\)'
+  };
+
+  var F_KEYWORDS = {
+    constant: '.False. .True.',
+    type: 'integer real character complex logical dimension allocatable|10 parameter ' +
+      'external implicit|10 none double precision assign intent optional pointer ' +
+      'target in out common equivalence data',
+    keyword: 'kind do while private call intrinsic where elsewhere ' +
+      'type endtype endmodule endselect endinterface end enddo endif if forall endforall only contains default return stop then ' +
+      'public subroutine|10 function program .and. .or. .not. .le. .eq. .ge. .gt. .lt. ' +
+      'goto save else use module select case ' +
+      'access blank direct exist file fmt form formatted iostat name named nextrec number opened rec recl sequential status unformatted unit ' +
+      'continue format pause cycle exit ' +
+      'c_null_char c_alert c_backspace c_form_feed flush wait decimal round iomsg ' +
+      'synchronous nopass non_overridable pass protected volatile abstract extends import ' +
+      'non_intrinsic value deferred generic final enumerator class associate bind enum ' +
+      'c_int c_short c_long c_long_long c_signed_char c_size_t c_int8_t c_int16_t c_int32_t c_int64_t c_int_least8_t c_int_least16_t ' +
+      'c_int_least32_t c_int_least64_t c_int_fast8_t c_int_fast16_t c_int_fast32_t c_int_fast64_t c_intmax_t C_intptr_t c_float c_double ' +
+      'c_long_double c_float_complex c_double_complex c_long_double_complex c_bool c_char c_null_ptr c_null_funptr ' +
+      'c_new_line c_carriage_return c_horizontal_tab c_vertical_tab iso_c_binding c_loc c_funloc c_associated  c_f_pointer ' +
+      'c_ptr c_funptr iso_fortran_env character_storage_size error_unit file_storage_size input_unit iostat_end iostat_eor ' +
+      'numeric_storage_size output_unit c_f_procpointer ieee_arithmetic ieee_support_underflow_control ' +
+      'ieee_get_underflow_mode ieee_set_underflow_mode newunit contiguous recursive ' +
+      'pad position action delim readwrite eor advance nml interface procedure namelist include sequence elemental pure ' +
+      // IRPF90 special keywords
+      'begin_provider &begin_provider end_provider begin_shell end_shell begin_template end_template subst assert touch ' +
+      'soft_touch provide no_dep free irp_if irp_else irp_endif irp_write irp_read',
+    built_in: 'alog alog10 amax0 amax1 amin0 amin1 amod cabs ccos cexp clog csin csqrt dabs dacos dasin datan datan2 dcos dcosh ddim dexp dint ' +
+      'dlog dlog10 dmax1 dmin1 dmod dnint dsign dsin dsinh dsqrt dtan dtanh float iabs idim idint idnint ifix isign max0 max1 min0 min1 sngl ' +
+      'algama cdabs cdcos cdexp cdlog cdsin cdsqrt cqabs cqcos cqexp cqlog cqsin cqsqrt dcmplx dconjg derf derfc dfloat dgamma dimag dlgama ' +
+      'iqint qabs qacos qasin qatan qatan2 qcmplx qconjg qcos qcosh qdim qerf qerfc qexp qgamma qimag qlgama qlog qlog10 qmax1 qmin1 qmod ' +
+      'qnint qsign qsin qsinh qsqrt qtan qtanh abs acos aimag aint anint asin atan atan2 char cmplx conjg cos cosh exp ichar index int log ' +
+      'log10 max min nint sign sin sinh sqrt tan tanh print write dim lge lgt lle llt mod nullify allocate deallocate ' +
+      'adjustl adjustr all allocated any associated bit_size btest ceiling count cshift date_and_time digits dot_product ' +
+      'eoshift epsilon exponent floor fraction huge iand ibclr ibits ibset ieor ior ishft ishftc lbound len_trim matmul ' +
+      'maxexponent maxloc maxval merge minexponent minloc minval modulo mvbits nearest pack present product ' +
+      'radix random_number random_seed range repeat reshape rrspacing scale scan selected_int_kind selected_real_kind ' +
+      'set_exponent shape size spacing spread sum system_clock tiny transpose trim ubound unpack verify achar iachar transfer ' +
+      'dble entry dprod cpu_time command_argument_count get_command get_command_argument get_environment_variable is_iostat_end ' +
+      'ieee_arithmetic ieee_support_underflow_control ieee_get_underflow_mode ieee_set_underflow_mode ' +
+      'is_iostat_eor move_alloc new_line selected_char_kind same_type_as extends_type_of'  +
+      'acosh asinh atanh bessel_j0 bessel_j1 bessel_jn bessel_y0 bessel_y1 bessel_yn erf erfc erfc_scaled gamma log_gamma hypot norm2 ' +
+      'atomic_define atomic_ref execute_command_line leadz trailz storage_size merge_bits ' +
+      'bge bgt ble blt dshiftl dshiftr findloc iall iany iparity image_index lcobound ucobound maskl maskr ' +
+      'num_images parity popcnt poppar shifta shiftl shiftr this_image ' +
+      // IRPF90 special built_ins
+      'IRP_ALIGN irp_here'
+  };
+  return {
+    case_insensitive: true,
+    keywords: F_KEYWORDS,
+    illegal: /\/\*/,
+    contains: [
+      hljs.inherit(hljs.APOS_STRING_MODE, {className: 'string', relevance: 0}),
+      hljs.inherit(hljs.QUOTE_STRING_MODE, {className: 'string', relevance: 0}),
+      {
+        className: 'function',
+        beginKeywords: 'subroutine function program',
+        illegal: '[${=\\n]',
+        contains: [hljs.UNDERSCORE_TITLE_MODE, PARAMS]
+      },
+      hljs.COMMENT('!', '$', {relevance: 0}),
+      hljs.COMMENT('begin_doc', 'end_doc', {relevance: 10}),
+      {
+        className: 'number',
+        begin: '(?=\\b|\\+|\\-|\\.)(?=\\.\\d|\\d)(?:\\d+)?(?:\\.?\\d*)(?:[de][+-]?\\d+)?\\b\\.?',
+        relevance: 0
+      }
+    ]
+  };
+};
+},{}],64:[function(require,module,exports){
 module.exports = function(hljs) {
   var GENERIC_IDENT_RE = hljs.UNDERSCORE_IDENT_RE + '(<' + hljs.UNDERSCORE_IDENT_RE + '>)?';
   var KEYWORDS =
@@ -6720,7 +7218,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],59:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['js'],
@@ -6799,8 +7297,7 @@ module.exports = function(hljs) {
             contains: [
               hljs.C_LINE_COMMENT_MODE,
               hljs.C_BLOCK_COMMENT_MODE
-            ],
-            illegal: /["'\(]/
+            ]
           }
         ],
         illegal: /\[|%/
@@ -6833,7 +7330,7 @@ module.exports = function(hljs) {
     illegal: /#/
   };
 };
-},{}],60:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 module.exports = function(hljs) {
   var LITERALS = {literal: 'true false null'};
   var TYPES = [
@@ -6871,7 +7368,7 @@ module.exports = function(hljs) {
     illegal: '\\S'
   };
 };
-},{}],61:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 module.exports = function(hljs) {
   // Since there are numerous special names in Julia, it is too much trouble
   // to maintain them by hand. Hence these names (i.e. keywords, literals and
@@ -6910,7 +7407,7 @@ module.exports = function(hljs) {
       'true false ANY ARGS CPU_CORES C_NULL DL_LOAD_PATH DevNull ENDIAN_BOM ENV I|0 Inf Inf16 Inf32 ' +
       'InsertionSort JULIA_HOME LOAD_PATH MS_ASYNC MS_INVALIDATE MS_SYNC MergeSort NaN NaN16 NaN32 OS_NAME QuickSort ' +
       'RTLD_DEEPBIND RTLD_FIRST RTLD_GLOBAL RTLD_LAZY RTLD_LOCAL RTLD_NODELETE RTLD_NOLOAD RTLD_NOW RoundDown ' +
-      'RoundFromZero RoundNearest RoundToZero RoundUp STDERR STDIN STDOUT VERSION WORD_SIZE catalan cglobal e eu ' +
+      'RoundFromZero RoundNearest RoundToZero RoundUp STDERR STDIN STDOUT VERSION WORD_SIZE catalan cglobal e|0 eu|0 ' +
       'eulergamma golden im nothing pi γ π φ',
 
     // # built_in generator:
@@ -7032,7 +7529,7 @@ module.exports = function(hljs) {
 
   return DEFAULT;
 };
-},{}],62:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 module.exports = function (hljs) {
   var KEYWORDS = 'val var get set class trait object public open private protected ' +
     'final enum if else do while for when break continue throw try catch finally ' +
@@ -7133,7 +7630,7 @@ module.exports = function (hljs) {
     ]
   };
 };
-},{}],63:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 module.exports = function(hljs) {
   var LASSO_IDENT_RE = '[a-zA-Z_][a-zA-Z0-9_.]*';
   var LASSO_ANGLE_RE = '<\\?(lasso(script)?|=)';
@@ -7319,7 +7816,7 @@ module.exports = function(hljs) {
     ].concat(LASSO_CODE)
   };
 };
-},{}],64:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 module.exports = function(hljs) {
   var IDENT_RE        = '[\\w-]+'; // yes, Less identifiers may begin with a digit
   var INTERP_IDENT_RE = '(' + IDENT_RE + '|@{' + IDENT_RE + '})';
@@ -7456,7 +7953,7 @@ module.exports = function(hljs) {
     contains: RULES
   };
 };
-},{}],65:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 module.exports = function(hljs) {
   var LISP_IDENT_RE = '[a-zA-Z_\\-\\+\\*\\/\\<\\=\\>\\&\\#][a-zA-Z0-9_\\-\\+\\*\\/\\<\\=\\>\\&\\#!]*';
   var MEC_RE = '\\|[^]*?\\|';
@@ -7563,7 +8060,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],66:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 module.exports = function(hljs) {
   var VARIABLE = {
     className: 'variable', begin: '\\b[gtps][A-Z]+[A-Za-z0-9_\\-]*\\b|\\$_[A-Z]+',
@@ -7721,7 +8218,7 @@ module.exports = function(hljs) {
     illegal: ';$|^\\[|^='
   };
 };
-},{}],67:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 module.exports = function(hljs) {
   var KEYWORDS = {
     keyword:
@@ -7872,7 +8369,7 @@ module.exports = function(hljs) {
     ])
   };
 };
-},{}],68:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 module.exports = function(hljs) {
   var OPENING_LONG_BRACKET = '\\[=*\\[';
   var CLOSING_LONG_BRACKET = '\\]=*\\]';
@@ -7928,7 +8425,7 @@ module.exports = function(hljs) {
     ])
   };
 };
-},{}],69:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 module.exports = function(hljs) {
   var VARIABLE = {
     className: 'variable',
@@ -7974,7 +8471,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],70:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['md', 'mkdown', 'mkd'],
@@ -8076,7 +8573,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],71:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['mma'],
@@ -8135,7 +8632,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],72:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 module.exports = function(hljs) {
   var COMMON_CONTAINS = [
     hljs.C_NUMBER_MODE,
@@ -8226,7 +8723,7 @@ module.exports = function(hljs) {
     ].concat(COMMON_CONTAINS)
   };
 };
-},{}],73:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     keywords:
@@ -8456,7 +8953,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],74:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 module.exports = function(hljs) {
   var KEYWORDS = {
     keyword:
@@ -8545,7 +9042,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],75:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     keywords:
@@ -8564,7 +9061,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],76:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     subLanguage: 'xml',
@@ -8589,7 +9086,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],77:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 module.exports = function(hljs) {
   var NUMBER = {
     className: 'number', relevance: 0,
@@ -8613,6 +9110,7 @@ module.exports = function(hljs) {
 
       literal: 'true false null and or shl shr mod'
     },
+    illegal: /\/\*/,
     contains: [
       hljs.COMMENT('#rem', '#end'),
       hljs.COMMENT(
@@ -8667,7 +9165,7 @@ module.exports = function(hljs) {
     ]
   }
 };
-},{}],78:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 module.exports = function(hljs) {
   var VAR = {
     className: 'variable',
@@ -8749,12 +9247,12 @@ module.exports = function(hljs) {
     illegal: '[^\\s\\}]'
   };
 };
-},{}],79:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['nim'],
     keywords: {
-      keyword: 'addr and as asm bind block break|0 case|0 cast const|0 continue|0 converter discard distinct|10 div do elif else|0 end|0 enum|0 except export finally for from generic if|0 import|0 in include|0 interface is isnot|10 iterator|10 let|0 macro method|10 mixin mod nil not notin|10 object|0 of or out proc|10 ptr raise ref|10 return shl shr static template|10 try|0 tuple type|0 using|0 var|0 when while|0 with without xor yield',
+      keyword: 'addr and as asm bind block break|0 case|0 cast const|0 continue|0 converter discard distinct|10 div do elif else|0 end|0 enum|0 except export finally for from generic if|0 import|0 in include|0 interface is isnot|10 iterator|10 let|0 macro method|10 mixin mod nil not notin|10 object|0 of or out proc|10 ptr raise ref|10 return shl shr static template try|0 tuple type|0 using|0 var|0 when while|0 with without xor yield',
       literal: 'shared guarded stdin stdout stderr result|10 true false'
     },
     contains: [ {
@@ -8801,7 +9299,7 @@ module.exports = function(hljs) {
     ]
   }
 };
-},{}],80:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 module.exports = function(hljs) {
   var NIX_KEYWORDS = {
     keyword: 'rec with let in inherit assert if else then',
@@ -8852,7 +9350,7 @@ module.exports = function(hljs) {
     contains: EXPRESSIONS
   };
 };
-},{}],81:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 module.exports = function(hljs) {
   var CONSTANTS = {
     className: 'symbol',
@@ -8940,7 +9438,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],82:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 module.exports = function(hljs) {
   var API_CLASS = {
     className: 'built_in',
@@ -9019,7 +9517,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],83:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 module.exports = function(hljs) {
   /* missing support for heredoc-like string (OCaml 4.0.2+) */
   return {
@@ -9046,7 +9544,8 @@ module.exports = function(hljs) {
     contains: [
       {
         className: 'literal',
-        begin: '\\[(\\|\\|)?\\]|\\(\\)'
+        begin: '\\[(\\|\\|)?\\]|\\(\\)',
+        relevance: 0
       },
       hljs.COMMENT(
         '\\(\\*',
@@ -9089,7 +9588,7 @@ module.exports = function(hljs) {
     ]
   }
 };
-},{}],84:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 module.exports = function(hljs) {
 	var SPECIAL_VARS = {
 		className: 'keyword',
@@ -9141,14 +9640,13 @@ module.exports = function(hljs) {
 			NUMBERS,
 			PREPRO,
 			STRING,
-			PARAMS,
 			SPECIAL_VARS,
 			MODIFIERS,
 			FUNCTIONS
 		]
 	}
 };
-},{}],85:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 module.exports = function(hljs) {
   var OXYGENE_KEYWORDS = 'abstract add and array as asc aspect assembly async begin break block by case class concat const copy constructor continue '+
     'create default delegate desc distinct div do downto dynamic each else empty end ensure enum equals event except exit extension external false '+
@@ -9217,7 +9715,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],86:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 module.exports = function(hljs) {
   var CURLY_SUBCOMMENT = hljs.COMMENT(
     '{',
@@ -9265,7 +9763,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],87:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 module.exports = function(hljs) {
   var PERL_KEYWORDS = 'getpwent getservent quotemeta msgrcv scalar kill dbmclose undef lc ' +
     'ma syswrite tr send umask sysopen shmwrite vec qx utime local oct semctl localtime ' +
@@ -9422,7 +9920,7 @@ module.exports = function(hljs) {
     contains: PERL_DEFAULT_CONTAINS
   };
 };
-},{}],88:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 module.exports = function(hljs) {
   var MACRO = {
     className: 'variable',
@@ -9463,18 +9961,18 @@ module.exports = function(hljs) {
         'max-src-conn-rate overload flush' +
         'scrub|5 max-mss min-ttl no-df|10 random-id',
       literal:
-        'all any no-route self urpf-failed egress|5 unknown',
+        'all any no-route self urpf-failed egress|5 unknown'
     },
     contains: [
       hljs.HASH_COMMENT_MODE,
       hljs.NUMBER_MODE,
       hljs.QUOTE_STRING_MODE,
       MACRO,
-      TABLE,
+      TABLE
     ]
   };
 };
-},{}],89:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 module.exports = function(hljs) {
   var VARIABLE = {
     className: 'variable', begin: '\\$+[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'
@@ -9536,8 +10034,17 @@ module.exports = function(hljs) {
       ),
       {
         className: 'string',
-        begin: '<<<[\'"]?\\w+[\'"]?$', end: '^\\w+;',
-        contains: [hljs.BACKSLASH_ESCAPE]
+        begin: /<<<['"]?\w+['"]?$/, end: /^\w+;?$/,
+        contains: [
+          hljs.BACKSLASH_ESCAPE,
+          {
+            className: 'subst',
+            variants: [
+              {begin: /\$\w+/},
+              {begin: /\{\$/, end: /\}/}
+            ]
+          }
+        ]
       },
       PREPROCESSOR,
       VARIABLE,
@@ -9590,14 +10097,10 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],90:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 module.exports = function(hljs) {
   var backtickEscape = {
     begin: '`[\\s\\S]',
-    relevance: 0
-  };
-  var dollarEscape = {
-    begin: '\\$\\$[\\s\\S]',
     relevance: 0
   };
   var VAR = {
@@ -9642,7 +10145,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],91:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     keywords: {
@@ -9690,7 +10193,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],92:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     contains: [
@@ -9732,7 +10235,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],93:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 module.exports = function(hljs) {
 
   var ATOM = {
@@ -9821,7 +10324,7 @@ module.exports = function(hljs) {
     ])
   };
 };
-},{}],94:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     keywords: {
@@ -9858,7 +10361,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],95:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 module.exports = function(hljs) {
 
   var PUPPET_KEYWORDS = {
@@ -9966,7 +10469,7 @@ module.exports = function(hljs) {
     ]
   }
 };
-},{}],96:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 module.exports = function(hljs) {
   var PROMPT = {
     className: 'prompt',  begin: /^(>>>|\.\.\.) /
@@ -10022,7 +10525,7 @@ module.exports = function(hljs) {
       keyword:
         'and elif is global as in if from raise for except finally print import pass return ' +
         'exec else break not with class assert yield try while continue del or def lambda ' +
-        'nonlocal|10 None True False',
+        'async await nonlocal|10 None True False',
       built_in:
         'Ellipsis NotImplemented'
     },
@@ -10051,7 +10554,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],97:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 module.exports = function(hljs) {
   var Q_KEYWORDS = {
   keyword:
@@ -10074,7 +10577,7 @@ module.exports = function(hljs) {
      ]
   };
 };
-},{}],98:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 module.exports = function(hljs) {
   var IDENT_RE = '([a-zA-Z]|\\.[a-zA-Z.])[a-zA-Z0-9._]*';
 
@@ -10144,7 +10647,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],99:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     keywords:
@@ -10171,7 +10674,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],100:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 module.exports = function(hljs) {
   var IDENTIFIER = '[a-zA-Z-_][^\n{\r\n]+\\{';
 
@@ -10231,7 +10734,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],101:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     keywords: {
@@ -10268,7 +10771,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],102:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 module.exports = function(hljs) {
   var RUBY_METHOD_RE = '[a-zA-Z_]\\w*[!?=]?|[-+~]\\@|<<|>>|=~|===?|<=>|[<>]=?|\\*\\*|[-/+%^&*~`|]|\\[\\]=?';
   var RUBY_KEYWORDS =
@@ -10356,7 +10859,6 @@ module.exports = function(hljs) {
     {
       className: 'function',
       beginKeywords: 'def', end: '$|;',
-      relevance: 0,
       contains: [
         hljs.inherit(hljs.TITLE_MODE, {begin: RUBY_METHOD_RE}),
         PARAMS
@@ -10435,10 +10937,11 @@ module.exports = function(hljs) {
   return {
     aliases: ['rb', 'gemspec', 'podspec', 'thor', 'irb'],
     keywords: RUBY_KEYWORDS,
+    illegal: /\/\*/,
     contains: COMMENT_MODES.concat(IRB_DEFAULT).concat(RUBY_DEFAULT_CONTAINS)
   };
 };
-},{}],103:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     keywords: {
@@ -10499,7 +11002,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],104:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 module.exports = function(hljs) {
   var NUM_SUFFIX = '([uif](8|16|32|64|size))\?';
   var BLOCK_COMMENT = hljs.inherit(hljs.C_BLOCK_COMMENT_MODE);
@@ -10517,6 +11020,12 @@ module.exports = function(hljs) {
         'float f32 f64 ' +
         'str char bool',
       built_in:
+        // prelude
+        'Copy Send Sized Sync Drop Fn FnMut FnOnce drop Box ToOwned Clone ' +
+        'PartialEq PartialOrd Eq Ord AsRef AsMut Into From Default Iterator ' +
+        'Extend IntoIterator DoubleEndedIterator ExactSizeIterator Option ' +
+        'Some None Result Ok Err SliceConcatExt String ToString Vec ' +
+        // macros
         'assert! assert_eq! bitflags! bytes! cfg! col! concat! concat_idents! ' +
         'debug_assert! debug_assert_eq! env! panic! file! format! format_args! ' +
         'include_bin! include_str! line! local_data_key! module_path! ' +
@@ -10579,7 +11088,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],105:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 module.exports = function(hljs) {
 
   var ANNOTATION = {
@@ -10618,7 +11127,7 @@ module.exports = function(hljs) {
 
   var METHOD = {
     className: 'function',
-    beginKeywords: 'def val',
+    beginKeywords: 'def',
     end: /[:={\[(\n;]/,
     contains: [NAME]
   };
@@ -10642,7 +11151,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],106:[function(require,module,exports){
+},{}],112:[function(require,module,exports){
 module.exports = function(hljs) {
   var SCHEME_IDENT_RE = '[^\\(\\)\\[\\]\\{\\}",\'`;#|\\\\\\s]+';
   var SCHEME_SIMPLE_NUMBER_RE = '(\\-|\\+)?\\d+([./]\\d+)?';
@@ -10764,7 +11273,7 @@ module.exports = function(hljs) {
     contains: [SHEBANG, NUMBER, STRING, QUOTED_IDENT, LIST].concat(COMMENT_MODES)
   };
 };
-},{}],107:[function(require,module,exports){
+},{}],113:[function(require,module,exports){
 module.exports = function(hljs) {
 
   var COMMON_CONTAINS = [
@@ -10819,7 +11328,7 @@ module.exports = function(hljs) {
     ].concat(COMMON_CONTAINS)
   };
 };
-},{}],108:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 module.exports = function(hljs) {
   var IDENT_RE = '[a-zA-Z-][a-zA-Z0-9_-]*';
   var VARIABLE = {
@@ -10936,7 +11445,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],109:[function(require,module,exports){
+},{}],115:[function(require,module,exports){
 module.exports = function(hljs) {
   var smali_instr_low_prio = ['add', 'and', 'cmp', 'cmpg', 'cmpl', 'const', 'div', 'double', 'float', 'goto', 'if', 'int', 'long', 'move', 'mul', 'neg', 'new', 'nop', 'not', 'or', 'rem', 'return', 'shl', 'shr', 'sput', 'sub', 'throw', 'ushr', 'xor'];
   var smali_instr_high_prio = ['aget', 'aput', 'array', 'check', 'execute', 'fill', 'filled', 'goto/16', 'goto/32', 'iget', 'instance', 'invoke', 'iput', 'monitor', 'packed', 'sget', 'sparse'];
@@ -11019,7 +11528,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],110:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 module.exports = function(hljs) {
   var VAR_IDENT_RE = '[a-z][a-zA-Z0-9_]*';
   var CHAR = {
@@ -11072,7 +11581,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],111:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['ml'],
@@ -11137,19 +11646,115 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],112:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
+module.exports = function(hljs) {
+  var allCommands = ['!', '-', '+', '!=', '%', '&&', '*', '/', '=', '==', '>', '>=', '<', '<=', 'or', 'plus', '^', ':', '>>', 'abs', 'accTime', 'acos', 'action', 'actionKeys', 'actionKeysImages', 'actionKeysNames', 'actionKeysNamesArray', 'actionName', 'activateAddons', 'activatedAddons', 'activateKey', 'addAction', 'addBackpack', 'addBackpackCargo', 'addBackpackCargoGlobal', 'addBackpackGlobal', 'addCamShake', 'addCuratorAddons', 'addCuratorCameraArea', 'addCuratorEditableObjects', 'addCuratorEditingArea', 'addCuratorPoints', 'addEditorObject', 'addEventHandler', 'addGoggles', 'addGroupIcon', 'addHandgunItem', 'addHeadgear', 'addItem', 'addItemCargo', 'addItemCargoGlobal', 'addItemPool', 'addItemToBackpack', 'addItemToUniform', 'addItemToVest', 'addLiveStats', 'addMagazine', 'addMagazine array', 'addMagazineAmmoCargo', 'addMagazineCargo', 'addMagazineCargoGlobal', 'addMagazineGlobal', 'addMagazinePool', 'addMagazines', 'addMagazineTurret', 'addMenu', 'addMenuItem', 'addMissionEventHandler', 'addMPEventHandler', 'addMusicEventHandler', 'addPrimaryWeaponItem', 'addPublicVariableEventHandler', 'addRating', 'addResources', 'addScore', 'addScoreSide', 'addSecondaryWeaponItem', 'addSwitchableUnit', 'addTeamMember', 'addToRemainsCollector', 'addUniform', 'addVehicle', 'addVest', 'addWaypoint', 'addWeapon', 'addWeaponCargo', 'addWeaponCargoGlobal', 'addWeaponGlobal', 'addWeaponPool', 'addWeaponTurret', 'agent', 'agents', 'AGLToASL', 'aimedAtTarget', 'aimPos', 'airDensityRTD', 'airportSide', 'AISFinishHeal', 'alive', 'allControls', 'allCurators', 'allDead', 'allDeadMen', 'allDisplays', 'allGroups', 'allMapMarkers', 'allMines', 'allMissionObjects', 'allow3DMode', 'allowCrewInImmobile', 'allowCuratorLogicIgnoreAreas', 'allowDamage', 'allowDammage', 'allowFileOperations', 'allowFleeing', 'allowGetIn', 'allPlayers', 'allSites', 'allTurrets', 'allUnits', 'allUnitsUAV', 'allVariables', 'ammo', 'and', 'animate', 'animateDoor', 'animationPhase', 'animationState', 'append', 'armoryPoints', 'arrayIntersect', 'asin', 'ASLToAGL', 'ASLToATL', 'assert', 'assignAsCargo', 'assignAsCargoIndex', 'assignAsCommander', 'assignAsDriver', 'assignAsGunner', 'assignAsTurret', 'assignCurator', 'assignedCargo', 'assignedCommander', 'assignedDriver', 'assignedGunner', 'assignedItems', 'assignedTarget', 'assignedTeam', 'assignedVehicle', 'assignedVehicleRole', 'assignItem', 'assignTeam', 'assignToAirport', 'atan', 'atan2', 'atg', 'ATLToASL', 'attachedObject', 'attachedObjects', 'attachedTo', 'attachObject', 'attachTo', 'attackEnabled', 'backpack', 'backpackCargo', 'backpackContainer', 'backpackItems', 'backpackMagazines', 'backpackSpaceFor', 'behaviour', 'benchmark', 'binocular', 'blufor', 'boundingBox', 'boundingBoxReal', 'boundingCenter', 'breakOut', 'breakTo', 'briefingName', 'buildingExit', 'buildingPos', 'buttonAction', 'buttonSetAction', 'cadetMode', 'call', 'callExtension', 'camCommand', 'camCommit', 'camCommitPrepared', 'camCommitted', 'camConstuctionSetParams', 'camCreate', 'camDestroy', 'cameraEffect', 'cameraEffectEnableHUD', 'cameraInterest', 'cameraOn', 'cameraView', 'campaignConfigFile', 'camPreload', 'camPreloaded', 'camPrepareBank', 'camPrepareDir', 'camPrepareDive', 'camPrepareFocus', 'camPrepareFov', 'camPrepareFovRange', 'camPreparePos', 'camPrepareRelPos', 'camPrepareTarget', 'camSetBank', 'camSetDir', 'camSetDive', 'camSetFocus', 'camSetFov', 'camSetFovRange', 'camSetPos', 'camSetRelPos', 'camSetTarget', 'camTarget', 'camUseNVG', 'canAdd', 'canAddItemToBackpack', 'canAddItemToUniform', 'canAddItemToVest', 'cancelSimpleTaskDestination', 'canFire', 'canMove', 'canSlingLoad', 'canStand', 'canUnloadInCombat', 'captive', 'captiveNum', 'case', 'catch', 'cbChecked', 'cbSetChecked', 'ceil', 'cheatsEnabled', 'checkAIFeature', 'civilian', 'className', 'clearAllItemsFromBackpack', 'clearBackpackCargo', 'clearBackpackCargoGlobal', 'clearGroupIcons', 'clearItemCargo', 'clearItemCargoGlobal', 'clearItemPool', 'clearMagazineCargo', 'clearMagazineCargoGlobal', 'clearMagazinePool', 'clearOverlay', 'clearRadio', 'clearWeaponCargo', 'clearWeaponCargoGlobal', 'clearWeaponPool', 'closeDialog', 'closeDisplay', 'closeOverlay', 'collapseObjectTree', 'combatMode', 'commandArtilleryFire', 'commandChat', 'commander', 'commandFire', 'commandFollow', 'commandFSM', 'commandGetOut', 'commandingMenu', 'commandMove', 'commandRadio', 'commandStop', 'commandTarget', 'commandWatch', 'comment', 'commitOverlay', 'compile', 'compileFinal', 'completedFSM', 'composeText', 'configClasses', 'configFile', 'configHierarchy', 'configName', 'configProperties', 'configSourceMod', 'configSourceModList', 'connectTerminalToUAV', 'controlNull', 'controlsGroupCtrl', 'copyFromClipboard', 'copyToClipboard', 'copyWaypoints', 'cos', 'count', 'countEnemy', 'countFriendly', 'countSide', 'countType', 'countUnknown', 'createAgent', 'createCenter', 'createDialog', 'createDiaryLink', 'createDiaryRecord', 'createDiarySubject', 'createDisplay', 'createGearDialog', 'createGroup', 'createGuardedPoint', 'createLocation', 'createMarker', 'createMarkerLocal', 'createMenu', 'createMine', 'createMissionDisplay', 'createSimpleTask', 'createSite', 'createSoundSource', 'createTask', 'createTeam', 'createTrigger', 'createUnit', 'createUnit array', 'createVehicle', 'createVehicle array', 'createVehicleCrew', 'createVehicleLocal', 'crew', 'ctrlActivate', 'ctrlAddEventHandler', 'ctrlAutoScrollDelay', 'ctrlAutoScrollRewind', 'ctrlAutoScrollSpeed', 'ctrlChecked', 'ctrlClassName', 'ctrlCommit', 'ctrlCommitted', 'ctrlCreate', 'ctrlDelete', 'ctrlEnable', 'ctrlEnabled', 'ctrlFade', 'ctrlHTMLLoaded', 'ctrlIDC', 'ctrlIDD', 'ctrlMapAnimAdd', 'ctrlMapAnimClear', 'ctrlMapAnimCommit', 'ctrlMapAnimDone', 'ctrlMapCursor', 'ctrlMapMouseOver', 'ctrlMapScale', 'ctrlMapScreenToWorld', 'ctrlMapWorldToScreen', 'ctrlModel', 'ctrlModelDirAndUp', 'ctrlModelScale', 'ctrlParent', 'ctrlPosition', 'ctrlRemoveAllEventHandlers', 'ctrlRemoveEventHandler', 'ctrlScale', 'ctrlSetActiveColor', 'ctrlSetAutoScrollDelay', 'ctrlSetAutoScrollRewind', 'ctrlSetAutoScrollSpeed', 'ctrlSetBackgroundColor', 'ctrlSetChecked', 'ctrlSetEventHandler', 'ctrlSetFade', 'ctrlSetFocus', 'ctrlSetFont', 'ctrlSetFontH1', 'ctrlSetFontH1B', 'ctrlSetFontH2', 'ctrlSetFontH2B', 'ctrlSetFontH3', 'ctrlSetFontH3B', 'ctrlSetFontH4', 'ctrlSetFontH4B', 'ctrlSetFontH5', 'ctrlSetFontH5B', 'ctrlSetFontH6', 'ctrlSetFontH6B', 'ctrlSetFontHeight', 'ctrlSetFontHeightH1', 'ctrlSetFontHeightH2', 'ctrlSetFontHeightH3', 'ctrlSetFontHeightH4', 'ctrlSetFontHeightH5', 'ctrlSetFontHeightH6', 'ctrlSetFontP', 'ctrlSetFontPB', 'ctrlSetForegroundColor', 'ctrlSetModel', 'ctrlSetModelDirAndUp', 'ctrlSetModelScale', 'ctrlSetPosition', 'ctrlSetScale', 'ctrlSetStructuredText', 'ctrlSetText', 'ctrlSetTextColor', 'ctrlSetTooltip', 'ctrlSetTooltipColorBox', 'ctrlSetTooltipColorShade', 'ctrlSetTooltipColorText', 'ctrlShow', 'ctrlShown', 'ctrlText', 'ctrlTextHeight', 'ctrlType', 'ctrlVisible', 'curatorAddons', 'curatorCamera', 'curatorCameraArea', 'curatorCameraAreaCeiling', 'curatorCoef', 'curatorEditableObjects', 'curatorEditingArea', 'curatorEditingAreaType', 'curatorMouseOver', 'curatorPoints', 'curatorRegisteredObjects', 'curatorSelected', 'curatorWaypointCost', 'currentChannel', 'currentCommand', 'currentMagazine', 'currentMagazineDetail', 'currentMagazineDetailTurret', 'currentMagazineTurret', 'currentMuzzle', 'currentNamespace', 'currentTask', 'currentTasks', 'currentThrowable', 'currentVisionMode', 'currentWaypoint', 'currentWeapon', 'currentWeaponMode', 'currentWeaponTurret', 'currentZeroing', 'cursorTarget', 'customChat', 'customRadio', 'cutFadeOut', 'cutObj', 'cutRsc', 'cutText', 'damage', 'date', 'dateToNumber', 'daytime', 'deActivateKey', 'debriefingText', 'debugFSM', 'debugLog', 'default', 'deg', 'deleteAt', 'deleteCenter', 'deleteCollection', 'deleteEditorObject', 'deleteGroup', 'deleteIdentity', 'deleteLocation', 'deleteMarker', 'deleteMarkerLocal', 'deleteRange', 'deleteResources', 'deleteSite', 'deleteStatus', 'deleteTeam', 'deleteVehicle', 'deleteVehicleCrew', 'deleteWaypoint', 'detach', 'detectedMines', 'diag activeMissionFSMs', 'diag activeSQFScripts', 'diag activeSQSScripts', 'diag captureFrame', 'diag captureSlowFrame', 'diag fps', 'diag fpsMin', 'diag frameNo', 'diag log', 'diag logSlowFrame', 'diag tickTime', 'dialog', 'diarySubjectExists', 'didJIP', 'didJIPOwner', 'difficulty', 'difficultyEnabled', 'difficultyEnabledRTD', 'direction', 'directSay', 'disableAI', 'disableCollisionWith', 'disableConversation', 'disableDebriefingStats', 'disableSerialization', 'disableTIEquipment', 'disableUAVConnectability', 'disableUserInput', 'displayAddEventHandler', 'displayCtrl', 'displayNull', 'displayRemoveAllEventHandlers', 'displayRemoveEventHandler', 'displaySetEventHandler', 'dissolveTeam', 'distance', 'distance2D', 'distanceSqr', 'distributionRegion', 'do', 'doArtilleryFire', 'doFire', 'doFollow', 'doFSM', 'doGetOut', 'doMove', 'doorPhase', 'doStop', 'doTarget', 'doWatch', 'drawArrow', 'drawEllipse', 'drawIcon', 'drawIcon3D', 'drawLine', 'drawLine3D', 'drawLink', 'drawLocation', 'drawRectangle', 'driver', 'drop', 'east', 'echo', 'editObject', 'editorSetEventHandler', 'effectiveCommander', 'else', 'emptyPositions', 'enableAI', 'enableAIFeature', 'enableAttack', 'enableCamShake', 'enableCaustics', 'enableCollisionWith', 'enableCopilot', 'enableDebriefingStats', 'enableDiagLegend', 'enableEndDialog', 'enableEngineArtillery', 'enableEnvironment', 'enableFatigue', 'enableGunLights', 'enableIRLasers', 'enableMimics', 'enablePersonTurret', 'enableRadio', 'enableReload', 'enableRopeAttach', 'enableSatNormalOnDetail', 'enableSaving', 'enableSentences', 'enableSimulation', 'enableSimulationGlobal', 'enableTeamSwitch', 'enableUAVConnectability', 'enableUAVWaypoints', 'endLoadingScreen', 'endMission', 'engineOn', 'enginesIsOnRTD', 'enginesRpmRTD', 'enginesTorqueRTD', 'entities', 'estimatedEndServerTime', 'estimatedTimeLeft', 'evalObjectArgument', 'everyBackpack', 'everyContainer', 'exec', 'execEditorScript', 'execFSM', 'execVM', 'exit', 'exitWith', 'exp', 'expectedDestination', 'eyeDirection', 'eyePos', 'face', 'faction', 'fadeMusic', 'fadeRadio', 'fadeSound', 'fadeSpeech', 'failMission', 'false', 'fillWeaponsFromPool', 'find', 'findCover', 'findDisplay', 'findEditorObject', 'findEmptyPosition', 'findEmptyPositionReady', 'findNearestEnemy', 'finishMissionInit', 'finite', 'fire', 'fireAtTarget', 'firstBackpack', 'flag', 'flagOwner', 'fleeing', 'floor', 'flyInHeight', 'fog', 'fogForecast', 'fogParams', 'for', 'forceAddUniform', 'forceEnd', 'forceMap', 'forceRespawn', 'forceSpeed', 'forceWalk', 'forceWeaponFire', 'forceWeatherChange', 'forEach', 'forEachMember', 'forEachMemberAgent', 'forEachMemberTeam', 'format', 'formation', 'formationDirection', 'formationLeader', 'formationMembers', 'formationPosition', 'formationTask', 'formatText', 'formLeader', 'freeLook', 'from', 'fromEditor', 'fuel', 'fullCrew', 'gearSlotAmmoCount', 'gearSlotData', 'getAllHitPointsDamage', 'getAmmoCargo', 'getArray', 'getArtilleryAmmo', 'getArtilleryComputerSettings', 'getArtilleryETA', 'getAssignedCuratorLogic', 'getAssignedCuratorUnit', 'getBackpackCargo', 'getBleedingRemaining', 'getBurningValue', 'getCargoIndex', 'getCenterOfMass', 'getClientState', 'getConnectedUAV', 'getDammage', 'getDescription', 'getDir', 'getDirVisual', 'getDLCs', 'getEditorCamera', 'getEditorMode', 'getEditorObjectScope', 'getElevationOffset', 'getFatigue', 'getFriend', 'getFSMVariable', 'getFuelCargo', 'getGroupIcon', 'getGroupIconParams', 'getGroupIcons', 'getHideFrom', 'getHit', 'getHitIndex', 'getHitPointDamage', 'getItemCargo', 'getMagazineCargo', 'getMarkerColor', 'getMarkerPos', 'getMarkerSize', 'getMarkerType', 'getMass', 'getModelInfo', 'getNumber', 'getObjectArgument', 'getObjectChildren', 'getObjectDLC', 'getObjectMaterials', 'getObjectProxy', 'getObjectTextures', 'getObjectType', 'getObjectViewDistance', 'getOxygenRemaining', 'getPersonUsedDLCs', 'getPlayerChannel', 'getPlayerUID', 'getPos', 'getPosASL', 'getPosASLVisual', 'getPosASLW', 'getPosATL', 'getPosATLVisual', 'getPosVisual', 'getPosWorld', 'getRepairCargo', 'getResolution', 'getShadowDistance', 'getSlingLoad', 'getSpeed', 'getSuppression', 'getTerrainHeightASL', 'getText', 'getVariable', 'getWeaponCargo', 'getWPPos', 'glanceAt', 'globalChat', 'globalRadio', 'goggles', 'goto', 'group', 'groupChat', 'groupFromNetId', 'groupIconSelectable', 'groupIconsVisible', 'groupId', 'groupOwner', 'groupRadio', 'groupSelectedUnits', 'groupSelectUnit', 'grpNull', 'gunner', 'gusts', 'halt', 'handgunItems', 'handgunMagazine', 'handgunWeapon', 'handsHit', 'hasInterface', 'hasWeapon', 'hcAllGroups', 'hcGroupParams', 'hcLeader', 'hcRemoveAllGroups', 'hcRemoveGroup', 'hcSelected', 'hcSelectGroup', 'hcSetGroup', 'hcShowBar', 'hcShownBar', 'headgear', 'hideBody', 'hideObject', 'hideObjectGlobal', 'hint', 'hintC', 'hintCadet', 'hintSilent', 'hmd', 'hostMission', 'htmlLoad', 'HUDMovementLevels', 'humidity', 'if', 'image', 'importAllGroups', 'importance', 'in', 'incapacitatedState', 'independent', 'inflame', 'inflamed', 'inGameUISetEventHandler', 'inheritsFrom', 'initAmbientLife', 'inputAction', 'inRangeOfArtillery', 'insertEditorObject', 'intersect', 'isAbleToBreathe', 'isAgent', 'isArray', 'isAutoHoverOn', 'isAutonomous', 'isAutotest', 'isBleeding', 'isBurning', 'isClass', 'isCollisionLightOn', 'isCopilotEnabled', 'isDedicated', 'isDLCAvailable', 'isEngineOn', 'isEqualTo', 'isFlashlightOn', 'isFlatEmpty', 'isForcedWalk', 'isFormationLeader', 'isHidden', 'isInRemainsCollector', 'isInstructorFigureEnabled', 'isIRLaserOn', 'isKeyActive', 'isKindOf', 'isLightOn', 'isLocalized', 'isManualFire', 'isMarkedForCollection', 'isMultiplayer', 'isNil', 'isNull', 'isNumber', 'isObjectHidden', 'isObjectRTD', 'isOnRoad', 'isPipEnabled', 'isPlayer', 'isRealTime', 'isServer', 'isShowing3DIcons', 'isSteamMission', 'isStreamFriendlyUIEnabled', 'isText', 'isTouchingGround', 'isTurnedOut', 'isTutHintsEnabled', 'isUAVConnectable', 'isUAVConnected', 'isUniformAllowed', 'isWalking', 'isWeaponDeployed', 'isWeaponRested', 'itemCargo', 'items', 'itemsWithMagazines', 'join', 'joinAs', 'joinAsSilent', 'joinSilent', 'joinString', 'kbAddDatabase', 'kbAddDatabaseTargets', 'kbAddTopic', 'kbHasTopic', 'kbReact', 'kbRemoveTopic', 'kbTell', 'kbWasSaid', 'keyImage', 'keyName', 'knowsAbout', 'land', 'landAt', 'landResult', 'language', 'laserTarget', 'lbAdd', 'lbClear', 'lbColor', 'lbCurSel', 'lbData', 'lbDelete', 'lbIsSelected', 'lbPicture', 'lbSelection', 'lbSetColor', 'lbSetCurSel', 'lbSetData', 'lbSetPicture', 'lbSetPictureColor', 'lbSetPictureColorDisabled', 'lbSetPictureColorSelected', 'lbSetSelectColor', 'lbSetSelectColorRight', 'lbSetSelected', 'lbSetTooltip', 'lbSetValue', 'lbSize', 'lbSort', 'lbSortByValue', 'lbText', 'lbValue', 'leader', 'leaderboardDeInit', 'leaderboardGetRows', 'leaderboardInit', 'leaveVehicle', 'libraryCredits', 'libraryDisclaimers', 'lifeState', 'lightAttachObject', 'lightDetachObject', 'lightIsOn', 'lightnings', 'limitSpeed', 'linearConversion', 'lineBreak', 'lineIntersects', 'lineIntersectsObjs', 'lineIntersectsSurfaces', 'lineIntersectsWith', 'linkItem', 'list', 'listObjects', 'ln', 'lnbAddArray', 'lnbAddColumn', 'lnbAddRow', 'lnbClear', 'lnbColor', 'lnbCurSelRow', 'lnbData', 'lnbDeleteColumn', 'lnbDeleteRow', 'lnbGetColumnsPosition', 'lnbPicture', 'lnbSetColor', 'lnbSetColumnsPos', 'lnbSetCurSelRow', 'lnbSetData', 'lnbSetPicture', 'lnbSetText', 'lnbSetValue', 'lnbSize', 'lnbText', 'lnbValue', 'load', 'loadAbs', 'loadBackpack', 'loadFile', 'loadGame', 'loadIdentity', 'loadMagazine', 'loadOverlay', 'loadStatus', 'loadUniform', 'loadVest', 'local', 'localize', 'locationNull', 'locationPosition', 'lock', 'lockCameraTo', 'lockCargo', 'lockDriver', 'locked', 'lockedCargo', 'lockedDriver', 'lockedTurret', 'lockTurret', 'lockWP', 'log', 'logEntities', 'lookAt', 'lookAtPos', 'magazineCargo', 'magazines', 'magazinesAllTurrets', 'magazinesAmmo', 'magazinesAmmoCargo', 'magazinesAmmoFull', 'magazinesDetail', 'magazinesDetailBackpack', 'magazinesDetailUniform', 'magazinesDetailVest', 'magazinesTurret', 'magazineTurretAmmo', 'mapAnimAdd', 'mapAnimClear', 'mapAnimCommit', 'mapAnimDone', 'mapCenterOnCamera', 'mapGridPosition', 'markAsFinishedOnSteam', 'markerAlpha', 'markerBrush', 'markerColor', 'markerDir', 'markerPos', 'markerShape', 'markerSize', 'markerText', 'markerType', 'max', 'members', 'min', 'mineActive', 'mineDetectedBy', 'missionConfigFile', 'missionName', 'missionNamespace', 'missionStart', 'mod', 'modelToWorld', 'modelToWorldVisual', 'moonIntensity', 'morale', 'move', 'moveInAny', 'moveInCargo', 'moveInCommander', 'moveInDriver', 'moveInGunner', 'moveInTurret', 'moveObjectToEnd', 'moveOut', 'moveTime', 'moveTo', 'moveToCompleted', 'moveToFailed', 'musicVolume', 'name', 'name location', 'nameSound', 'nearEntities', 'nearestBuilding', 'nearestLocation', 'nearestLocations', 'nearestLocationWithDubbing', 'nearestObject', 'nearestObjects', 'nearObjects', 'nearObjectsReady', 'nearRoads', 'nearSupplies', 'nearTargets', 'needReload', 'netId', 'netObjNull', 'newOverlay', 'nextMenuItemIndex', 'nextWeatherChange', 'nil', 'nMenuItems', 'not', 'numberToDate', 'objectCurators', 'objectFromNetId', 'objectParent', 'objNull', 'objStatus', 'onBriefingGroup', 'onBriefingNotes', 'onBriefingPlan', 'onBriefingTeamSwitch', 'onCommandModeChanged', 'onDoubleClick', 'onEachFrame', 'onGroupIconClick', 'onGroupIconOverEnter', 'onGroupIconOverLeave', 'onHCGroupSelectionChanged', 'onMapSingleClick', 'onPlayerConnected', 'onPlayerDisconnected', 'onPreloadFinished', 'onPreloadStarted', 'onShowNewObject', 'onTeamSwitch', 'openCuratorInterface', 'openMap', 'openYoutubeVideo', 'opfor', 'or', 'orderGetIn', 'overcast', 'overcastForecast', 'owner', 'param', 'params', 'parseNumber', 'parseText', 'parsingNamespace', 'particlesQuality', 'pi', 'pickWeaponPool', 'pitch', 'playableSlotsNumber', 'playableUnits', 'playAction', 'playActionNow', 'player', 'playerRespawnTime', 'playerSide', 'playersNumber', 'playGesture', 'playMission', 'playMove', 'playMoveNow', 'playMusic', 'playScriptedMission', 'playSound', 'playSound3D', 'position', 'positionCameraToWorld', 'posScreenToWorld', 'posWorldToScreen', 'ppEffectAdjust', 'ppEffectCommit', 'ppEffectCommitted', 'ppEffectCreate', 'ppEffectDestroy', 'ppEffectEnable', 'ppEffectForceInNVG', 'precision', 'preloadCamera', 'preloadObject', 'preloadSound', 'preloadTitleObj', 'preloadTitleRsc', 'preprocessFile', 'preprocessFileLineNumbers', 'primaryWeapon', 'primaryWeaponItems', 'primaryWeaponMagazine', 'priority', 'private', 'processDiaryLink', 'productVersion', 'profileName', 'profileNamespace', 'profileNameSteam', 'progressLoadingScreen', 'progressPosition', 'progressSetPosition', 'publicVariable', 'publicVariableClient', 'publicVariableServer', 'pushBack', 'putWeaponPool', 'queryItemsPool', 'queryMagazinePool', 'queryWeaponPool', 'rad', 'radioChannelAdd', 'radioChannelCreate', 'radioChannelRemove', 'radioChannelSetCallSign', 'radioChannelSetLabel', 'radioVolume', 'rain', 'rainbow', 'random', 'rank', 'rankId', 'rating', 'rectangular', 'registeredTasks', 'registerTask', 'reload', 'reloadEnabled', 'remoteControl', 'remoteExec', 'remoteExecCall', 'removeAction', 'removeAllActions', 'removeAllAssignedItems', 'removeAllContainers', 'removeAllCuratorAddons', 'removeAllCuratorCameraAreas', 'removeAllCuratorEditingAreas', 'removeAllEventHandlers', 'removeAllHandgunItems', 'removeAllItems', 'removeAllItemsWithMagazines', 'removeAllMissionEventHandlers', 'removeAllMPEventHandlers', 'removeAllMusicEventHandlers', 'removeAllPrimaryWeaponItems', 'removeAllWeapons', 'removeBackpack', 'removeBackpackGlobal', 'removeCuratorAddons', 'removeCuratorCameraArea', 'removeCuratorEditableObjects', 'removeCuratorEditingArea', 'removeDrawIcon', 'removeDrawLinks', 'removeEventHandler', 'removeFromRemainsCollector', 'removeGoggles', 'removeGroupIcon', 'removeHandgunItem', 'removeHeadgear', 'removeItem', 'removeItemFromBackpack', 'removeItemFromUniform', 'removeItemFromVest', 'removeItems', 'removeMagazine', 'removeMagazineGlobal', 'removeMagazines', 'removeMagazinesTurret', 'removeMagazineTurret', 'removeMenuItem', 'removeMissionEventHandler', 'removeMPEventHandler', 'removeMusicEventHandler', 'removePrimaryWeaponItem', 'removeSecondaryWeaponItem', 'removeSimpleTask', 'removeSwitchableUnit', 'removeTeamMember', 'removeUniform', 'removeVest', 'removeWeapon', 'removeWeaponGlobal', 'removeWeaponTurret', 'requiredVersion', 'resetCamShake', 'resetSubgroupDirection', 'resistance', 'resize', 'resources', 'respawnVehicle', 'restartEditorCamera', 'reveal', 'revealMine', 'reverse', 'reversedMouseY', 'roadsConnectedTo', 'roleDescription', 'ropeAttachedObjects', 'ropeAttachedTo', 'ropeAttachEnabled', 'ropeAttachTo', 'ropeCreate', 'ropeCut', 'ropeEndPosition', 'ropeLength', 'ropes', 'ropeUnwind', 'ropeUnwound', 'rotorsForcesRTD', 'rotorsRpmRTD', 'round', 'runInitScript', 'safeZoneH', 'safeZoneW', 'safeZoneWAbs', 'safeZoneX', 'safeZoneXAbs', 'safeZoneY', 'saveGame', 'saveIdentity', 'saveJoysticks', 'saveOverlay', 'saveProfileNamespace', 'saveStatus', 'saveVar', 'savingEnabled', 'say', 'say2D', 'say3D', 'scopeName', 'score', 'scoreSide', 'screenToWorld', 'scriptDone', 'scriptName', 'scriptNull', 'scudState', 'secondaryWeapon', 'secondaryWeaponItems', 'secondaryWeaponMagazine', 'select', 'selectBestPlaces', 'selectDiarySubject', 'selectedEditorObjects', 'selectEditorObject', 'selectionPosition', 'selectLeader', 'selectNoPlayer', 'selectPlayer', 'selectWeapon', 'selectWeaponTurret', 'sendAUMessage', 'sendSimpleCommand', 'sendTask', 'sendTaskResult', 'sendUDPMessage', 'serverCommand', 'serverCommandAvailable', 'serverCommandExecutable', 'serverName', 'serverTime', 'set', 'setAccTime', 'setAirportSide', 'setAmmo', 'setAmmoCargo', 'setAperture', 'setApertureNew', 'setArmoryPoints', 'setAttributes', 'setAutonomous', 'setBehaviour', 'setBleedingRemaining', 'setCameraInterest', 'setCamShakeDefParams', 'setCamShakeParams', 'setCamUseTi', 'setCaptive', 'setCenterOfMass', 'setCollisionLight', 'setCombatMode', 'setCompassOscillation', 'setCuratorCameraAreaCeiling', 'setCuratorCoef', 'setCuratorEditingAreaType', 'setCuratorWaypointCost', 'setCurrentChannel', 'setCurrentTask', 'setCurrentWaypoint', 'setDamage', 'setDammage', 'setDate', 'setDebriefingText', 'setDefaultCamera', 'setDestination', 'setDetailMapBlendPars', 'setDir', 'setDirection', 'setDrawIcon', 'setDropInterval', 'setEditorMode', 'setEditorObjectScope', 'setEffectCondition', 'setFace', 'setFaceAnimation', 'setFatigue', 'setFlagOwner', 'setFlagSide', 'setFlagTexture', 'setFog', 'setFog array', 'setFormation', 'setFormationTask', 'setFormDir', 'setFriend', 'setFromEditor', 'setFSMVariable', 'setFuel', 'setFuelCargo', 'setGroupIcon', 'setGroupIconParams', 'setGroupIconsSelectable', 'setGroupIconsVisible', 'setGroupId', 'setGroupIdGlobal', 'setGroupOwner', 'setGusts', 'setHideBehind', 'setHit', 'setHitIndex', 'setHitPointDamage', 'setHorizonParallaxCoef', 'setHUDMovementLevels', 'setIdentity', 'setImportance', 'setLeader', 'setLightAmbient', 'setLightAttenuation', 'setLightBrightness', 'setLightColor', 'setLightDayLight', 'setLightFlareMaxDistance', 'setLightFlareSize', 'setLightIntensity', 'setLightnings', 'setLightUseFlare', 'setLocalWindParams', 'setMagazineTurretAmmo', 'setMarkerAlpha', 'setMarkerAlphaLocal', 'setMarkerBrush', 'setMarkerBrushLocal', 'setMarkerColor', 'setMarkerColorLocal', 'setMarkerDir', 'setMarkerDirLocal', 'setMarkerPos', 'setMarkerPosLocal', 'setMarkerShape', 'setMarkerShapeLocal', 'setMarkerSize', 'setMarkerSizeLocal', 'setMarkerText', 'setMarkerTextLocal', 'setMarkerType', 'setMarkerTypeLocal', 'setMass', 'setMimic', 'setMousePosition', 'setMusicEffect', 'setMusicEventHandler', 'setName', 'setNameSound', 'setObjectArguments', 'setObjectMaterial', 'setObjectProxy', 'setObjectTexture', 'setObjectTextureGlobal', 'setObjectViewDistance', 'setOvercast', 'setOwner', 'setOxygenRemaining', 'setParticleCircle', 'setParticleClass', 'setParticleFire', 'setParticleParams', 'setParticleRandom', 'setPilotLight', 'setPiPEffect', 'setPitch', 'setPlayable', 'setPlayerRespawnTime', 'setPos', 'setPosASL', 'setPosASL2', 'setPosASLW', 'setPosATL', 'setPosition', 'setPosWorld', 'setRadioMsg', 'setRain', 'setRainbow', 'setRandomLip', 'setRank', 'setRectangular', 'setRepairCargo', 'setShadowDistance', 'setSide', 'setSimpleTaskDescription', 'setSimpleTaskDestination', 'setSimpleTaskTarget', 'setSimulWeatherLayers', 'setSize', 'setSkill', 'setSkill array', 'setSlingLoad', 'setSoundEffect', 'setSpeaker', 'setSpeech', 'setSpeedMode', 'setStatValue', 'setSuppression', 'setSystemOfUnits', 'setTargetAge', 'setTaskResult', 'setTaskState', 'setTerrainGrid', 'setText', 'setTimeMultiplier', 'setTitleEffect', 'setTriggerActivation', 'setTriggerArea', 'setTriggerStatements', 'setTriggerText', 'setTriggerTimeout', 'setTriggerType', 'setType', 'setUnconscious', 'setUnitAbility', 'setUnitPos', 'setUnitPosWeak', 'setUnitRank', 'setUnitRecoilCoefficient', 'setUnloadInCombat', 'setUserActionText', 'setVariable', 'setVectorDir', 'setVectorDirAndUp', 'setVectorUp', 'setVehicleAmmo', 'setVehicleAmmoDef', 'setVehicleArmor', 'setVehicleId', 'setVehicleLock', 'setVehiclePosition', 'setVehicleTiPars', 'setVehicleVarName', 'setVelocity', 'setVelocityTransformation', 'setViewDistance', 'setVisibleIfTreeCollapsed', 'setWaves', 'setWaypointBehaviour', 'setWaypointCombatMode', 'setWaypointCompletionRadius', 'setWaypointDescription', 'setWaypointFormation', 'setWaypointHousePosition', 'setWaypointLoiterRadius', 'setWaypointLoiterType', 'setWaypointName', 'setWaypointPosition', 'setWaypointScript', 'setWaypointSpeed', 'setWaypointStatements', 'setWaypointTimeout', 'setWaypointType', 'setWaypointVisible', 'setWeaponReloadingTime', 'setWind', 'setWindDir', 'setWindForce', 'setWindStr', 'setWPPos', 'show3DIcons', 'showChat', 'showCinemaBorder', 'showCommandingMenu', 'showCompass', 'showCuratorCompass', 'showGPS', 'showHUD', 'showLegend', 'showMap', 'shownArtilleryComputer', 'shownChat', 'shownCompass', 'shownCuratorCompass', 'showNewEditorObject', 'shownGPS', 'shownHUD', 'shownMap', 'shownPad', 'shownRadio', 'shownUAVFeed', 'shownWarrant', 'shownWatch', 'showPad', 'showRadio', 'showSubtitles', 'showUAVFeed', 'showWarrant', 'showWatch', 'showWaypoint', 'side', 'sideChat', 'sideEnemy', 'sideFriendly', 'sideLogic', 'sideRadio', 'sideUnknown', 'simpleTasks', 'simulationEnabled', 'simulCloudDensity', 'simulCloudOcclusion', 'simulInClouds', 'simulWeatherSync', 'sin', 'size', 'sizeOf', 'skill', 'skillFinal', 'skipTime', 'sleep', 'sliderPosition', 'sliderRange', 'sliderSetPosition', 'sliderSetRange', 'sliderSetSpeed', 'sliderSpeed', 'slingLoadAssistantShown', 'soldierMagazines', 'someAmmo', 'sort', 'soundVolume', 'spawn', 'speaker', 'speed', 'speedMode', 'splitString', 'sqrt', 'squadParams', 'stance', 'startLoadingScreen', 'step', 'stop', 'stopped', 'str', 'sunOrMoon', 'supportInfo', 'suppressFor', 'surfaceIsWater', 'surfaceNormal', 'surfaceType', 'swimInDepth', 'switch', 'switchableUnits', 'switchAction', 'switchCamera', 'switchGesture', 'switchLight', 'switchMove', 'synchronizedObjects', 'synchronizedTriggers', 'synchronizedWaypoints', 'synchronizeObjectsAdd', 'synchronizeObjectsRemove', 'synchronizeTrigger', 'synchronizeWaypoint', 'synchronizeWaypoint trigger', 'systemChat', 'systemOfUnits', 'tan', 'targetKnowledge', 'targetsAggregate', 'targetsQuery', 'taskChildren', 'taskCompleted', 'taskDescription', 'taskDestination', 'taskHint', 'taskNull', 'taskParent', 'taskResult', 'taskState', 'teamMember', 'teamMemberNull', 'teamName', 'teams', 'teamSwitch', 'teamSwitchEnabled', 'teamType', 'terminate', 'terrainIntersect', 'terrainIntersectASL', 'text', 'text location', 'textLog', 'textLogFormat', 'tg', 'then', 'throw', 'time', 'timeMultiplier', 'titleCut', 'titleFadeOut', 'titleObj', 'titleRsc', 'titleText', 'to', 'toArray', 'toLower', 'toString', 'toUpper', 'triggerActivated', 'triggerActivation', 'triggerArea', 'triggerAttachedVehicle', 'triggerAttachObject', 'triggerAttachVehicle', 'triggerStatements', 'triggerText', 'triggerTimeout', 'triggerTimeoutCurrent', 'triggerType', 'true', 'try', 'turretLocal', 'turretOwner', 'turretUnit', 'tvAdd', 'tvClear', 'tvCollapse', 'tvCount', 'tvCurSel', 'tvData', 'tvDelete', 'tvExpand', 'tvPicture', 'tvSetCurSel', 'tvSetData', 'tvSetPicture', 'tvSetPictureColor', 'tvSetTooltip', 'tvSetValue', 'tvSort', 'tvSortByValue', 'tvText', 'tvValue', 'type', 'typeName', 'typeOf', 'UAVControl', 'uiNamespace', 'uiSleep', 'unassignCurator', 'unassignItem', 'unassignTeam', 'unassignVehicle', 'underwater', 'uniform', 'uniformContainer', 'uniformItems', 'uniformMagazines', 'unitAddons', 'unitBackpack', 'unitPos', 'unitReady', 'unitRecoilCoefficient', 'units', 'unitsBelowHeight', 'unlinkItem', 'unlockAchievement', 'unregisterTask', 'updateDrawIcon', 'updateMenuItem', 'updateObjectTree', 'useAudioTimeForMoves', 'vectorAdd', 'vectorCos', 'vectorCrossProduct', 'vectorDiff', 'vectorDir', 'vectorDirVisual', 'vectorDistance', 'vectorDistanceSqr', 'vectorDotProduct', 'vectorFromTo', 'vectorMagnitude', 'vectorMagnitudeSqr', 'vectorMultiply', 'vectorNormalized', 'vectorUp', 'vectorUpVisual', 'vehicle', 'vehicleChat', 'vehicleRadio', 'vehicles', 'vehicleVarName', 'velocity', 'velocityModelSpace', 'verifySignature', 'vest', 'vestContainer', 'vestItems', 'vestMagazines', 'viewDistance', 'visibleCompass', 'visibleGPS', 'visibleMap', 'visiblePosition', 'visiblePositionASL', 'visibleWatch', 'waitUntil', 'waves', 'waypointAttachedObject', 'waypointAttachedVehicle', 'waypointAttachObject', 'waypointAttachVehicle', 'waypointBehaviour', 'waypointCombatMode', 'waypointCompletionRadius', 'waypointDescription', 'waypointFormation', 'waypointHousePosition', 'waypointLoiterRadius', 'waypointLoiterType', 'waypointName', 'waypointPosition', 'waypoints', 'waypointScript', 'waypointsEnabledUAV', 'waypointShow', 'waypointSpeed', 'waypointStatements', 'waypointTimeout', 'waypointTimeoutCurrent', 'waypointType', 'waypointVisible', 'weaponAccessories', 'weaponCargo', 'weaponDirection', 'weaponLowered', 'weapons', 'weaponsItems', 'weaponsItemsCargo', 'weaponState', 'weaponsTurret', 'weightRTD', 'west', 'WFSideText', 'while', 'wind', 'windDir', 'windStr', 'wingsForcesRTD', 'with', 'worldName', 'worldSize', 'worldToModel', 'worldToModelVisual', 'worldToScreen'];
+  var control = ['case', 'catch', 'default', 'do', 'else', 'exit', 'exitWith|5', 'for', 'forEach', 'from', 'if', 'switch', 'then', 'throw', 'to', 'try', 'while', 'with'];
+  var operators = ['!', '-', '+', '!=', '%', '&&', '*', '/', '=', '==', '>', '>=', '<', '<=', '^', ':', '>>'];
+  var specials = ['_forEachIndex|10', '_this|10', '_x|10'];
+  var literals = ['true', 'false', 'nil'];
+  var builtins = allCommands.filter(function (command) {
+    return control.indexOf(command) == -1 &&
+        literals.indexOf(command) == -1 &&
+        operators.indexOf(command) == -1;
+  });
+  //Note: operators will not be treated as builtins due to the lexeme rules
+  builtins = builtins.concat(specials);
+
+  // In SQF strings, quotes matching the start are escaped by adding a consecutive.
+  // Example of single escaped quotes: " "" " and  ' '' '.
+  var STRINGS = {
+    className: 'string',
+    relevance: 0,
+    variants: [
+      {
+        begin: '"',
+        end: '"',
+        contains: [{begin: '""'}]
+      },
+      {
+        begin: '\'',
+        end: '\'',
+        contains: [{begin: '\'\''}]
+      }
+    ]
+  };
+
+  var NUMBERS = {
+    className: 'number',
+    begin: hljs.NUMBER_RE,
+    relevance: 0
+  };
+
+  // Preprocessor definitions borrowed from C++
+  var PREPROCESSOR_STRINGS = {
+    className: 'string',
+    variants: [
+      hljs.QUOTE_STRING_MODE,
+      {
+        begin: '\'\\\\?.', end: '\'',
+        illegal: '.'
+      }
+    ]
+  };
+
+  var PREPROCESSOR =       {
+    className: 'preprocessor',
+    begin: '#', end: '$',
+    keywords: 'if else elif endif define undef warning error line ' +
+              'pragma ifdef ifndef',
+    contains: [
+      {
+        begin: /\\\n/, relevance: 0
+      },
+      {
+        beginKeywords: 'include', end: '$',
+        contains: [
+          PREPROCESSOR_STRINGS,
+          {
+            className: 'string',
+            begin: '<', end: '>',
+            illegal: '\\n',
+          }
+        ]
+      },
+      PREPROCESSOR_STRINGS,
+      NUMBERS,
+      hljs.C_LINE_COMMENT_MODE,
+      hljs.C_BLOCK_COMMENT_MODE
+    ]
+  };
+
+  return {
+    aliases: ['sqf'],
+    case_insensitive: true,
+    keywords: {
+      keyword: control.join(' '),
+      built_in: builtins.join(' '),
+      literal: literals.join(' ')
+    },
+    contains: [
+      hljs.C_LINE_COMMENT_MODE,
+      hljs.C_BLOCK_COMMENT_MODE,
+      NUMBERS,
+      STRINGS,
+      PREPROCESSOR
+    ]
+  };
+};
+},{}],119:[function(require,module,exports){
 module.exports = function(hljs) {
   var COMMENT_MODE = hljs.COMMENT('--', '$');
   return {
     case_insensitive: true,
-    illegal: /[<>]/,
+    illegal: /[<>{}*]/,
     contains: [
       {
         className: 'operator',
         beginKeywords:
           'begin end start commit rollback savepoint lock alter create drop rename call ' +
           'delete do handler insert load replace select truncate update set show pragma grant ' +
-          'merge describe use explain help declare prepare execute deallocate savepoint release|0 ' +
+          'merge describe use explain help declare prepare execute deallocate release ' +
           'unlock purge reset change stop analyze cache flush optimize repair kill ' +
           'install uninstall checksum restore check backup revoke',
         end: /;/, endsWithParent: true,
@@ -11201,11 +11806,11 @@ module.exports = function(hljs) {
             'initial initialized initially initrans inmemory inner innodb input insert install instance instantiable ' +
             'instr interface interleaved intersect into invalidate invisible is is_free_lock is_ipv4 is_ipv4_compat ' +
             'is_not is_not_null is_used_lock isdate isnull isolation iterate java join json json_exists ' +
-            'k keep keep_duplicates key keys kill l language large last|0 last_day last_insert_id last_value lax lcase ' +
+            'k keep keep_duplicates key keys kill l language large last last_day last_insert_id last_value lax lcase ' +
             'lead leading least leaves left len lenght length less level levels library like like2 like4 likec limit ' +
-            'lines link|0 list|0 listagg little ln load load_file lob lobs local localtime localtimestamp locate ' +
-            'locator lock|0 locked log log10 log2 logfile logfiles logging logical logical_reads_per_call ' +
-            'logoff logon logs long loop|0 low low_priority lower lpad lrtrim ltrim m main make_set makedate maketime ' +
+            'lines link list listagg little ln load load_file lob lobs local localtime localtimestamp locate ' +
+            'locator lock locked log log10 log2 logfile logfiles logging logical logical_reads_per_call ' +
+            'logoff logon logs long loop low low_priority lower lpad lrtrim ltrim m main make_set makedate maketime ' +
             'managed management manual map mapping mask master master_pos_wait match matched materialized max ' +
             'maxextents maximize maxinstances maxlen maxlogfiles maxloghistory maxlogmembers maxsize maxtrans ' +
             'md5 measures median medium member memcompress memory merge microsecond mid migration min minextents ' +
@@ -11229,15 +11834,15 @@ module.exports = function(hljs) {
             'prediction_cost prediction_details prediction_probability prediction_set prepare present preserve ' +
             'prior priority private private_sga privileges procedural procedure procedure_analyze processlist ' +
             'profiles project prompt protection public publishingservername purge quarter query quick quiesce quota ' +
-            'quotename radians raise|0 rand range rank raw read reads readsize rebuild record records ' +
+            'quotename radians raise rand range rank raw read reads readsize rebuild record records ' +
             'recover recovery recursive recycle redo reduced ref reference referenced references referencing refresh ' +
             'regexp_like register regr_avgx regr_avgy regr_count regr_intercept regr_r2 regr_slope regr_sxx regr_sxy ' +
-            'reject rekey relational relative relaylog release|0 release_lock relies_on relocate rely rem remainder ' +
+            'reject rekey relational relative relaylog release release_lock relies_on relocate rely rem remainder rename ' +
             'repair repeat replace replicate replication required reset resetlogs resize resource respect restore ' +
             'restricted result result_cache resumable resume retention return returning returns reuse reverse revoke ' +
             'right rlike role roles rollback rolling rollup round row row_count rowdependencies rowid rownum rows ' +
             'rtrim rules safe salt sample save savepoint sb1 sb2 sb4 scan schema schemacheck scn scope scroll ' +
-            'sdo_georaster sdo_topo_geometry search sec_to_time second section securefile security seed segment ' +
+            'sdo_georaster sdo_topo_geometry search sec_to_time second section securefile security seed segment select ' +
             'self sequence sequential serializable server servererror session session_user sessions_per_user set ' +
             'sets settings sha sha1 sha2 share shared shared_pool short show shrink shutdown si_averagecolor ' +
             'si_colorhistogram si_featurelist si_positionalcolor si_stillimage si_texture siblings sid sign sin ' +
@@ -11297,7 +11902,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],113:[function(require,module,exports){
+},{}],120:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['do', 'ado'],
@@ -11335,7 +11940,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],114:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 module.exports = function(hljs) {
   var STEP21_IDENT_RE = '[A-Z_][A-Z0-9_.]*';
   var STEP21_CLOSE_RE = 'END-ISO-10303-21;';
@@ -11387,7 +11992,7 @@ module.exports = function(hljs) {
     ].concat(STEP21_CODE)
   };
 };
-},{}],115:[function(require,module,exports){
+},{}],122:[function(require,module,exports){
 module.exports = function(hljs) {
 
   var VARIABLE = {
@@ -11830,30 +12435,33 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],116:[function(require,module,exports){
+},{}],123:[function(require,module,exports){
 module.exports = function(hljs) {
   var SWIFT_KEYWORDS = {
-      keyword: 'class deinit enum extension func import init let protocol static ' +
-        'struct subscript typealias var break case continue default do ' +
-        'else fallthrough if in for return switch where while as dynamicType ' +
-        'is new super self Self Type __COLUMN__ __FILE__ __FUNCTION__ ' +
-        '__LINE__ associativity didSet get infix inout left mutating none ' +
-        'nonmutating operator override postfix precedence prefix right set '+
-        'unowned unowned safe unsafe weak willSet',
+      keyword: '__COLUMN__ __FILE__ __FUNCTION__ __LINE__ as as! as? associativity ' +
+        'break case catch class continue convenience default defer deinit didSet do ' +
+        'dynamic dynamicType else enum extension fallthrough false final for func ' +
+        'get guard if import in indirect infix init inout internal is lazy left let ' +
+        'mutating nil none nonmutating operator optional override postfix precedence ' +
+        'prefix private protocol Protocol public repeat required rethrows return ' +
+        'right self Self set static struct subscript super switch throw throws true ' +
+        'try try! try? Type typealias unowned var weak where while willSet',
       literal: 'true false nil',
-      built_in: 'abs advance alignof alignofValue assert bridgeFromObjectiveC ' +
-        'bridgeFromObjectiveCUnconditional bridgeToObjectiveC ' +
-        'bridgeToObjectiveCUnconditional c contains count countElements ' +
-        'countLeadingZeros debugPrint debugPrintln distance dropFirst dropLast dump ' +
-        'encodeBitsAsWords enumerate equal filter find getBridgedObjectiveCType ' +
-        'getVaList indices insertionSort isBridgedToObjectiveC ' +
-        'isBridgedVerbatimToObjectiveC isUniquelyReferenced join ' +
-        'lexicographicalCompare map max maxElement min minElement numericCast ' +
-        'partition posix print println quickSort reduce reflect reinterpretCast ' +
-        'reverse roundUpToAlignment sizeof sizeofValue sort split startsWith strideof ' +
-        'strideofValue swap swift toString transcode underestimateCount ' +
+      built_in: 'abs advance alignof alignofValue anyGenerator assert assertionFailure ' +
+        'bridgeFromObjectiveC bridgeFromObjectiveCUnconditional bridgeToObjectiveC ' +
+        'bridgeToObjectiveCUnconditional c contains count countElements countLeadingZeros ' +
+        'debugPrint debugPrintln distance dropFirst dropLast dump encodeBitsAsWords ' +
+        'enumerate equal fatalError filter find getBridgedObjectiveCType getVaList ' +
+        'indices insertionSort isBridgedToObjectiveC isBridgedVerbatimToObjectiveC ' +
+        'isUniquelyReferenced isUniquelyReferencedNonObjC join lazy lexicographicalCompare ' +
+        'map max maxElement min minElement numericCast overlaps partition posix ' +
+        'precondition preconditionFailure print println quickSort readLine reduce reflect ' +
+        'reinterpretCast reverse roundUpToAlignment sizeof sizeofValue sort split ' +
+        'startsWith stride strideof strideofValue swap toString transcode ' +
+        'underestimateCount unsafeAddressOf unsafeBitCast unsafeDowncast unsafeUnwrap ' +
         'unsafeReflect withExtendedLifetime withObjectAtPlusZero withUnsafePointer ' +
-        'withUnsafePointerToObject withUnsafePointers withVaList'
+        'withUnsafePointerToObject withUnsafeMutablePointer withUnsafeMutablePointers ' +
+        'withUnsafePointer withUnsafePointers withVaList zip'
     };
 
   var TYPE = {
@@ -11933,15 +12541,21 @@ module.exports = function(hljs) {
       },
       {
         className: 'preprocessor', // @attributes
-        begin: '(@assignment|@class_protocol|@exported|@final|@lazy|@noreturn|' +
-                  '@NSCopying|@NSManaged|@objc|@optional|@required|@auto_closure|' +
+        begin: '(@warn_unused_result|@exported|@lazy|@noescape|' +
+                  '@NSCopying|@NSManaged|@objc|@convention|@required|' +
                   '@noreturn|@IBAction|@IBDesignable|@IBInspectable|@IBOutlet|' +
-                  '@infix|@prefix|@postfix)'
+                  '@infix|@prefix|@postfix|@autoclosure|@testable|@available|' +
+                  '@nonobjc|@NSApplicationMain|@UIApplicationMain)'
+
+      },
+      {
+        beginKeywords: 'import', end: /$/,
+        contains: [hljs.C_LINE_COMMENT_MODE, BLOCK_COMMENT]
       }
     ]
   };
 };
-},{}],117:[function(require,module,exports){
+},{}],124:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['tk'],
@@ -12003,7 +12617,7 @@ module.exports = function(hljs) {
     ]
   }
 };
-},{}],118:[function(require,module,exports){
+},{}],125:[function(require,module,exports){
 module.exports = function(hljs) {
   var COMMAND1 = {
     className: 'command',
@@ -12058,7 +12672,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],119:[function(require,module,exports){
+},{}],126:[function(require,module,exports){
 module.exports = function(hljs) {
   var BUILT_IN_TYPES = 'bool byte i16 i32 i64 double string binary';
   return {
@@ -12093,17 +12707,17 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],120:[function(require,module,exports){
+},{}],127:[function(require,module,exports){
 module.exports = function(hljs) {
   var TPID = {
     className: 'number',
     begin: '[1-9][0-9]*', /* no leading zeros */
     relevance: 0
-  }
+  };
   var TPLABEL = {
     className: 'comment',
     begin: ':[^\\]]+'
-  }
+  };
   var TPDATA = {
     className: 'built_in',
     begin: '(AR|P|PAYLOAD|PR|R|SR|RSR|LBL|VR|UALM|MESSAGE|UTOOL|UFRAME|TIMER|\
@@ -12135,7 +12749,7 @@ module.exports = function(hljs) {
         'Tool_Offset UF UT UFRAME_NUM UTOOL_NUM UNLOCK WAIT X Y Z W P R STRLEN ' +
         'SUBSTR FINDSTR VOFFSET',
       constant:
-        'ON OFF max_speed LPOS JPOS ENABLE DISABLE START STOP RESET',
+        'ON OFF max_speed LPOS JPOS ENABLE DISABLE START STOP RESET'
     },
     contains: [
       TPDATA,
@@ -12177,7 +12791,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],121:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 module.exports = function(hljs) {
   var PARAMS = {
     className: 'params',
@@ -12234,14 +12848,14 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],122:[function(require,module,exports){
+},{}],129:[function(require,module,exports){
 module.exports = function(hljs) {
   var KEYWORDS = {
     keyword:
       'in if for while finally var new function|0 do return void else break catch ' +
       'instanceof with throw case default try this switch continue typeof delete ' +
-      'let yield const class public private get set super ' +
-      'static implements enum export import declare type protected',
+      'let yield const class public private protected get set super ' +
+      'static implements enum export import declare type namespace abstract',
     literal:
       'true false null undefined NaN Infinity',
     built_in:
@@ -12332,7 +12946,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],123:[function(require,module,exports){
+},{}],130:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     keywords: {
@@ -12387,7 +13001,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],124:[function(require,module,exports){
+},{}],131:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['vb'],
@@ -12443,7 +13057,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],125:[function(require,module,exports){
+},{}],132:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     subLanguage: 'xml',
@@ -12455,7 +13069,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],126:[function(require,module,exports){
+},{}],133:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['vbs'],
@@ -12494,7 +13108,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],127:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     aliases: ['v'],
@@ -12544,7 +13158,7 @@ module.exports = function(hljs) {
     ]
   }; // return
 };
-},{}],128:[function(require,module,exports){
+},{}],135:[function(require,module,exports){
 module.exports = function(hljs) {
   // Regular expression for VHDL numeric literals.
 
@@ -12600,7 +13214,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],129:[function(require,module,exports){
+},{}],136:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     lexemes: /[!#@\w]+/,
@@ -12663,7 +13277,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],130:[function(require,module,exports){
+},{}],137:[function(require,module,exports){
 module.exports = function(hljs) {
   return {
     case_insensitive: true,
@@ -12799,9 +13413,11 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],131:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
 module.exports = function(hljs) {
-  var BUILTIN_MODULES = 'ObjectLoader Animate MovieCredits Slides Filters Shading Materials LensFlare Mapping VLCAudioVideo StereoDecoder PointCloud NetworkAccess RemoteControl RegExp ChromaKey Snowfall NodeJS Speech Charts';
+  var BUILTIN_MODULES =
+    'ObjectLoader Animate MovieCredits Slides Filters Shading Materials LensFlare Mapping VLCAudioVideo ' +
+    'StereoDecoder PointCloud NetworkAccess RemoteControl RegExp ChromaKey Snowfall NodeJS Speech Charts';
 
   var XL_KEYWORDS = {
     keyword: 'if then else do while until for loop import with is as where when by data constant',
@@ -12809,7 +13425,12 @@ module.exports = function(hljs) {
     type: 'integer real text name boolean symbol infix prefix postfix block tree',
     built_in: 'in mod rem and or xor not abs sign floor ceil sqrt sin cos tan asin acos atan exp expm1 log log2 log10 log1p pi at',
     module: BUILTIN_MODULES,
-    id: 'text_length text_range text_find text_replace contains page slide basic_slide title_slide title subtitle fade_in fade_out fade_at clear_color color line_color line_width texture_wrap texture_transform texture scale_?x scale_?y scale_?z? translate_?x translate_?y translate_?z? rotate_?x rotate_?y rotate_?z? rectangle circle ellipse sphere path line_to move_to quad_to curve_to theme background contents locally time mouse_?x mouse_?y mouse_buttons'
+    id:
+      'text_length text_range text_find text_replace contains page slide basic_slide title_slide title subtitle ' +
+      'fade_in fade_out fade_at clear_color color line_color line_width texture_wrap texture_transform texture ' +
+      'scale_?x scale_?y scale_?z? translate_?x translate_?y translate_?z? rotate_?x rotate_?y rotate_?z? rectangle ' +
+      'circle ellipse sphere path line_to move_to quad_to curve_to theme background contents locally time mouse_?x ' +
+      'mouse_?y mouse_buttons'
   };
 
   var XL_CONSTANT = {
@@ -12879,7 +13500,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],132:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 module.exports = function(hljs) {
   var XML_IDENT_RE = '[A-Za-z0-9\\._:-]+';
   var PHP = {
@@ -12982,7 +13603,7 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],133:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 module.exports = function(hljs) {
   var KEYWORDS = 'for let if while then else return where group by xquery encoding version' +
     'module namespace boundary-space preserve strip default collation base-uri ordering' +
@@ -13055,7 +13676,7 @@ module.exports = function(hljs) {
     contains: CONTAINS
   };
 };
-},{}],134:[function(require,module,exports){
+},{}],141:[function(require,module,exports){
 module.exports = function(hljs) {
   var STRING = {
     className: 'string',
@@ -13162,7 +13783,8 @@ module.exports = function(hljs) {
     ]
   };
 };
-},{}],135:[function(require,module,exports){
+},{}],142:[function(require,module,exports){
+/* eslint no-console:0 */
 /**
  * This is the main entry point for KaTeX. Here, we expose functions for
  * rendering expressions either to DOM nodes or to markup strings.
@@ -13234,53 +13856,10 @@ module.exports = {
      * to change. Use at your own risk.
      */
     __parse: generateParseTree,
-    ParseError: ParseError
+    ParseError: ParseError,
 };
 
-},{"./src/ParseError":139,"./src/Settings":141,"./src/buildTree":146,"./src/parseTree":155,"./src/utils":157}],136:[function(require,module,exports){
-/** @flow */
-
-"use strict";
-
-function getRelocatable(re) {
-  // In the future, this could use a WeakMap instead of an expando.
-  if (!re.__matchAtRelocatable) {
-    // Disjunctions are the lowest-precedence operator, so we can make any
-    // pattern match the empty string by appending `|()` to it:
-    // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-patterns
-    var source = re.source + "|()";
-
-    // We always make the new regex global.
-    var flags = "g" + (re.ignoreCase ? "i" : "") + (re.multiline ? "m" : "") + (re.unicode ? "u" : "")
-    // sticky (/.../y) doesn't make sense in conjunction with our relocation
-    // logic, so we ignore it here.
-    ;
-
-    re.__matchAtRelocatable = new RegExp(source, flags);
-  }
-  return re.__matchAtRelocatable;
-}
-
-function matchAt(re, str, pos) {
-  if (re.global || re.sticky) {
-    throw new Error("matchAt(...): Only non-global regexes are supported");
-  }
-  var reloc = getRelocatable(re);
-  reloc.lastIndex = pos;
-  var match = reloc.exec(str);
-  // Last capturing group is our sentinel that indicates whether the regex
-  // matched at the given location.
-  if (match[match.length - 1] == null) {
-    // Original regex matched.
-    match.length = match.length - 1;
-    return match;
-  } else {
-    return null;
-  }
-}
-
-module.exports = matchAt;
-},{}],137:[function(require,module,exports){
+},{"./src/ParseError":145,"./src/Settings":147,"./src/buildTree":152,"./src/parseTree":161,"./src/utils":163}],143:[function(require,module,exports){
 /**
  * The Lexer class handles tokenizing the input in various ways. Since our
  * parser expects us to be able to backtrack, the lexer allows lexing from any
@@ -13310,86 +13889,54 @@ function Token(text, data, position) {
     this.position = position;
 }
 
-// "normal" types of tokens. These are tokens which can be matched by a simple
-// regex
-var mathNormals = [
-    /[/|@.""`0-9a-zA-Z]/, // ords
-    /[*+-]/, // bins
-    /[=<>:]/, // rels
-    /[,;]/, // punctuation
-    /['\^_{}]/, // misc
-    /[(\[]/, // opens
-    /[)\]?!]/, // closes
-    /~/, // spacing
-    /&/, // horizontal alignment
-    /\\\\/ // line break
-];
+/* The following tokenRegex
+ * - matches typical whitespace (but not NBSP etc.) using its first group
+ * - matches symbol combinations which result in a single output character
+ * - does not match any control character \x00-\x1f except whitespace
+ * - does not match a bare backslash
+ * - matches any ASCII character except those just mentioned
+ * - does not match the BMP private use area \uE000-\uF8FF
+ * - does not match bare surrogate code units
+ * - matches any BMP character except for those just described
+ * - matches any valid Unicode surrogate pair
+ * - matches a backslash followed by one or more letters
+ * - matches a backslash followed by any BMP character, including newline
+ * Just because the Lexer matches something doesn't mean it's valid input:
+ * If there is no matching function or symbol definition, the Parser will
+ * still reject the input.
+ */
+var tokenRegex = new RegExp(
+    "([ \r\n\t]+)|(" +                                // whitespace
+    "---?" +                                          // special combinations
+    "|[!-\\[\\]-\u2027\u202A-\uD7FF\uF900-\uFFFF]" +  // single codepoint
+    "|[\uD800-\uDBFF][\uDC00-\uDFFF]" +               // surrogate pair
+    "|\\\\(?:[a-zA-Z]+|[^\uD800-\uDFFF])" +           // function name
+    ")"
+);
 
-// These are "normal" tokens like above, but should instead be parsed in text
-// mode.
-var textNormals = [
-    /[a-zA-Z0-9`!@*()-=+\[\]'";:?\/.,]/, // ords
-    /[{}]/, // grouping
-    /~/, // spacing
-    /&/, // horizontal alignment
-    /\\\\/ // line break
-];
-
-// Regexes for matching whitespace
 var whitespaceRegex = /\s*/;
-var whitespaceConcatRegex = / +|\\  +/;
-
-// This regex matches any other TeX function, which is a backslash followed by a
-// word or a single symbol
-var anyFunc = /\\(?:[a-zA-Z]+|.)/;
 
 /**
- * This function lexes a single normal token. It takes a position, a list of
- * "normal" tokens to try, and whether it should completely ignore whitespace or
- * not.
+ * This function lexes a single normal token. It takes a position and
+ * whether it should completely ignore whitespace or not.
  */
-Lexer.prototype._innerLex = function(pos, normals, ignoreWhitespace) {
+Lexer.prototype._innerLex = function(pos, ignoreWhitespace) {
     var input = this._input;
-    var whitespace;
-
-    if (ignoreWhitespace) {
-        // Get rid of whitespace.
-        whitespace = matchAt(whitespaceRegex, input, pos)[0];
-        pos += whitespace.length;
-    } else {
-        // Do the funky concatenation of whitespace that happens in text mode.
-        whitespace = matchAt(whitespaceConcatRegex, input, pos);
-        if (whitespace !== null) {
-            return new Token(" ", null, pos + whitespace[0].length);
-        }
-    }
-
-    // If there's no more input to parse, return an EOF token
     if (pos === input.length) {
         return new Token("EOF", null, pos);
     }
-
-    var match;
-    if ((match = matchAt(anyFunc, input, pos))) {
-        // If we match a function token, return it
-        return new Token(match[0], null, pos + match[0].length);
-    } else {
-        // Otherwise, we look through the normal token regexes and see if it's
-        // one of them.
-        for (var i = 0; i < normals.length; i++) {
-            var normal = normals[i];
-
-            if ((match = matchAt(normal, input, pos))) {
-                // If it is, return it
-                return new Token(
-                    match[0], null, pos + match[0].length);
-            }
-        }
-    }
-
-    throw new ParseError(
+    var match = matchAt(tokenRegex, input, pos);
+    if (match === null) {
+        throw new ParseError(
             "Unexpected character: '" + input[pos] + "'",
             this, pos);
+    } else if (match[2]) { // matched non-whitespace
+        return new Token(match[2], null, pos + match[2].length);
+    } else if (ignoreWhitespace) {
+        return this._innerLex(pos + match[1].length, true);
+    } else { // concatenate whitespace to a single space
+        return new Token(" ", null, pos + match[1].length);
+    }
 };
 
 // A regex to match a CSS color (like #ffffff or BlueViolet)
@@ -13436,9 +13983,9 @@ Lexer.prototype._innerLexSize = function(pos) {
             throw new ParseError("Invalid unit: '" + unit + "'", this, pos);
         }
         return new Token(match[0], {
-                number: +(match[1] + match[2]),
-                unit: unit
-            }, pos + match[0].length);
+            number: +(match[1] + match[2]),
+            unit: unit,
+        }, pos + match[0].length);
     }
 
     throw new ParseError("Invalid size", this, pos);
@@ -13462,9 +14009,9 @@ Lexer.prototype._innerLexWhitespace = function(pos) {
  */
 Lexer.prototype.lex = function(pos, mode) {
     if (mode === "math") {
-        return this._innerLex(pos, mathNormals, true);
+        return this._innerLex(pos, true);
     } else if (mode === "text") {
-        return this._innerLex(pos, textNormals, false);
+        return this._innerLex(pos, false);
     } else if (mode === "color") {
         return this._innerLexColor(pos);
     } else if (mode === "size") {
@@ -13476,7 +14023,7 @@ Lexer.prototype.lex = function(pos, mode) {
 
 module.exports = Lexer;
 
-},{"./ParseError":139,"match-at":136}],138:[function(require,module,exports){
+},{"./ParseError":145,"match-at":165}],144:[function(require,module,exports){
 /**
  * This file contains information about the options that the Parser carries
  * around with it while parsing. Data is held in an `Options` object, and when
@@ -13525,7 +14072,7 @@ Options.prototype.extend = function(extension) {
         parentStyle: this.style,
         parentSize: this.size,
         phantom: this.phantom,
-        font: this.font
+        font: this.font,
     };
 
     for (var key in extension) {
@@ -13542,7 +14089,7 @@ Options.prototype.extend = function(extension) {
  */
 Options.prototype.withStyle = function(style) {
     return this.extend({
-        style: style
+        style: style,
     });
 };
 
@@ -13551,7 +14098,7 @@ Options.prototype.withStyle = function(style) {
  */
 Options.prototype.withSize = function(size) {
     return this.extend({
-        size: size
+        size: size,
     });
 };
 
@@ -13560,7 +14107,7 @@ Options.prototype.withSize = function(size) {
  */
 Options.prototype.withColor = function(color) {
     return this.extend({
-        color: color
+        color: color,
     });
 };
 
@@ -13569,7 +14116,7 @@ Options.prototype.withColor = function(color) {
  */
 Options.prototype.withPhantom = function() {
     return this.extend({
-        phantom: true
+        phantom: true,
     });
 };
 
@@ -13578,7 +14125,7 @@ Options.prototype.withPhantom = function() {
  */
 Options.prototype.withFont = function(font) {
     return this.extend({
-        font: font
+        font: font,
     });
 };
 
@@ -13650,7 +14197,7 @@ var colorMap = {
     "katex-grayH": "#555555",
     "katex-grayI": "#333333",
     "katex-kaBlue": "#314453",
-    "katex-kaGreen": "#639b24"
+    "katex-kaGreen": "#639b24",
 };
 
 /**
@@ -13667,7 +14214,7 @@ Options.prototype.getColor = function() {
 
 module.exports = Options;
 
-},{}],139:[function(require,module,exports){
+},{}],145:[function(require,module,exports){
 /**
  * This is the ParseError class, which is the main error thrown by KaTeX
  * functions when something has gone wrong. This is used to distinguish internal
@@ -13709,7 +14256,8 @@ ParseError.prototype.__proto__ = Error.prototype;
 
 module.exports = ParseError;
 
-},{}],140:[function(require,module,exports){
+},{}],146:[function(require,module,exports){
+/* eslint no-constant-condition:0 */
 var functions = require("./functions");
 var environments = require("./environments");
 var Lexer = require("./Lexer");
@@ -13732,10 +14280,11 @@ var ParseError = require("./ParseError");
  * individual tokens are needed at a position, the lexer is called to pull out a
  * token, which is then used.
  *
- * The main functions also take a mode that the parser is currently in
- * (currently "math" or "text"), which denotes whether the current environment
- * is a math-y one or a text-y one (e.g. inside \text). Currently, this serves
- * to limit the functions which can be used in text mode.
+ * The parser has a property called "mode" indicating the mode that
+ * the parser is currently in. Currently it has to be one of "math" or
+ * "text", which denotes whether the current environment is a math-y
+ * one or a text-y one (e.g. inside \text). Currently, this serves to
+ * limit the functions which can be used in text mode.
  *
  * The main functions then return an object which contains the useful data that
  * was parsed at its given point, and a new position at the end of the parsed
@@ -13745,11 +14294,9 @@ var ParseError = require("./ParseError");
  * There are also extra `.handle...` functions, which pull out some reused
  * functionality into self-contained functions.
  *
- * The earlier functions return `ParseResult`s, which contain a ParseNode and a
- * new position.
- *
+ * The earlier functions return ParseNodes.
  * The later functions (which are called deeper in the parse) sometimes return
- * ParseFuncOrArgument, which contain a ParseResult as well as some data about
+ * ParseFuncOrArgument, which contain a ParseNode as well as some data about
  * whether the parsed object is a function which is missing some arguments, or a
  * standalone object which can be used as an argument to another function.
  */
@@ -13765,11 +14312,10 @@ function Parser(input, settings) {
 }
 
 var ParseNode = parseData.ParseNode;
-var ParseResult = parseData.ParseResult;
 
 /**
  * An initial function (without its arguments), or an argument to a function.
- * The `result` argument should be a ParseResult.
+ * The `result` argument should be a ParseNode.
  */
 function ParseFuncOrArgument(result, isFunction) {
     this.result = result;
@@ -13780,14 +14326,29 @@ function ParseFuncOrArgument(result, isFunction) {
 /**
  * Checks a result to make sure it has the right type, and throws an
  * appropriate error otherwise.
+ *
+ * @param {boolean=} consume whether to consume the expected token,
+ *                           defaults to true
  */
-Parser.prototype.expect = function(result, text) {
-    if (result.text !== text) {
+Parser.prototype.expect = function(text, consume) {
+    if (this.nextToken.text !== text) {
         throw new ParseError(
-            "Expected '" + text + "', got '" + result.text + "'",
-            this.lexer, result.position
+            "Expected '" + text + "', got '" + this.nextToken.text + "'",
+            this.lexer, this.nextToken.position
         );
     }
+    if (consume !== false) {
+        this.consume();
+    }
+};
+
+/**
+ * Considers the current look ahead token as consumed,
+ * and fetches the one after that as the new look ahead.
+ */
+Parser.prototype.consume = function() {
+    this.pos = this.nextToken.position;
+    this.nextToken = this.lexer.lex(this.pos, this.mode);
 };
 
 /**
@@ -13795,20 +14356,23 @@ Parser.prototype.expect = function(result, text) {
  *
  * @return {?Array.<ParseNode>}
  */
-Parser.prototype.parse = function(input) {
+Parser.prototype.parse = function() {
     // Try to parse the input
-    var parse = this.parseInput(0, "math");
-    return parse.result;
+    this.mode = "math";
+    this.pos = 0;
+    this.nextToken = this.lexer.lex(this.pos, this.mode);
+    var parse = this.parseInput();
+    return parse;
 };
 
 /**
  * Parses an entire input tree.
  */
-Parser.prototype.parseInput = function(pos, mode) {
+Parser.prototype.parseInput = function() {
     // Parse an expression
-    var expression = this.parseExpression(pos, mode, false);
+    var expression = this.parseExpression(false);
     // If we succeeded, make sure there's an EOF at the end
-    this.expect(expression.peek, "EOF");
+    this.expect("EOF", false);
     return expression;
 };
 
@@ -13824,25 +14388,25 @@ var endOfExpression = ["}", "\\end", "\\right", "&", "\\\\", "\\cr"];
  * @param {?string} breakOnToken The token that the expression should end with,
  *                  or `null` if something else should end the expression.
  *
- * @return {ParseResult}
+ * @return {ParseNode}
  */
-Parser.prototype.parseExpression = function(pos, mode, breakOnInfix, breakOnToken) {
+Parser.prototype.parseExpression = function(breakOnInfix, breakOnToken) {
     var body = [];
-    var lex = null;
     // Keep adding atoms to the body until we can't parse any more atoms (either
     // we reached the end, a }, or a \right)
     while (true) {
-        lex = this.lexer.lex(pos, mode);
+        var lex = this.nextToken;
+        var pos = this.pos;
         if (endOfExpression.indexOf(lex.text) !== -1) {
             break;
         }
         if (breakOnToken && lex.text === breakOnToken) {
             break;
         }
-        var atom = this.parseAtom(pos, mode);
+        var atom = this.parseAtom();
         if (!atom) {
             if (!this.settings.throwOnError && lex.text[0] === "\\") {
-                var errorNode = this.handleUnsupportedCmd(lex.text, mode);
+                var errorNode = this.handleUnsupportedCmd();
                 body.push(errorNode);
 
                 pos = lex.position;
@@ -13851,15 +14415,15 @@ Parser.prototype.parseExpression = function(pos, mode, breakOnInfix, breakOnToke
 
             break;
         }
-        if (breakOnInfix && atom.result.type === "infix") {
+        if (breakOnInfix && atom.type === "infix") {
+            // rewind so we can parse the infix atom again
+            this.pos = pos;
+            this.nextToken = lex;
             break;
         }
-        body.push(atom.result);
-        pos = atom.position;
+        body.push(atom);
     }
-    var res = new ParseResult(this.handleInfixNodes(body, mode), pos);
-    res.peek = lex;
-    return res;
+    return this.handleInfixNodes(body);
 };
 
 /**
@@ -13871,9 +14435,8 @@ Parser.prototype.parseExpression = function(pos, mode, breakOnInfix, breakOnToke
  *
  * @returns {Array}
  */
-Parser.prototype.handleInfixNodes = function (body, mode) {
+Parser.prototype.handleInfixNodes = function(body) {
     var overIndex = -1;
-    var func;
     var funcName;
 
     for (var i = 0; i < body.length; i++) {
@@ -13885,12 +14448,12 @@ Parser.prototype.handleInfixNodes = function (body, mode) {
             }
             overIndex = i;
             funcName = node.value.replaceWith;
-            func = functions.funcs[funcName];
         }
     }
 
     if (overIndex !== -1) {
-        var numerNode, denomNode;
+        var numerNode;
+        var denomNode;
 
         var numerBody = body.slice(0, overIndex);
         var denomBody = body.slice(overIndex + 1);
@@ -13898,17 +14461,18 @@ Parser.prototype.handleInfixNodes = function (body, mode) {
         if (numerBody.length === 1 && numerBody[0].type === "ordgroup") {
             numerNode = numerBody[0];
         } else {
-            numerNode = new ParseNode("ordgroup", numerBody, mode);
+            numerNode = new ParseNode("ordgroup", numerBody, this.mode);
         }
 
         if (denomBody.length === 1 && denomBody[0].type === "ordgroup") {
             denomNode = denomBody[0];
         } else {
-            denomNode = new ParseNode("ordgroup", denomBody, mode);
+            denomNode = new ParseNode("ordgroup", denomBody, this.mode);
         }
 
-        var value = func.handler(funcName, numerNode, denomNode);
-        return [new ParseNode(value.type, value, mode)];
+        var value = this.callFunction(
+            funcName, [numerNode, denomNode], null);
+        return [new ParseNode(value.type, value, this.mode)];
     } else {
         return body;
     }
@@ -13920,31 +14484,33 @@ var SUPSUB_GREEDINESS = 1;
 /**
  * Handle a subscript or superscript with nice errors.
  */
-Parser.prototype.handleSupSubscript = function(pos, mode, symbol, name) {
-    var group = this.parseGroup(pos, mode);
+Parser.prototype.handleSupSubscript = function(name) {
+    var symbol = this.nextToken.text;
+    var symPos = this.pos;
+    this.consume();
+    var group = this.parseGroup();
 
     if (!group) {
-        var lex = this.lexer.lex(pos, mode);
-
-        if (!this.settings.throwOnError && lex.text[0] === "\\") {
-            return new ParseResult(
-                this.handleUnsupportedCmd(lex.text, mode),
-                lex.position);
+        if (!this.settings.throwOnError && this.nextToken.text[0] === "\\") {
+            return this.handleUnsupportedCmd();
         } else {
             throw new ParseError(
-                "Expected group after '" + symbol + "'", this.lexer, pos);
+                "Expected group after '" + symbol + "'",
+                this.lexer,
+                symPos + 1
+            );
         }
     } else if (group.isFunction) {
         // ^ and _ have a greediness, so handle interactions with functions'
         // greediness
-        var funcGreediness = functions.funcs[group.result.result].greediness;
+        var funcGreediness = functions[group.result].greediness;
         if (funcGreediness > SUPSUB_GREEDINESS) {
-            return this.parseFunction(pos, mode);
+            return this.parseFunction(group);
         } else {
             throw new ParseError(
-                "Got function '" + group.result.result + "' with no arguments " +
+                "Got function '" + group.result + "' with no arguments " +
                     "as " + name,
-                this.lexer, pos);
+                this.lexer, symPos + 1);
         }
     } else {
         return group.result;
@@ -13955,111 +14521,99 @@ Parser.prototype.handleSupSubscript = function(pos, mode, symbol, name) {
  * Converts the textual input of an unsupported command into a text node
  * contained within a color node whose color is determined by errorColor
  */
- Parser.prototype.handleUnsupportedCmd = function(text, mode) {
-     var textordArray = [];
+Parser.prototype.handleUnsupportedCmd = function() {
+    var text = this.nextToken.text;
+    var textordArray = [];
 
-     for (var i = 0; i < text.length; i++) {
+    for (var i = 0; i < text.length; i++) {
         textordArray.push(new ParseNode("textord", text[i], "text"));
-     }
+    }
 
-     var textNode = new ParseNode(
-         "text",
-         {
-             body: textordArray,
-             type: "text"
-         },
-         mode);
+    var textNode = new ParseNode(
+        "text",
+        {
+            body: textordArray,
+            type: "text",
+        },
+        this.mode);
 
-     var colorNode = new ParseNode(
+    var colorNode = new ParseNode(
         "color",
         {
             color: this.settings.errorColor,
             value: [textNode],
-            type: "color"
+            type: "color",
         },
-        mode);
+        this.mode);
 
-     return colorNode;
- };
+    this.consume();
+    return colorNode;
+};
 
 /**
  * Parses a group with optional super/subscripts.
  *
- * @return {?ParseResult}
+ * @return {?ParseNode}
  */
-Parser.prototype.parseAtom = function(pos, mode) {
+Parser.prototype.parseAtom = function() {
     // The body of an atom is an implicit group, so that things like
     // \left(x\right)^2 work correctly.
-    var base = this.parseImplicitGroup(pos, mode);
+    var base = this.parseImplicitGroup();
 
     // In text mode, we don't have superscripts or subscripts
-    if (mode === "text") {
+    if (this.mode === "text") {
         return base;
     }
 
-    // Handle an empty base
-    var currPos;
-    if (!base) {
-        currPos = pos;
-        base = undefined;
-    } else {
-        currPos = base.position;
-    }
+    // Note that base may be empty (i.e. null) at this point.
 
     var superscript;
     var subscript;
-    var result;
     while (true) {
         // Lex the first token
-        var lex = this.lexer.lex(currPos, mode);
+        var lex = this.nextToken;
 
         if (lex.text === "\\limits" || lex.text === "\\nolimits") {
             // We got a limit control
-            if (!base || base.result.type !== "op") {
-                throw new ParseError("Limit controls must follow a math operator",
-                    this.lexer, currPos);
-            }
-            else {
+            if (!base || base.type !== "op") {
+                throw new ParseError(
+                    "Limit controls must follow a math operator",
+                    this.lexer, this.pos);
+            } else {
                 var limits = lex.text === "\\limits";
-                base.result.value.limits = limits;
-                base.result.value.alwaysHandleSupSub = true;
-                currPos = lex.position;
+                base.value.limits = limits;
+                base.value.alwaysHandleSupSub = true;
             }
+            this.consume();
         } else if (lex.text === "^") {
             // We got a superscript start
             if (superscript) {
                 throw new ParseError(
-                    "Double superscript", this.lexer, currPos);
+                    "Double superscript", this.lexer, this.pos);
             }
-            result = this.handleSupSubscript(
-                lex.position, mode, lex.text, "superscript");
-            currPos = result.position;
-            superscript = result.result;
+            superscript = this.handleSupSubscript("superscript");
         } else if (lex.text === "_") {
             // We got a subscript start
             if (subscript) {
                 throw new ParseError(
-                    "Double subscript", this.lexer, currPos);
+                    "Double subscript", this.lexer, this.pos);
             }
-            result = this.handleSupSubscript(
-                lex.position, mode, lex.text, "subscript");
-            currPos = result.position;
-            subscript = result.result;
+            subscript = this.handleSupSubscript("subscript");
         } else if (lex.text === "'") {
             // We got a prime
-            var prime = new ParseNode("textord", "\\prime", mode);
+            var prime = new ParseNode("textord", "\\prime", this.mode);
 
             // Many primes can be grouped together, so we handle this here
             var primes = [prime];
-            currPos = lex.position;
+            this.consume();
             // Keep lexing tokens until we get something that's not a prime
-            while ((lex = this.lexer.lex(currPos, mode)).text === "'") {
+            while (this.nextToken.text === "'") {
                 // For each one, add another prime to the list
                 primes.push(prime);
-                currPos = lex.position;
+                this.consume();
             }
             // Put them into an ordgroup as the superscript
-            superscript = new ParseNode("ordgroup", primes, mode);
+            superscript = new ParseNode("ordgroup", primes, this.mode);
         } else {
             // If it wasn't ^, _, or ', stop parsing super/subscripts
             break;
@@ -14068,13 +14622,11 @@ Parser.prototype.parseAtom = function(pos, mode) {
 
     if (superscript || subscript) {
         // If we got either a superscript or subscript, create a supsub
-        return new ParseResult(
-            new ParseNode("supsub", {
-                base: base && base.result,
-                sup: superscript,
-                sub: subscript
-            }, mode),
-            currPos);
+        return new ParseNode("supsub", {
+            base: base,
+            sup: superscript,
+            sub: subscript,
+        }, this.mode);
     } else {
         // Otherwise return the original body
         return base;
@@ -14084,12 +14636,12 @@ Parser.prototype.parseAtom = function(pos, mode) {
 // A list of the size-changing functions, for use in parseImplicitGroup
 var sizeFuncs = [
     "\\tiny", "\\scriptsize", "\\footnotesize", "\\small", "\\normalsize",
-    "\\large", "\\Large", "\\LARGE", "\\huge", "\\Huge"
+    "\\large", "\\Large", "\\LARGE", "\\huge", "\\Huge",
 ];
 
 // A list of the style-changing functions, for use in parseImplicitGroup
 var styleFuncs = [
-    "\\displaystyle", "\\textstyle", "\\scriptstyle", "\\scriptscriptstyle"
+    "\\displaystyle", "\\textstyle", "\\scriptstyle", "\\scriptscriptstyle",
 ];
 
 /**
@@ -14101,115 +14653,115 @@ var styleFuncs = [
  *   small text {\Large large text} small text again
  * It is also used for \left and \right to get the correct grouping.
  *
- * @return {?ParseResult}
+ * @return {?ParseNode}
  */
-Parser.prototype.parseImplicitGroup = function(pos, mode) {
-    var start = this.parseSymbol(pos, mode);
+Parser.prototype.parseImplicitGroup = function() {
+    var start = this.parseSymbol();
 
-    if (!start || !start.result) {
+    if (start == null) {
         // If we didn't get anything we handle, fall back to parseFunction
-        return this.parseFunction(pos, mode);
+        return this.parseFunction();
     }
 
-    var func = start.result.result;
+    var func = start.result;
     var body;
 
     if (func === "\\left") {
         // If we see a left:
         // Parse the entire left function (including the delimiter)
-        var left = this.parseFunction(pos, mode);
+        var left = this.parseFunction(start);
         // Parse out the implicit body
-        body = this.parseExpression(left.position, mode, false);
+        body = this.parseExpression(false);
         // Check the next token
-        this.expect(body.peek, "\\right");
-        var right = this.parseFunction(body.position, mode);
-        return new ParseResult(
-            new ParseNode("leftright", {
-                body: body.result,
-                left: left.result.value.value,
-                right: right.result.value.value
-            }, mode),
-            right.position);
+        this.expect("\\right", false);
+        var right = this.parseFunction();
+        return new ParseNode("leftright", {
+            body: body,
+            left: left.value.value,
+            right: right.value.value,
+        }, this.mode);
     } else if (func === "\\begin") {
         // begin...end is similar to left...right
-        var begin = this.parseFunction(pos, mode);
-        var envName = begin.result.value.name;
+        var begin = this.parseFunction(start);
+        var envName = begin.value.name;
         if (!environments.hasOwnProperty(envName)) {
             throw new ParseError(
                 "No such environment: " + envName,
-                this.lexer, begin.result.value.namepos);
+                this.lexer, begin.value.namepos);
         }
         // Build the environment object. Arguments and other information will
         // be made available to the begin and end methods using properties.
         var env = environments[envName];
-        var args = [null, mode, envName];
-        var newPos = this.parseArguments(
-            begin.position, mode, "\\begin{" + envName + "}", env, args);
-        args[0] = newPos;
-        var result = env.handler.apply(this, args);
-        var endLex = this.lexer.lex(result.position, mode);
-        this.expect(endLex, "\\end");
-        var end = this.parseFunction(result.position, mode);
-        if (end.result.value.name !== envName) {
+        var args = this.parseArguments("\\begin{" + envName + "}", env);
+        var context = {
+            mode: this.mode,
+            envName: envName,
+            parser: this,
+            lexer: this.lexer,
+            positions: args.pop(),
+        };
+        var result = env.handler(context, args);
+        this.expect("\\end", false);
+        var end = this.parseFunction();
+        if (end.value.name !== envName) {
             throw new ParseError(
                 "Mismatch: \\begin{" + envName + "} matched " +
-                "by \\end{" + end.result.value.name + "}",
-                this.lexer, end.namepos);
+                "by \\end{" + end.value.name + "}",
+                this.lexer /* , end.value.namepos */);
+            // TODO: Add position to the above line and adjust test case,
+            // requires #385 to get merged first
         }
         result.position = end.position;
         return result;
     } else if (utils.contains(sizeFuncs, func)) {
         // If we see a sizing function, parse out the implict body
-        body = this.parseExpression(start.result.position, mode, false);
-        return new ParseResult(
-            new ParseNode("sizing", {
-                // Figure out what size to use based on the list of functions above
-                size: "size" + (utils.indexOf(sizeFuncs, func) + 1),
-                value: body.result
-            }, mode),
-            body.position);
+        body = this.parseExpression(false);
+        return new ParseNode("sizing", {
+            // Figure out what size to use based on the list of functions above
+            size: "size" + (utils.indexOf(sizeFuncs, func) + 1),
+            value: body,
+        }, this.mode);
     } else if (utils.contains(styleFuncs, func)) {
         // If we see a styling function, parse out the implict body
-        body = this.parseExpression(start.result.position, mode, true);
-        return new ParseResult(
-            new ParseNode("styling", {
-                // Figure out what style to use by pulling out the style from
-                // the function name
-                style: func.slice(1, func.length - 5),
-                value: body.result
-            }, mode),
-            body.position);
+        body = this.parseExpression(true);
+        return new ParseNode("styling", {
+            // Figure out what style to use by pulling out the style from
+            // the function name
+            style: func.slice(1, func.length - 5),
+            value: body,
+        }, this.mode);
     } else {
         // Defer to parseFunction if it's not a function we handle
-        return this.parseFunction(pos, mode);
+        return this.parseFunction(start);
     }
 };
 
 /**
- * Parses an entire function, including its base and all of its arguments
+ * Parses an entire function, including its base and all of its arguments.
+ * The base might either have been parsed already, in which case
+ * it is provided as an argument, or it's the next group in the input.
  *
- * @return {?ParseResult}
+ * @param {ParseFuncOrArgument=} baseGroup optional as described above
+ * @return {?ParseNode}
  */
-Parser.prototype.parseFunction = function(pos, mode) {
-    var baseGroup = this.parseGroup(pos, mode);
+Parser.prototype.parseFunction = function(baseGroup) {
+    if (!baseGroup) {
+        baseGroup = this.parseGroup();
+    }
 
     if (baseGroup) {
         if (baseGroup.isFunction) {
-            var func = baseGroup.result.result;
-            var funcData = functions.funcs[func];
-            if (mode === "text" && !funcData.allowedInText) {
+            var func = baseGroup.result;
+            var funcData = functions[func];
+            if (this.mode === "text" && !funcData.allowedInText) {
                 throw new ParseError(
                     "Can't use function '" + func + "' in text mode",
                     this.lexer, baseGroup.position);
             }
 
-            var args = [func];
-            var newPos = this.parseArguments(
-                baseGroup.result.position, mode, func, funcData, args);
-            var result = functions.funcs[func].handler.apply(this, args);
-            return new ParseResult(
-                new ParseNode(result.type, result, mode),
-                newPos);
+            var args = this.parseArguments(func, funcData);
+            var result = this.callFunction(func, args, args.pop());
+            return new ParseNode(result.type, result, this.mode);
         } else {
             return baseGroup.result;
         }
@@ -14218,83 +14770,91 @@ Parser.prototype.parseFunction = function(pos, mode) {
     }
 };
 
+/**
+ * Call a function handler with a suitable context and arguments.
+ */
+Parser.prototype.callFunction = function(name, args, positions) {
+    var context = {
+        funcName: name,
+        parser: this,
+        lexer: this.lexer,
+        positions: positions,
+    };
+    return functions[name].handler(context, args);
+};
 
 /**
  * Parses the arguments of a function or environment
  *
  * @param {string} func  "\name" or "\begin{name}"
  * @param {{numArgs:number,numOptionalArgs:number|undefined}} funcData
- * @param {Array} args  list of arguments to which new ones will be pushed
- * @return the position after all arguments have been parsed
+ * @return the array of arguments, with the list of positions as last element
  */
-Parser.prototype.parseArguments = function(pos, mode, func, funcData, args) {
+Parser.prototype.parseArguments = function(func, funcData) {
     var totalArgs = funcData.numArgs + funcData.numOptionalArgs;
     if (totalArgs === 0) {
-        return pos;
+        return [[this.pos]];
     }
 
-    var newPos = pos;
     var baseGreediness = funcData.greediness;
-    var positions = [newPos];
+    var positions = [this.pos];
+    var args = [];
 
     for (var i = 0; i < totalArgs; i++) {
         var argType = funcData.argTypes && funcData.argTypes[i];
         var arg;
         if (i < funcData.numOptionalArgs) {
             if (argType) {
-                arg = this.parseSpecialGroup(newPos, argType, mode, true);
+                arg = this.parseSpecialGroup(argType, true);
             } else {
-                arg = this.parseOptionalGroup(newPos, mode);
+                arg = this.parseOptionalGroup();
             }
             if (!arg) {
                 args.push(null);
-                positions.push(newPos);
+                positions.push(this.pos);
                 continue;
             }
         } else {
             if (argType) {
-                arg = this.parseSpecialGroup(newPos, argType, mode);
+                arg = this.parseSpecialGroup(argType);
             } else {
-                arg = this.parseGroup(newPos, mode);
+                arg = this.parseGroup();
             }
             if (!arg) {
-                var lex = this.lexer.lex(newPos, mode);
-
-                if (!this.settings.throwOnError && lex.text[0] === "\\") {
+                if (!this.settings.throwOnError &&
+                    this.nextToken.text[0] === "\\") {
                     arg = new ParseFuncOrArgument(
-                        new ParseResult(
-                            this.handleUnsupportedCmd(lex.text, mode),
-                            lex.position),
+                        this.handleUnsupportedCmd(this.nextToken.text),
                         false);
                 } else {
                     throw new ParseError(
-                        "Expected group after '" + func + "'", this.lexer, pos);
+                        "Expected group after '" + func + "'",
+                        this.lexer, this.pos);
                 }
             }
         }
         var argNode;
         if (arg.isFunction) {
             var argGreediness =
-                functions.funcs[arg.result.result].greediness;
+                functions[arg.result].greediness;
             if (argGreediness > baseGreediness) {
-                argNode = this.parseFunction(newPos, mode);
+                argNode = this.parseFunction(arg);
             } else {
                 throw new ParseError(
-                    "Got function '" + arg.result.result + "' as " +
+                    "Got function '" + arg.result + "' as " +
                     "argument to '" + func + "'",
-                    this.lexer, arg.result.position - 1);
+                    this.lexer, this.pos - 1);
             }
         } else {
             argNode = arg.result;
         }
-        args.push(argNode.result);
-        positions.push(argNode.position);
-        newPos = argNode.position;
+        args.push(argNode);
+        positions.push(this.pos);
     }
 
     args.push(positions);
 
-    return newPos;
+    return args;
 };
 
 
@@ -14304,47 +14864,57 @@ Parser.prototype.parseArguments = function(pos, mode, func, funcData, args) {
  *
  * @return {?ParseFuncOrArgument}
  */
-Parser.prototype.parseSpecialGroup = function(pos, mode, outerMode, optional) {
+Parser.prototype.parseSpecialGroup = function(innerMode, optional) {
+    var outerMode = this.mode;
     // Handle `original` argTypes
-    if (mode === "original") {
-        mode = outerMode;
+    if (innerMode === "original") {
+        innerMode = outerMode;
     }
 
-    if (mode === "color" || mode === "size") {
+    if (innerMode === "color" || innerMode === "size") {
         // color and size modes are special because they should have braces and
         // should only lex a single symbol inside
-        var openBrace = this.lexer.lex(pos, outerMode);
+        var openBrace = this.nextToken;
         if (optional && openBrace.text !== "[") {
             // optional arguments should return null if they don't exist
             return null;
         }
-        this.expect(openBrace, optional ? "[" : "{");
-        var inner = this.lexer.lex(openBrace.position, mode);
+        // The call to expect will lex the token after the '{' in inner mode
+        this.mode = innerMode;
+        this.expect(optional ? "[" : "{");
+        var inner = this.nextToken;
+        this.mode = outerMode;
         var data;
-        if (mode === "color") {
+        if (innerMode === "color") {
             data = inner.text;
         } else {
             data = inner.data;
         }
-        var closeBrace = this.lexer.lex(inner.position, outerMode);
-        this.expect(closeBrace, optional ? "]" : "}");
+        this.consume(); // consume the token stored in inner
+        this.expect(optional ? "]" : "}");
         return new ParseFuncOrArgument(
-            new ParseResult(
-                new ParseNode(mode, data, outerMode),
-                closeBrace.position),
+            new ParseNode(innerMode, data, outerMode),
             false);
-    } else if (mode === "text") {
+    } else if (innerMode === "text") {
         // text mode is special because it should ignore the whitespace before
         // it
-        var whitespace = this.lexer.lex(pos, "whitespace");
-        pos = whitespace.position;
+        var whitespace = this.lexer.lex(this.pos, "whitespace");
+        this.pos = whitespace.position;
     }
 
+    // By the time we get here, innerMode is one of "text" or "math".
+    // We switch the mode of the parser, recurse, then restore the old mode.
+    this.mode = innerMode;
+    this.nextToken = this.lexer.lex(this.pos, innerMode);
+    var res;
     if (optional) {
-        return this.parseOptionalGroup(pos, mode);
+        res = this.parseOptionalGroup();
     } else {
-        return this.parseGroup(pos, mode);
+        res = this.parseGroup();
     }
+    this.mode = outerMode;
+    this.nextToken = this.lexer.lex(this.pos, outerMode);
+    return res;
 };
 
 /**
@@ -14353,23 +14923,20 @@ Parser.prototype.parseSpecialGroup = function(pos, mode, outerMode, optional) {
  *
  * @return {?ParseFuncOrArgument}
  */
-Parser.prototype.parseGroup = function(pos, mode) {
-    var start = this.lexer.lex(pos, mode);
+Parser.prototype.parseGroup = function() {
     // Try to parse an open brace
-    if (start.text === "{") {
+    if (this.nextToken.text === "{") {
         // If we get a brace, parse an expression
-        var expression = this.parseExpression(start.position, mode, false);
+        this.consume();
+        var expression = this.parseExpression(false);
         // Make sure we get a close brace
-        var closeBrace = this.lexer.lex(expression.position, mode);
-        this.expect(closeBrace, "}");
+        this.expect("}");
         return new ParseFuncOrArgument(
-            new ParseResult(
-                new ParseNode("ordgroup", expression.result, mode),
-                closeBrace.position),
+            new ParseNode("ordgroup", expression, this.mode),
             false);
     } else {
         // Otherwise, just return a nucleus
-        return this.parseSymbol(pos, mode);
+        return this.parseSymbol();
     }
 };
 
@@ -14378,19 +14945,16 @@ Parser.prototype.parseGroup = function(pos, mode) {
  *
  * @return {?ParseFuncOrArgument}
  */
-Parser.prototype.parseOptionalGroup = function(pos, mode) {
-    var start = this.lexer.lex(pos, mode);
+Parser.prototype.parseOptionalGroup = function() {
     // Try to parse an open bracket
-    if (start.text === "[") {
+    if (this.nextToken.text === "[") {
         // If we get a brace, parse an expression
-        var expression = this.parseExpression(start.position, mode, false, "]");
+        this.consume();
+        var expression = this.parseExpression(false, "]");
         // Make sure we get a close bracket
-        var closeBracket = this.lexer.lex(expression.position, mode);
-        this.expect(closeBracket, "]");
+        this.expect("]");
         return new ParseFuncOrArgument(
-            new ParseResult(
-                new ParseNode("ordgroup", expression.result, mode),
-                closeBracket.position),
+            new ParseNode("ordgroup", expression, this.mode),
             false);
     } else {
         // Otherwise, return null,
@@ -14404,23 +14968,23 @@ Parser.prototype.parseOptionalGroup = function(pos, mode) {
  *
  * @return {?ParseFuncOrArgument}
  */
-Parser.prototype.parseSymbol = function(pos, mode) {
-    var nucleus = this.lexer.lex(pos, mode);
+Parser.prototype.parseSymbol = function() {
+    var nucleus = this.nextToken;
 
-    if (functions.funcs[nucleus.text]) {
+    if (functions[nucleus.text]) {
+        this.consume();
         // If there exists a function with this name, we return the function and
         // say that it is a function.
         return new ParseFuncOrArgument(
-            new ParseResult(nucleus.text, nucleus.position),
+            nucleus.text,
             true);
-    } else if (symbols[mode][nucleus.text]) {
+    } else if (symbols[this.mode][nucleus.text]) {
+        this.consume();
         // Otherwise if this is a no-argument function, find the type it
         // corresponds to in the symbols map
         return new ParseFuncOrArgument(
-            new ParseResult(
-                new ParseNode(symbols[mode][nucleus.text].group,
-                              nucleus.text, mode),
-                nucleus.position),
+            new ParseNode(symbols[this.mode][nucleus.text].group,
+                          nucleus.text, this.mode),
             false);
     } else {
         return null;
@@ -14431,7 +14995,7 @@ Parser.prototype.ParseNode = ParseNode;
 
 module.exports = Parser;
 
-},{"./Lexer":137,"./ParseError":139,"./environments":149,"./functions":152,"./parseData":154,"./symbols":156,"./utils":157}],141:[function(require,module,exports){
+},{"./Lexer":143,"./ParseError":145,"./environments":155,"./functions":158,"./parseData":160,"./symbols":162,"./utils":163}],147:[function(require,module,exports){
 /**
  * This is a module for storing settings passed into KaTeX. It correctly handles
  * default settings.
@@ -14461,7 +15025,7 @@ function Settings(options) {
 
 module.exports = Settings;
 
-},{}],142:[function(require,module,exports){
+},{}],148:[function(require,module,exports){
 /**
  * This file contains information and classes for the various kinds of styles
  * used in TeX. It provides a generic `Style` class, which holds information
@@ -14550,7 +15114,7 @@ var sizeNames = [
     "displaystyle textstyle",
     "textstyle",
     "scriptstyle",
-    "scriptscriptstyle"
+    "scriptscriptstyle",
 ];
 
 // Reset names for the different sizes
@@ -14558,7 +15122,7 @@ var resetNames = [
     "reset-textstyle",
     "reset-textstyle",
     "reset-scriptstyle",
-    "reset-scriptscriptstyle"
+    "reset-scriptscriptstyle",
 ];
 
 // Instances of the different styles
@@ -14570,7 +15134,7 @@ var styles = [
     new Style(S, 2, 0.7, false),
     new Style(Sc, 2, 0.7, true),
     new Style(SS, 3, 0.5, false),
-    new Style(SSc, 3, 0.5, true)
+    new Style(SSc, 3, 0.5, true),
 ];
 
 // Lookup tables for switching from one style to another
@@ -14586,10 +15150,11 @@ module.exports = {
     DISPLAY: styles[D],
     TEXT: styles[T],
     SCRIPT: styles[S],
-    SCRIPTSCRIPT: styles[SS]
+    SCRIPTSCRIPT: styles[SS],
 };
 
-},{}],143:[function(require,module,exports){
+},{}],149:[function(require,module,exports){
+/* eslint no-console:0 */
 /**
  * This module contains general functions that can be used for building
  * different kinds of domTree nodes in a consistent manner.
@@ -14611,12 +15176,12 @@ var greekCapitals = [
     "\\Upsilon",
     "\\Phi",
     "\\Psi",
-    "\\Omega"
+    "\\Omega",
 ];
 
 var dotlessLetters = [
     "\u0131",   // dotless i, \imath
-    "\u0237"    // dotless j, \jmath
+    "\u0237",   // dotless j, \jmath
 ];
 
 /**
@@ -14722,7 +15287,8 @@ var makeOrd = function(group, options, type) {
         } else {
             var fontName = fontMap[font].fontName;
             if (fontMetrics.getCharacterMetrics(value, fontName)) {
-                return makeSymbol(value, fontName, mode, color, classes.concat([font]));
+                return makeSymbol(
+                    value, fontName, mode, color, classes.concat([font]));
             } else {
                 return mathDefault(value, mode, color, classes, type);
             }
@@ -14793,7 +15359,8 @@ var makeFragment = function(children) {
  */
 var makeFontSizer = function(options, fontSize) {
     var fontSizeInner = makeSpan([], [new domTree.symbolNode("\u200b")]);
-    fontSizeInner.style.fontSize = (fontSize / options.style.sizeMultiplier) + "em";
+    fontSizeInner.style.fontSize =
+        (fontSize / options.style.sizeMultiplier) + "em";
 
     var fontSizer = makeSpan(
         ["fontsize-ensurer", "reset-" + options.size, "size5"],
@@ -14942,7 +15509,7 @@ var sizingMultiplier = {
     size7: 1.44,
     size8: 1.73,
     size9: 2.07,
-    size10: 2.49
+    size10: 2.49,
 };
 
 // A map of spacing functions to their attributes, like size and corresponding
@@ -14950,32 +15517,32 @@ var sizingMultiplier = {
 var spacingFunctions = {
     "\\qquad": {
         size: "2em",
-        className: "qquad"
+        className: "qquad",
     },
     "\\quad": {
         size: "1em",
-        className: "quad"
+        className: "quad",
     },
     "\\enspace": {
         size: "0.5em",
-        className: "enspace"
+        className: "enspace",
     },
     "\\;": {
         size: "0.277778em",
-        className: "thickspace"
+        className: "thickspace",
     },
     "\\:": {
         size: "0.22222em",
-        className: "mediumspace"
+        className: "mediumspace",
     },
     "\\,": {
         size: "0.16667em",
-        className: "thinspace"
+        className: "thinspace",
     },
     "\\!": {
         size: "-0.16667em",
-        className: "negativethinspace"
-    }
+        className: "negativethinspace",
+    },
 };
 
 /**
@@ -14988,11 +15555,11 @@ var fontMap = {
     // styles
     "mathbf": {
         variant: "bold",
-        fontName: "Main-Bold"
+        fontName: "Main-Bold",
     },
     "mathrm": {
         variant: "normal",
-        fontName: "Main-Regular"
+        fontName: "Main-Regular",
     },
 
     // "mathit" is missing because it requires the use of two fonts: Main-Italic
@@ -15002,28 +15569,28 @@ var fontMap = {
     // families
     "mathbb": {
         variant: "double-struck",
-        fontName: "AMS-Regular"
+        fontName: "AMS-Regular",
     },
     "mathcal": {
         variant: "script",
-        fontName: "Caligraphic-Regular"
+        fontName: "Caligraphic-Regular",
     },
     "mathfrak": {
         variant: "fraktur",
-        fontName: "Fraktur-Regular"
+        fontName: "Fraktur-Regular",
     },
     "mathscr": {
         variant: "script",
-        fontName: "Script-Regular"
+        fontName: "Script-Regular",
     },
     "mathsf": {
         variant: "sans-serif",
-        fontName: "SansSerif-Regular"
+        fontName: "SansSerif-Regular",
     },
     "mathtt": {
         variant: "monospace",
-        fontName: "Typewriter-Regular"
-    }
+        fontName: "Typewriter-Regular",
+    },
 };
 
 module.exports = {
@@ -15035,10 +15602,11 @@ module.exports = {
     makeVList: makeVList,
     makeOrd: makeOrd,
     sizingMultiplier: sizingMultiplier,
-    spacingFunctions: spacingFunctions
+    spacingFunctions: spacingFunctions,
 };
 
-},{"./domTree":148,"./fontMetrics":150,"./symbols":156,"./utils":157}],144:[function(require,module,exports){
+},{"./domTree":154,"./fontMetrics":156,"./symbols":162,"./utils":163}],150:[function(require,module,exports){
+/* eslint no-console:0 */
 /**
  * This file does the main work of building a domTree structure from a parse
  * tree. The entry point is the `buildHTML` function, which takes a parse tree.
@@ -15091,10 +15659,11 @@ var groupToType = {
     op: "mop",
     katex: "mord",
     overline: "mord",
+    underline: "mord",
     rule: "mord",
     leftright: "minner",
     sqrt: "mord",
-    accent: "mord"
+    accent: "mord",
 };
 
 /**
@@ -15145,7 +15714,8 @@ var shouldHandleSupSub = function(group, options) {
         // Operators handle supsubs differently when they have limits
         // (e.g. `\displaystyle\sum_2^3`)
         return group.value.limits &&
-            (options.style.size === Style.DISPLAY.size || group.value.alwaysHandleSupSub);
+            (options.style.size === Style.DISPLAY.size ||
+            group.value.alwaysHandleSupSub);
     } else if (group.type === "accent") {
         return isCharacterBox(group.value.base);
     } else {
@@ -15201,7 +15771,7 @@ var makeNullDelimiter = function(options) {
     return makeSpan([
         "sizing", "reset-" + options.size, "size5",
         options.style.reset(), Style.TEXT.cls(),
-        "nulldelimiter"
+        "nulldelimiter",
     ]);
 };
 
@@ -15209,388 +15779,395 @@ var makeNullDelimiter = function(options) {
  * This is a map of group types to the function used to handle that type.
  * Simpler types come at the beginning, while complicated types come afterwards.
  */
-var groupTypes = {
-    mathord: function(group, options, prev) {
-        return buildCommon.makeOrd(group, options, "mathord");
-    },
+var groupTypes = {};
 
-    textord: function(group, options, prev) {
-        return buildCommon.makeOrd(group, options, "textord");
-    },
+groupTypes.mathord = function(group, options, prev) {
+    return buildCommon.makeOrd(group, options, "mathord");
+};
 
-    bin: function(group, options, prev) {
-        var className = "mbin";
-        // Pull out the most recent element. Do some special handling to find
-        // things at the end of a \color group. Note that we don't use the same
-        // logic for ordgroups (which count as ords).
-        var prevAtom = prev;
-        while (prevAtom && prevAtom.type === "color") {
-            var atoms = prevAtom.value.value;
-            prevAtom = atoms[atoms.length - 1];
+groupTypes.textord = function(group, options, prev) {
+    return buildCommon.makeOrd(group, options, "textord");
+};
+
+groupTypes.bin = function(group, options, prev) {
+    var className = "mbin";
+    // Pull out the most recent element. Do some special handling to find
+    // things at the end of a \color group. Note that we don't use the same
+    // logic for ordgroups (which count as ords).
+    var prevAtom = prev;
+    while (prevAtom && prevAtom.type === "color") {
+        var atoms = prevAtom.value.value;
+        prevAtom = atoms[atoms.length - 1];
+    }
+    // See TeXbook pg. 442-446, Rules 5 and 6, and the text before Rule 19.
+    // Here, we determine whether the bin should turn into an ord. We
+    // currently only apply Rule 5.
+    if (!prev || utils.contains(["mbin", "mopen", "mrel", "mop", "mpunct"],
+            getTypeOfGroup(prevAtom))) {
+        group.type = "textord";
+        className = "mord";
+    }
+
+    return buildCommon.mathsym(
+        group.value, group.mode, options.getColor(), [className]);
+};
+
+groupTypes.rel = function(group, options, prev) {
+    return buildCommon.mathsym(
+        group.value, group.mode, options.getColor(), ["mrel"]);
+};
+
+groupTypes.open = function(group, options, prev) {
+    return buildCommon.mathsym(
+        group.value, group.mode, options.getColor(), ["mopen"]);
+};
+
+groupTypes.close = function(group, options, prev) {
+    return buildCommon.mathsym(
+        group.value, group.mode, options.getColor(), ["mclose"]);
+};
+
+groupTypes.inner = function(group, options, prev) {
+    return buildCommon.mathsym(
+        group.value, group.mode, options.getColor(), ["minner"]);
+};
+
+groupTypes.punct = function(group, options, prev) {
+    return buildCommon.mathsym(
+        group.value, group.mode, options.getColor(), ["mpunct"]);
+};
+
+groupTypes.ordgroup = function(group, options, prev) {
+    return makeSpan(
+        ["mord", options.style.cls()],
+        buildExpression(group.value, options.reset())
+    );
+};
+
+groupTypes.text = function(group, options, prev) {
+    return makeSpan(["text", "mord", options.style.cls()],
+        buildExpression(group.value.body, options.reset()));
+};
+
+groupTypes.color = function(group, options, prev) {
+    var elements = buildExpression(
+        group.value.value,
+        options.withColor(group.value.color),
+        prev
+    );
+
+    // \color isn't supposed to affect the type of the elements it contains.
+    // To accomplish this, we wrap the results in a fragment, so the inner
+    // elements will be able to directly interact with their neighbors. For
+    // example, `\color{red}{2 +} 3` has the same spacing as `2 + 3`
+    return new buildCommon.makeFragment(elements);
+};
+
+groupTypes.supsub = function(group, options, prev) {
+    // Superscript and subscripts are handled in the TeXbook on page
+    // 445-446, rules 18(a-f).
+
+    // Here is where we defer to the inner group if it should handle
+    // superscripts and subscripts itself.
+    if (shouldHandleSupSub(group.value.base, options)) {
+        return groupTypes[group.value.base.type](group, options, prev);
+    }
+
+    var base = buildGroup(group.value.base, options.reset());
+    var supmid;
+    var submid;
+    var sup;
+    var sub;
+
+    if (group.value.sup) {
+        sup = buildGroup(group.value.sup,
+                options.withStyle(options.style.sup()));
+        supmid = makeSpan(
+                [options.style.reset(), options.style.sup().cls()], [sup]);
+    }
+
+    if (group.value.sub) {
+        sub = buildGroup(group.value.sub,
+                options.withStyle(options.style.sub()));
+        submid = makeSpan(
+                [options.style.reset(), options.style.sub().cls()], [sub]);
+    }
+
+    // Rule 18a
+    var supShift;
+    var subShift;
+    if (isCharacterBox(group.value.base)) {
+        supShift = 0;
+        subShift = 0;
+    } else {
+        supShift = base.height - fontMetrics.metrics.supDrop;
+        subShift = base.depth + fontMetrics.metrics.subDrop;
+    }
+
+    // Rule 18c
+    var minSupShift;
+    if (options.style === Style.DISPLAY) {
+        minSupShift = fontMetrics.metrics.sup1;
+    } else if (options.style.cramped) {
+        minSupShift = fontMetrics.metrics.sup3;
+    } else {
+        minSupShift = fontMetrics.metrics.sup2;
+    }
+
+    // scriptspace is a font-size-independent size, so scale it
+    // appropriately
+    var multiplier = Style.TEXT.sizeMultiplier *
+            options.style.sizeMultiplier;
+    var scriptspace =
+        (0.5 / fontMetrics.metrics.ptPerEm) / multiplier + "em";
+
+    var supsub;
+    if (!group.value.sup) {
+        // Rule 18b
+        subShift = Math.max(
+            subShift, fontMetrics.metrics.sub1,
+            sub.height - 0.8 * fontMetrics.metrics.xHeight);
+
+        supsub = buildCommon.makeVList([
+            {type: "elem", elem: submid},
+        ], "shift", subShift, options);
+
+        supsub.children[0].style.marginRight = scriptspace;
+
+        // Subscripts shouldn't be shifted by the base's italic correction.
+        // Account for that by shifting the subscript back the appropriate
+        // amount. Note we only do this when the base is a single symbol.
+        if (base instanceof domTree.symbolNode) {
+            supsub.children[0].style.marginLeft = -base.italic + "em";
         }
-        // See TeXbook pg. 442-446, Rules 5 and 6, and the text before Rule 19.
-        // Here, we determine whether the bin should turn into an ord. We
-        // currently only apply Rule 5.
-        if (!prev || utils.contains(["mbin", "mopen", "mrel", "mop", "mpunct"],
-                getTypeOfGroup(prevAtom))) {
-            group.type = "textord";
-            className = "mord";
+    } else if (!group.value.sub) {
+        // Rule 18c, d
+        supShift = Math.max(supShift, minSupShift,
+            sup.depth + 0.25 * fontMetrics.metrics.xHeight);
+
+        supsub = buildCommon.makeVList([
+            {type: "elem", elem: supmid},
+        ], "shift", -supShift, options);
+
+        supsub.children[0].style.marginRight = scriptspace;
+    } else {
+        supShift = Math.max(
+            supShift, minSupShift,
+            sup.depth + 0.25 * fontMetrics.metrics.xHeight);
+        subShift = Math.max(subShift, fontMetrics.metrics.sub2);
+
+        var ruleWidth = fontMetrics.metrics.defaultRuleThickness;
+
+        // Rule 18e
+        if ((supShift - sup.depth) - (sub.height - subShift) <
+                4 * ruleWidth) {
+            subShift = 4 * ruleWidth - (supShift - sup.depth) + sub.height;
+            var psi = 0.8 * fontMetrics.metrics.xHeight -
+                (supShift - sup.depth);
+            if (psi > 0) {
+                supShift += psi;
+                subShift -= psi;
+            }
         }
 
-        return buildCommon.mathsym(
-            group.value, group.mode, options.getColor(), [className]);
-    },
+        supsub = buildCommon.makeVList([
+            {type: "elem", elem: submid, shift: subShift},
+            {type: "elem", elem: supmid, shift: -supShift},
+        ], "individualShift", null, options);
 
-    rel: function(group, options, prev) {
-        return buildCommon.mathsym(
-            group.value, group.mode, options.getColor(), ["mrel"]);
-    },
-
-    open: function(group, options, prev) {
-        return buildCommon.mathsym(
-            group.value, group.mode, options.getColor(), ["mopen"]);
-    },
-
-    close: function(group, options, prev) {
-        return buildCommon.mathsym(
-            group.value, group.mode, options.getColor(), ["mclose"]);
-    },
-
-    inner: function(group, options, prev) {
-        return buildCommon.mathsym(
-            group.value, group.mode, options.getColor(), ["minner"]);
-    },
-
-    punct: function(group, options, prev) {
-        return buildCommon.mathsym(
-            group.value, group.mode, options.getColor(), ["mpunct"]);
-    },
-
-    ordgroup: function(group, options, prev) {
-        return makeSpan(
-            ["mord", options.style.cls()],
-            buildExpression(group.value, options.reset())
-        );
-    },
-
-    text: function(group, options, prev) {
-        return makeSpan(["text", "mord", options.style.cls()],
-            buildExpression(group.value.body, options.reset()));
-    },
-
-    color: function(group, options, prev) {
-        var elements = buildExpression(
-            group.value.value,
-            options.withColor(group.value.color),
-            prev
-        );
-
-        // \color isn't supposed to affect the type of the elements it contains.
-        // To accomplish this, we wrap the results in a fragment, so the inner
-        // elements will be able to directly interact with their neighbors. For
-        // example, `\color{red}{2 +} 3` has the same spacing as `2 + 3`
-        return new buildCommon.makeFragment(elements);
-    },
-
-    supsub: function(group, options, prev) {
-        // Superscript and subscripts are handled in the TeXbook on page
-        // 445-446, rules 18(a-f).
-
-        // Here is where we defer to the inner group if it should handle
-        // superscripts and subscripts itself.
-        if (shouldHandleSupSub(group.value.base, options)) {
-            return groupTypes[group.value.base.type](group, options, prev);
+        // See comment above about subscripts not being shifted
+        if (base instanceof domTree.symbolNode) {
+            supsub.children[0].style.marginLeft = -base.italic + "em";
         }
 
-        var base = buildGroup(group.value.base, options.reset());
-        var supmid, submid, sup, sub;
+        supsub.children[0].style.marginRight = scriptspace;
+        supsub.children[1].style.marginRight = scriptspace;
+    }
 
-        if (group.value.sup) {
-            sup = buildGroup(group.value.sup,
-                    options.withStyle(options.style.sup()));
-            supmid = makeSpan(
-                    [options.style.reset(), options.style.sup().cls()], [sup]);
-        }
+    return makeSpan([getTypeOfGroup(group.value.base)],
+        [base, supsub]);
+};
 
-        if (group.value.sub) {
-            sub = buildGroup(group.value.sub,
-                    options.withStyle(options.style.sub()));
-            submid = makeSpan(
-                    [options.style.reset(), options.style.sub().cls()], [sub]);
-        }
+groupTypes.genfrac = function(group, options, prev) {
+    // Fractions are handled in the TeXbook on pages 444-445, rules 15(a-e).
+    // Figure out what style this fraction should be in based on the
+    // function used
+    var fstyle = options.style;
+    if (group.value.size === "display") {
+        fstyle = Style.DISPLAY;
+    } else if (group.value.size === "text") {
+        fstyle = Style.TEXT;
+    }
 
-        // Rule 18a
-        var supShift, subShift;
-        if (isCharacterBox(group.value.base)) {
-            supShift = 0;
-            subShift = 0;
+    var nstyle = fstyle.fracNum();
+    var dstyle = fstyle.fracDen();
+
+    var numer = buildGroup(group.value.numer, options.withStyle(nstyle));
+    var numerreset = makeSpan([fstyle.reset(), nstyle.cls()], [numer]);
+
+    var denom = buildGroup(group.value.denom, options.withStyle(dstyle));
+    var denomreset = makeSpan([fstyle.reset(), dstyle.cls()], [denom]);
+
+    var ruleWidth;
+    if (group.value.hasBarLine) {
+        ruleWidth = fontMetrics.metrics.defaultRuleThickness /
+            options.style.sizeMultiplier;
+    } else {
+        ruleWidth = 0;
+    }
+
+    // Rule 15b
+    var numShift;
+    var clearance;
+    var denomShift;
+    if (fstyle.size === Style.DISPLAY.size) {
+        numShift = fontMetrics.metrics.num1;
+        if (ruleWidth > 0) {
+            clearance = 3 * ruleWidth;
         } else {
-            supShift = base.height - fontMetrics.metrics.supDrop;
-            subShift = base.depth + fontMetrics.metrics.subDrop;
+            clearance = 7 * fontMetrics.metrics.defaultRuleThickness;
         }
-
-        // Rule 18c
-        var minSupShift;
-        if (options.style === Style.DISPLAY) {
-            minSupShift = fontMetrics.metrics.sup1;
-        } else if (options.style.cramped) {
-            minSupShift = fontMetrics.metrics.sup3;
+        denomShift = fontMetrics.metrics.denom1;
+    } else {
+        if (ruleWidth > 0) {
+            numShift = fontMetrics.metrics.num2;
+            clearance = ruleWidth;
         } else {
-            minSupShift = fontMetrics.metrics.sup2;
+            numShift = fontMetrics.metrics.num3;
+            clearance = 3 * fontMetrics.metrics.defaultRuleThickness;
+        }
+        denomShift = fontMetrics.metrics.denom2;
+    }
+
+    var frac;
+    if (ruleWidth === 0) {
+        // Rule 15c
+        var candiateClearance =
+            (numShift - numer.depth) - (denom.height - denomShift);
+        if (candiateClearance < clearance) {
+            numShift += 0.5 * (clearance - candiateClearance);
+            denomShift += 0.5 * (clearance - candiateClearance);
         }
 
-        // scriptspace is a font-size-independent size, so scale it
-        // appropriately
-        var multiplier = Style.TEXT.sizeMultiplier *
-                options.style.sizeMultiplier;
-        var scriptspace =
-            (0.5 / fontMetrics.metrics.ptPerEm) / multiplier + "em";
+        frac = buildCommon.makeVList([
+            {type: "elem", elem: denomreset, shift: denomShift},
+            {type: "elem", elem: numerreset, shift: -numShift},
+        ], "individualShift", null, options);
+    } else {
+        // Rule 15d
+        var axisHeight = fontMetrics.metrics.axisHeight;
 
-        var supsub;
-        if (!group.value.sup) {
-            // Rule 18b
-            subShift = Math.max(
-                subShift, fontMetrics.metrics.sub1,
-                sub.height - 0.8 * fontMetrics.metrics.xHeight);
-
-            supsub = buildCommon.makeVList([
-                {type: "elem", elem: submid}
-            ], "shift", subShift, options);
-
-            supsub.children[0].style.marginRight = scriptspace;
-
-            // Subscripts shouldn't be shifted by the base's italic correction.
-            // Account for that by shifting the subscript back the appropriate
-            // amount. Note we only do this when the base is a single symbol.
-            if (base instanceof domTree.symbolNode) {
-                supsub.children[0].style.marginLeft = -base.italic + "em";
-            }
-        } else if (!group.value.sub) {
-            // Rule 18c, d
-            supShift = Math.max(supShift, minSupShift,
-                sup.depth + 0.25 * fontMetrics.metrics.xHeight);
-
-            supsub = buildCommon.makeVList([
-                {type: "elem", elem: supmid}
-            ], "shift", -supShift, options);
-
-            supsub.children[0].style.marginRight = scriptspace;
-        } else {
-            supShift = Math.max(
-                supShift, minSupShift,
-                sup.depth + 0.25 * fontMetrics.metrics.xHeight);
-            subShift = Math.max(subShift, fontMetrics.metrics.sub2);
-
-            var ruleWidth = fontMetrics.metrics.defaultRuleThickness;
-
-            // Rule 18e
-            if ((supShift - sup.depth) - (sub.height - subShift) <
-                    4 * ruleWidth) {
-                subShift = 4 * ruleWidth - (supShift - sup.depth) + sub.height;
-                var psi = 0.8 * fontMetrics.metrics.xHeight -
-                    (supShift - sup.depth);
-                if (psi > 0) {
-                    supShift += psi;
-                    subShift -= psi;
-                }
-            }
-
-            supsub = buildCommon.makeVList([
-                {type: "elem", elem: submid, shift: subShift},
-                {type: "elem", elem: supmid, shift: -supShift}
-            ], "individualShift", null, options);
-
-            // See comment above about subscripts not being shifted
-            if (base instanceof domTree.symbolNode) {
-                supsub.children[0].style.marginLeft = -base.italic + "em";
-            }
-
-            supsub.children[0].style.marginRight = scriptspace;
-            supsub.children[1].style.marginRight = scriptspace;
+        if ((numShift - numer.depth) - (axisHeight + 0.5 * ruleWidth) <
+                clearance) {
+            numShift +=
+                clearance - ((numShift - numer.depth) -
+                             (axisHeight + 0.5 * ruleWidth));
         }
 
-        return makeSpan([getTypeOfGroup(group.value.base)],
-            [base, supsub]);
-    },
-
-    genfrac: function(group, options, prev) {
-        // Fractions are handled in the TeXbook on pages 444-445, rules 15(a-e).
-        // Figure out what style this fraction should be in based on the
-        // function used
-        var fstyle = options.style;
-        if (group.value.size === "display") {
-            fstyle = Style.DISPLAY;
-        } else if (group.value.size === "text") {
-            fstyle = Style.TEXT;
+        if ((axisHeight - 0.5 * ruleWidth) - (denom.height - denomShift) <
+                clearance) {
+            denomShift +=
+                clearance - ((axisHeight - 0.5 * ruleWidth) -
+                             (denom.height - denomShift));
         }
 
-        var nstyle = fstyle.fracNum();
-        var dstyle = fstyle.fracDen();
+        var mid = makeSpan(
+            [options.style.reset(), Style.TEXT.cls(), "frac-line"]);
+        // Manually set the height of the line because its height is
+        // created in CSS
+        mid.height = ruleWidth;
 
-        var numer = buildGroup(group.value.numer, options.withStyle(nstyle));
-        var numerreset = makeSpan([fstyle.reset(), nstyle.cls()], [numer]);
+        var midShift = -(axisHeight - 0.5 * ruleWidth);
 
-        var denom = buildGroup(group.value.denom, options.withStyle(dstyle));
-        var denomreset = makeSpan([fstyle.reset(), dstyle.cls()], [denom]);
+        frac = buildCommon.makeVList([
+            {type: "elem", elem: denomreset, shift: denomShift},
+            {type: "elem", elem: mid,        shift: midShift},
+            {type: "elem", elem: numerreset, shift: -numShift},
+        ], "individualShift", null, options);
+    }
 
-        var ruleWidth;
-        if (group.value.hasBarLine) {
-            ruleWidth = fontMetrics.metrics.defaultRuleThickness /
-                options.style.sizeMultiplier;
-        } else {
-            ruleWidth = 0;
+    // Since we manually change the style sometimes (with \dfrac or \tfrac),
+    // account for the possible size change here.
+    frac.height *= fstyle.sizeMultiplier / options.style.sizeMultiplier;
+    frac.depth *= fstyle.sizeMultiplier / options.style.sizeMultiplier;
+
+    // Rule 15e
+    var delimSize;
+    if (fstyle.size === Style.DISPLAY.size) {
+        delimSize = fontMetrics.metrics.delim1;
+    } else {
+        delimSize = fontMetrics.metrics.getDelim2(fstyle);
+    }
+
+    var leftDelim;
+    var rightDelim;
+    if (group.value.leftDelim == null) {
+        leftDelim = makeNullDelimiter(options);
+    } else {
+        leftDelim = delimiter.customSizedDelim(
+            group.value.leftDelim, delimSize, true,
+            options.withStyle(fstyle), group.mode);
+    }
+    if (group.value.rightDelim == null) {
+        rightDelim = makeNullDelimiter(options);
+    } else {
+        rightDelim = delimiter.customSizedDelim(
+            group.value.rightDelim, delimSize, true,
+            options.withStyle(fstyle), group.mode);
+    }
+
+    return makeSpan(
+        ["mord", options.style.reset(), fstyle.cls()],
+        [leftDelim, makeSpan(["mfrac"], [frac]), rightDelim],
+        options.getColor());
+};
+
+groupTypes.array = function(group, options, prev) {
+    var r;
+    var c;
+    var nr = group.value.body.length;
+    var nc = 0;
+    var body = new Array(nr);
+
+    // Horizontal spacing
+    var pt = 1 / fontMetrics.metrics.ptPerEm;
+    var arraycolsep = 5 * pt; // \arraycolsep in article.cls
+
+    // Vertical spacing
+    var baselineskip = 12 * pt; // see size10.clo
+    // Default \arraystretch from lttab.dtx
+    // TODO(gagern): may get redefined once we have user-defined macros
+    var arraystretch = utils.deflt(group.value.arraystretch, 1);
+    var arrayskip = arraystretch * baselineskip;
+    var arstrutHeight = 0.7 * arrayskip; // \strutbox in ltfsstrc.dtx and
+    var arstrutDepth = 0.3 * arrayskip;  // \@arstrutbox in lttab.dtx
+
+    var totalHeight = 0;
+    for (r = 0; r < group.value.body.length; ++r) {
+        var inrow = group.value.body[r];
+        var height = arstrutHeight; // \@array adds an \@arstrut
+        var depth = arstrutDepth;   // to each tow (via the template)
+
+        if (nc < inrow.length) {
+            nc = inrow.length;
         }
 
-        // Rule 15b
-        var numShift;
-        var clearance;
-        var denomShift;
-        if (fstyle.size === Style.DISPLAY.size) {
-            numShift = fontMetrics.metrics.num1;
-            if (ruleWidth > 0) {
-                clearance = 3 * ruleWidth;
-            } else {
-                clearance = 7 * fontMetrics.metrics.defaultRuleThickness;
+        var outrow = new Array(inrow.length);
+        for (c = 0; c < inrow.length; ++c) {
+            var elt = buildGroup(inrow[c], options);
+            if (depth < elt.depth) {
+                depth = elt.depth;
             }
-            denomShift = fontMetrics.metrics.denom1;
-        } else {
-            if (ruleWidth > 0) {
-                numShift = fontMetrics.metrics.num2;
-                clearance = ruleWidth;
-            } else {
-                numShift = fontMetrics.metrics.num3;
-                clearance = 3 * fontMetrics.metrics.defaultRuleThickness;
+            if (height < elt.height) {
+                height = elt.height;
             }
-            denomShift = fontMetrics.metrics.denom2;
+            outrow[c] = elt;
         }
 
-        var frac;
-        if (ruleWidth === 0) {
-            // Rule 15c
-            var candiateClearance =
-                (numShift - numer.depth) - (denom.height - denomShift);
-            if (candiateClearance < clearance) {
-                numShift += 0.5 * (clearance - candiateClearance);
-                denomShift += 0.5 * (clearance - candiateClearance);
-            }
-
-            frac = buildCommon.makeVList([
-                {type: "elem", elem: denomreset, shift: denomShift},
-                {type: "elem", elem: numerreset, shift: -numShift}
-            ], "individualShift", null, options);
-        } else {
-            // Rule 15d
-            var axisHeight = fontMetrics.metrics.axisHeight;
-
-            if ((numShift - numer.depth) - (axisHeight + 0.5 * ruleWidth) <
-                    clearance) {
-                numShift +=
-                    clearance - ((numShift - numer.depth) -
-                                 (axisHeight + 0.5 * ruleWidth));
-            }
-
-            if ((axisHeight - 0.5 * ruleWidth) - (denom.height - denomShift) <
-                    clearance) {
-                denomShift +=
-                    clearance - ((axisHeight - 0.5 * ruleWidth) -
-                                 (denom.height - denomShift));
-            }
-
-            var mid = makeSpan(
-                [options.style.reset(), Style.TEXT.cls(), "frac-line"]);
-            // Manually set the height of the line because its height is
-            // created in CSS
-            mid.height = ruleWidth;
-
-            var midShift = -(axisHeight - 0.5 * ruleWidth);
-
-            frac = buildCommon.makeVList([
-                {type: "elem", elem: denomreset, shift: denomShift},
-                {type: "elem", elem: mid,        shift: midShift},
-                {type: "elem", elem: numerreset, shift: -numShift}
-            ], "individualShift", null, options);
-        }
-
-        // Since we manually change the style sometimes (with \dfrac or \tfrac),
-        // account for the possible size change here.
-        frac.height *= fstyle.sizeMultiplier / options.style.sizeMultiplier;
-        frac.depth *= fstyle.sizeMultiplier / options.style.sizeMultiplier;
-
-        // Rule 15e
-        var delimSize;
-        if (fstyle.size === Style.DISPLAY.size) {
-            delimSize = fontMetrics.metrics.delim1;
-        } else {
-            delimSize = fontMetrics.metrics.getDelim2(fstyle);
-        }
-
-        var leftDelim, rightDelim;
-        if (group.value.leftDelim == null) {
-            leftDelim = makeNullDelimiter(options);
-        } else {
-            leftDelim = delimiter.customSizedDelim(
-                group.value.leftDelim, delimSize, true,
-                options.withStyle(fstyle), group.mode);
-        }
-        if (group.value.rightDelim == null) {
-            rightDelim = makeNullDelimiter(options);
-        } else {
-            rightDelim = delimiter.customSizedDelim(
-                group.value.rightDelim, delimSize, true,
-                options.withStyle(fstyle), group.mode);
-        }
-
-        return makeSpan(
-            ["mord", options.style.reset(), fstyle.cls()],
-            [leftDelim, makeSpan(["mfrac"], [frac]), rightDelim],
-            options.getColor());
-    },
-
-    array: function(group, options, prev) {
-        var r, c;
-        var nr = group.value.body.length;
-        var nc = 0;
-        var body = new Array(nr);
-
-        // Horizontal spacing
-        var pt = 1 / fontMetrics.metrics.ptPerEm;
-        var arraycolsep = 5 * pt; // \arraycolsep in article.cls
-
-        // Vertical spacing
-        var baselineskip = 12 * pt; // see size10.clo
-        // Default \arraystretch from lttab.dtx
-        // TODO(gagern): may get redefined once we have user-defined macros
-        var arraystretch = utils.deflt(group.value.arraystretch, 1);
-        var arrayskip = arraystretch * baselineskip;
-        var arstrutHeight = 0.7 * arrayskip; // \strutbox in ltfsstrc.dtx and
-        var arstrutDepth = 0.3 * arrayskip;  // \@arstrutbox in lttab.dtx
-
-        var totalHeight = 0;
-        for (r = 0; r < group.value.body.length; ++r) {
-            var inrow = group.value.body[r];
-            var height = arstrutHeight; // \@array adds an \@arstrut
-            var depth = arstrutDepth;   // to each tow (via the template)
-
-            if (nc < inrow.length) {
-                nc = inrow.length;
-            }
-
-            var outrow = new Array(inrow.length);
-            for (c = 0; c < inrow.length; ++c) {
-                var elt = buildGroup(inrow[c], options);
-                if (depth < elt.depth) {
-                    depth = elt.depth;
-                }
-                if (height < elt.height) {
-                    height = elt.height;
-                }
-                outrow[c] = elt;
-            }
-
-            var gap = 0;
-            if (group.value.rowGaps[r]) {
-                gap = group.value.rowGaps[r].value;
-                switch (gap.unit) {
+        var gap = 0;
+        if (group.value.rowGaps[r]) {
+            gap = group.value.rowGaps[r].value;
+            switch (gap.unit) {
                 case "em":
                     gap = gap.number;
                     break;
@@ -15600,728 +16177,758 @@ var groupTypes = {
                 default:
                     console.error("Can't handle unit " + gap.unit);
                     gap = 0;
-                }
-                if (gap > 0) { // \@argarraycr
-                    gap += arstrutDepth;
-                    if (depth < gap) {
-                        depth = gap; // \@xargarraycr
-                    }
-                    gap = 0;
-                }
             }
-
-            outrow.height = height;
-            outrow.depth = depth;
-            totalHeight += height;
-            outrow.pos = totalHeight;
-            totalHeight += depth + gap; // \@yargarraycr
-            body[r] = outrow;
+            if (gap > 0) { // \@argarraycr
+                gap += arstrutDepth;
+                if (depth < gap) {
+                    depth = gap; // \@xargarraycr
+                }
+                gap = 0;
+            }
         }
 
-        var offset = totalHeight / 2 + fontMetrics.metrics.axisHeight;
-        var colDescriptions = group.value.cols || [];
-        var cols = [];
-        var colSep;
-        var colDescrNum;
-        for (c = 0, colDescrNum = 0;
-             // Continue while either there are more columns or more column
-             // descriptions, so trailing separators don't get lost.
-             c < nc || colDescrNum < colDescriptions.length;
-             ++c, ++colDescrNum) {
+        outrow.height = height;
+        outrow.depth = depth;
+        totalHeight += height;
+        outrow.pos = totalHeight;
+        totalHeight += depth + gap; // \@yargarraycr
+        body[r] = outrow;
+    }
 
-            var colDescr = colDescriptions[colDescrNum] || {};
+    var offset = totalHeight / 2 + fontMetrics.metrics.axisHeight;
+    var colDescriptions = group.value.cols || [];
+    var cols = [];
+    var colSep;
+    var colDescrNum;
+    for (c = 0, colDescrNum = 0;
+         // Continue while either there are more columns or more column
+         // descriptions, so trailing separators don't get lost.
+         c < nc || colDescrNum < colDescriptions.length;
+         ++c, ++colDescrNum) {
 
-            var firstSeparator = true;
-            while (colDescr.type === "separator") {
-                // If there is more than one separator in a row, add a space
-                // between them.
-                if (!firstSeparator) {
-                    colSep = makeSpan(["arraycolsep"], []);
-                    colSep.style.width =
-                        fontMetrics.metrics.doubleRuleSep + "em";
-                    cols.push(colSep);
-                }
+        var colDescr = colDescriptions[colDescrNum] || {};
 
-                if (colDescr.separator === "|") {
-                    var separator = makeSpan(
-                        ["vertical-separator"],
-                        []);
-                    separator.style.height = totalHeight + "em";
-                    separator.style.verticalAlign =
-                        -(totalHeight - offset) + "em";
-
-                    cols.push(separator);
-                } else {
-                    throw new ParseError(
-                        "Invalid separator type: " + colDescr.separator);
-                }
-
-                colDescrNum++;
-                colDescr = colDescriptions[colDescrNum] || {};
-                firstSeparator = false;
+        var firstSeparator = true;
+        while (colDescr.type === "separator") {
+            // If there is more than one separator in a row, add a space
+            // between them.
+            if (!firstSeparator) {
+                colSep = makeSpan(["arraycolsep"], []);
+                colSep.style.width =
+                    fontMetrics.metrics.doubleRuleSep + "em";
+                cols.push(colSep);
             }
 
-            if (c >= nc) {
+            if (colDescr.separator === "|") {
+                var separator = makeSpan(
+                    ["vertical-separator"],
+                    []);
+                separator.style.height = totalHeight + "em";
+                separator.style.verticalAlign =
+                    -(totalHeight - offset) + "em";
+
+                cols.push(separator);
+            } else {
+                throw new ParseError(
+                    "Invalid separator type: " + colDescr.separator);
+            }
+
+            colDescrNum++;
+            colDescr = colDescriptions[colDescrNum] || {};
+            firstSeparator = false;
+        }
+
+        if (c >= nc) {
+            continue;
+        }
+
+        var sepwidth;
+        if (c > 0 || group.value.hskipBeforeAndAfter) {
+            sepwidth = utils.deflt(colDescr.pregap, arraycolsep);
+            if (sepwidth !== 0) {
+                colSep = makeSpan(["arraycolsep"], []);
+                colSep.style.width = sepwidth + "em";
+                cols.push(colSep);
+            }
+        }
+
+        var col = [];
+        for (r = 0; r < nr; ++r) {
+            var row = body[r];
+            var elem = row[c];
+            if (!elem) {
                 continue;
             }
+            var shift = row.pos - offset;
+            elem.depth = row.depth;
+            elem.height = row.height;
+            col.push({type: "elem", elem: elem, shift: shift});
+        }
 
-            var sepwidth;
-            if (c > 0 || group.value.hskipBeforeAndAfter) {
-                sepwidth = utils.deflt(colDescr.pregap, arraycolsep);
-                if (sepwidth !== 0) {
-                    colSep = makeSpan(["arraycolsep"], []);
-                    colSep.style.width = sepwidth + "em";
-                    cols.push(colSep);
-                }
-            }
+        col = buildCommon.makeVList(col, "individualShift", null, options);
+        col = makeSpan(
+            ["col-align-" + (colDescr.align || "c")],
+            [col]);
+        cols.push(col);
 
-            var col = [];
-            for (r = 0; r < nr; ++r) {
-                var row = body[r];
-                var elem = row[c];
-                if (!elem) {
-                    continue;
-                }
-                var shift = row.pos - offset;
-                elem.depth = row.depth;
-                elem.height = row.height;
-                col.push({type: "elem", elem: elem, shift: shift});
-            }
-
-            col = buildCommon.makeVList(col, "individualShift", null, options);
-            col = makeSpan(
-                ["col-align-" + (colDescr.align || "c")],
-                [col]);
-            cols.push(col);
-
-            if (c < nc - 1 || group.value.hskipBeforeAndAfter) {
-                sepwidth = utils.deflt(colDescr.postgap, arraycolsep);
-                if (sepwidth !== 0) {
-                    colSep = makeSpan(["arraycolsep"], []);
-                    colSep.style.width = sepwidth + "em";
-                    cols.push(colSep);
-                }
+        if (c < nc - 1 || group.value.hskipBeforeAndAfter) {
+            sepwidth = utils.deflt(colDescr.postgap, arraycolsep);
+            if (sepwidth !== 0) {
+                colSep = makeSpan(["arraycolsep"], []);
+                colSep.style.width = sepwidth + "em";
+                cols.push(colSep);
             }
         }
-        body = makeSpan(["mtable"], cols);
-        return makeSpan(["mord"], [body], options.getColor());
-    },
-
-    spacing: function(group, options, prev) {
-        if (group.value === "\\ " || group.value === "\\space" ||
-            group.value === " " || group.value === "~") {
-            // Spaces are generated by adding an actual space. Each of these
-            // things has an entry in the symbols table, so these will be turned
-            // into appropriate outputs.
-            return makeSpan(
-                ["mord", "mspace"],
-                [buildCommon.mathsym(group.value, group.mode)]
-            );
-        } else {
-            // Other kinds of spaces are of arbitrary width. We use CSS to
-            // generate these.
-            return makeSpan(
-                ["mord", "mspace",
-                 buildCommon.spacingFunctions[group.value].className]);
-        }
-    },
-
-    llap: function(group, options, prev) {
-        var inner = makeSpan(
-            ["inner"], [buildGroup(group.value.body, options.reset())]);
-        var fix = makeSpan(["fix"], []);
-        return makeSpan(
-            ["llap", options.style.cls()], [inner, fix]);
-    },
-
-    rlap: function(group, options, prev) {
-        var inner = makeSpan(
-            ["inner"], [buildGroup(group.value.body, options.reset())]);
-        var fix = makeSpan(["fix"], []);
-        return makeSpan(
-            ["rlap", options.style.cls()], [inner, fix]);
-    },
-
-    op: function(group, options, prev) {
-        // Operators are handled in the TeXbook pg. 443-444, rule 13(a).
-        var supGroup;
-        var subGroup;
-        var hasLimits = false;
-        if (group.type === "supsub" ) {
-            // If we have limits, supsub will pass us its group to handle. Pull
-            // out the superscript and subscript and set the group to the op in
-            // its base.
-            supGroup = group.value.sup;
-            subGroup = group.value.sub;
-            group = group.value.base;
-            hasLimits = true;
-        }
-
-        // Most operators have a large successor symbol, but these don't.
-        var noSuccessor = [
-            "\\smallint"
-        ];
-
-        var large = false;
-        if (options.style.size === Style.DISPLAY.size &&
-            group.value.symbol &&
-            !utils.contains(noSuccessor, group.value.body)) {
-
-            // Most symbol operators get larger in displaystyle (rule 13)
-            large = true;
-        }
-
-        var base;
-        var baseShift = 0;
-        var slant = 0;
-        if (group.value.symbol) {
-            // If this is a symbol, create the symbol.
-            var style = large ? "Size2-Regular" : "Size1-Regular";
-            base = buildCommon.makeSymbol(
-                group.value.body, style, "math", options.getColor(),
-                ["op-symbol", large ? "large-op" : "small-op", "mop"]);
-
-            // Shift the symbol so its center lies on the axis (rule 13). It
-            // appears that our fonts have the centers of the symbols already
-            // almost on the axis, so these numbers are very small. Note we
-            // don't actually apply this here, but instead it is used either in
-            // the vlist creation or separately when there are no limits.
-            baseShift = (base.height - base.depth) / 2 -
-                fontMetrics.metrics.axisHeight *
-                options.style.sizeMultiplier;
-
-            // The slant of the symbol is just its italic correction.
-            slant = base.italic;
-        } else {
-            // Otherwise, this is a text operator. Build the text from the
-            // operator's name.
-            // TODO(emily): Add a space in the middle of some of these
-            // operators, like \limsup
-            var output = [];
-            for (var i = 1; i < group.value.body.length; i++) {
-                output.push(buildCommon.mathsym(group.value.body[i], group.mode));
-            }
-            base = makeSpan(["mop"], output, options.getColor());
-        }
-
-        if (hasLimits) {
-            // IE 8 clips \int if it is in a display: inline-block. We wrap it
-            // in a new span so it is an inline, and works.
-            base = makeSpan([], [base]);
-
-            var supmid, supKern, submid, subKern;
-            // We manually have to handle the superscripts and subscripts. This,
-            // aside from the kern calculations, is copied from supsub.
-            if (supGroup) {
-                var sup = buildGroup(
-                    supGroup, options.withStyle(options.style.sup()));
-                supmid = makeSpan(
-                    [options.style.reset(), options.style.sup().cls()], [sup]);
-
-                supKern = Math.max(
-                    fontMetrics.metrics.bigOpSpacing1,
-                    fontMetrics.metrics.bigOpSpacing3 - sup.depth);
-            }
-
-            if (subGroup) {
-                var sub = buildGroup(
-                    subGroup, options.withStyle(options.style.sub()));
-                submid = makeSpan(
-                    [options.style.reset(), options.style.sub().cls()],
-                    [sub]);
-
-                subKern = Math.max(
-                    fontMetrics.metrics.bigOpSpacing2,
-                    fontMetrics.metrics.bigOpSpacing4 - sub.height);
-            }
-
-            // Build the final group as a vlist of the possible subscript, base,
-            // and possible superscript.
-            var finalGroup, top, bottom;
-            if (!supGroup) {
-                top = base.height - baseShift;
-
-                finalGroup = buildCommon.makeVList([
-                    {type: "kern", size: fontMetrics.metrics.bigOpSpacing5},
-                    {type: "elem", elem: submid},
-                    {type: "kern", size: subKern},
-                    {type: "elem", elem: base}
-                ], "top", top, options);
-
-                // Here, we shift the limits by the slant of the symbol. Note
-                // that we are supposed to shift the limits by 1/2 of the slant,
-                // but since we are centering the limits adding a full slant of
-                // margin will shift by 1/2 that.
-                finalGroup.children[0].style.marginLeft = -slant + "em";
-            } else if (!subGroup) {
-                bottom = base.depth + baseShift;
-
-                finalGroup = buildCommon.makeVList([
-                    {type: "elem", elem: base},
-                    {type: "kern", size: supKern},
-                    {type: "elem", elem: supmid},
-                    {type: "kern", size: fontMetrics.metrics.bigOpSpacing5}
-                ], "bottom", bottom, options);
-
-                // See comment above about slants
-                finalGroup.children[1].style.marginLeft = slant + "em";
-            } else if (!supGroup && !subGroup) {
-                // This case probably shouldn't occur (this would mean the
-                // supsub was sending us a group with no superscript or
-                // subscript) but be safe.
-                return base;
-            } else {
-                bottom = fontMetrics.metrics.bigOpSpacing5 +
-                    submid.height + submid.depth +
-                    subKern +
-                    base.depth + baseShift;
-
-                finalGroup = buildCommon.makeVList([
-                    {type: "kern", size: fontMetrics.metrics.bigOpSpacing5},
-                    {type: "elem", elem: submid},
-                    {type: "kern", size: subKern},
-                    {type: "elem", elem: base},
-                    {type: "kern", size: supKern},
-                    {type: "elem", elem: supmid},
-                    {type: "kern", size: fontMetrics.metrics.bigOpSpacing5}
-                ], "bottom", bottom, options);
-
-                // See comment above about slants
-                finalGroup.children[0].style.marginLeft = -slant + "em";
-                finalGroup.children[2].style.marginLeft = slant + "em";
-            }
-
-            return makeSpan(["mop", "op-limits"], [finalGroup]);
-        } else {
-            if (group.value.symbol) {
-                base.style.top = baseShift + "em";
-            }
-
-            return base;
-        }
-    },
-
-    katex: function(group, options, prev) {
-        // The KaTeX logo. The offsets for the K and a were chosen to look
-        // good, but the offsets for the T, E, and X were taken from the
-        // definition of \TeX in TeX (see TeXbook pg. 356)
-        var k = makeSpan(
-            ["k"], [buildCommon.mathsym("K", group.mode)]);
-        var a = makeSpan(
-            ["a"], [buildCommon.mathsym("A", group.mode)]);
-
-        a.height = (a.height + 0.2) * 0.75;
-        a.depth = (a.height - 0.2) * 0.75;
-
-        var t = makeSpan(
-            ["t"], [buildCommon.mathsym("T", group.mode)]);
-        var e = makeSpan(
-            ["e"], [buildCommon.mathsym("E", group.mode)]);
-
-        e.height = (e.height - 0.2155);
-        e.depth = (e.depth + 0.2155);
-
-        var x = makeSpan(
-            ["x"], [buildCommon.mathsym("X", group.mode)]);
-
-        return makeSpan(
-            ["katex-logo", "mord"], [k, a, t, e, x], options.getColor());
-    },
-
-    overline: function(group, options, prev) {
-        // Overlines are handled in the TeXbook pg 443, Rule 9.
-
-        // Build the inner group in the cramped style.
-        var innerGroup = buildGroup(group.value.body,
-                options.withStyle(options.style.cramp()));
-
-        var ruleWidth = fontMetrics.metrics.defaultRuleThickness /
-            options.style.sizeMultiplier;
-
-        // Create the line above the body
-        var line = makeSpan(
-            [options.style.reset(), Style.TEXT.cls(), "overline-line"]);
-        line.height = ruleWidth;
-        line.maxFontSize = 1.0;
-
-        // Generate the vlist, with the appropriate kerns
-        var vlist = buildCommon.makeVList([
-            {type: "elem", elem: innerGroup},
-            {type: "kern", size: 3 * ruleWidth},
-            {type: "elem", elem: line},
-            {type: "kern", size: ruleWidth}
-        ], "firstBaseline", null, options);
-
-        return makeSpan(["overline", "mord"], [vlist], options.getColor());
-    },
-
-    sqrt: function(group, options, prev) {
-        // Square roots are handled in the TeXbook pg. 443, Rule 11.
-
-        // First, we do the same steps as in overline to build the inner group
-        // and line
-        var inner = buildGroup(group.value.body,
-                options.withStyle(options.style.cramp()));
-
-        var ruleWidth = fontMetrics.metrics.defaultRuleThickness /
-            options.style.sizeMultiplier;
-
-        var line = makeSpan(
-            [options.style.reset(), Style.TEXT.cls(), "sqrt-line"], [],
-            options.getColor());
-        line.height = ruleWidth;
-        line.maxFontSize = 1.0;
-
-        var phi = ruleWidth;
-        if (options.style.id < Style.TEXT.id) {
-            phi = fontMetrics.metrics.xHeight;
-        }
-
-        // Calculate the clearance between the body and line
-        var lineClearance = ruleWidth + phi / 4;
-
-        var innerHeight =
-            (inner.height + inner.depth) * options.style.sizeMultiplier;
-        var minDelimiterHeight = innerHeight + lineClearance + ruleWidth;
-
-        // Create a \surd delimiter of the required minimum size
-        var delim = makeSpan(["sqrt-sign"], [
-            delimiter.customSizedDelim("\\surd", minDelimiterHeight,
-                                       false, options, group.mode)],
-                             options.getColor());
-
-        var delimDepth = (delim.height + delim.depth) - ruleWidth;
-
-        // Adjust the clearance based on the delimiter size
-        if (delimDepth > inner.height + inner.depth + lineClearance) {
-            lineClearance =
-                (lineClearance + delimDepth - inner.height - inner.depth) / 2;
-        }
-
-        // Shift the delimiter so that its top lines up with the top of the line
-        var delimShift = -(inner.height + lineClearance + ruleWidth) + delim.height;
-        delim.style.top = delimShift + "em";
-        delim.height -= delimShift;
-        delim.depth += delimShift;
-
-        // We add a special case here, because even when `inner` is empty, we
-        // still get a line. So, we use a simple heuristic to decide if we
-        // should omit the body entirely. (note this doesn't work for something
-        // like `\sqrt{\rlap{x}}`, but if someone is doing that they deserve for
-        // it not to work.
-        var body;
-        if (inner.height === 0 && inner.depth === 0) {
-            body = makeSpan();
-        } else {
-            body = buildCommon.makeVList([
-                {type: "elem", elem: inner},
-                {type: "kern", size: lineClearance},
-                {type: "elem", elem: line},
-                {type: "kern", size: ruleWidth}
-            ], "firstBaseline", null, options);
-        }
-
-        if (!group.value.index) {
-            return makeSpan(["sqrt", "mord"], [delim, body]);
-        } else {
-            // Handle the optional root index
-
-            // The index is always in scriptscript style
-            var root = buildGroup(
-                group.value.index,
-                options.withStyle(Style.SCRIPTSCRIPT));
-            var rootWrap = makeSpan(
-                [options.style.reset(), Style.SCRIPTSCRIPT.cls()],
-                [root]);
-
-            // Figure out the height and depth of the inner part
-            var innerRootHeight = Math.max(delim.height, body.height);
-            var innerRootDepth = Math.max(delim.depth, body.depth);
-
-            // The amount the index is shifted by. This is taken from the TeX
-            // source, in the definition of `\r@@t`.
-            var toShift = 0.6 * (innerRootHeight - innerRootDepth);
-
-            // Build a VList with the superscript shifted up correctly
-            var rootVList = buildCommon.makeVList(
-                [{type: "elem", elem: rootWrap}],
-                "shift", -toShift, options);
-            // Add a class surrounding it so we can add on the appropriate
-            // kerning
-            var rootVListWrap = makeSpan(["root"], [rootVList]);
-
-            return makeSpan(["sqrt", "mord"], [rootVListWrap, delim, body]);
-        }
-    },
-
-    sizing: function(group, options, prev) {
-        // Handle sizing operators like \Huge. Real TeX doesn't actually allow
-        // these functions inside of math expressions, so we do some special
-        // handling.
-        var inner = buildExpression(group.value.value,
-                options.withSize(group.value.size), prev);
-
-        var span = makeSpan(["mord"],
-            [makeSpan(["sizing", "reset-" + options.size, group.value.size,
-                       options.style.cls()],
-                      inner)]);
-
-        // Calculate the correct maxFontSize manually
-        var fontSize = buildCommon.sizingMultiplier[group.value.size];
-        span.maxFontSize = fontSize * options.style.sizeMultiplier;
-
-        return span;
-    },
-
-    styling: function(group, options, prev) {
-        // Style changes are handled in the TeXbook on pg. 442, Rule 3.
-
-        // Figure out what style we're changing to.
-        var style = {
-            "display": Style.DISPLAY,
-            "text": Style.TEXT,
-            "script": Style.SCRIPT,
-            "scriptscript": Style.SCRIPTSCRIPT
-        };
-
-        var newStyle = style[group.value.style];
-
-        // Build the inner expression in the new style.
-        var inner = buildExpression(
-            group.value.value, options.withStyle(newStyle), prev);
-
-        return makeSpan([options.style.reset(), newStyle.cls()], inner);
-    },
-
-    font: function(group, options, prev) {
-        var font = group.value.font;
-        return buildGroup(group.value.body, options.withFont(font), prev);
-    },
-
-    delimsizing: function(group, options, prev) {
-        var delim = group.value.value;
-
-        if (delim === ".") {
-            // Empty delimiters still count as elements, even though they don't
-            // show anything.
-            return makeSpan([groupToType[group.value.delimType]]);
-        }
-
-        // Use delimiter.sizedDelim to generate the delimiter.
-        return makeSpan(
-            [groupToType[group.value.delimType]],
-            [delimiter.sizedDelim(
-                delim, group.value.size, options, group.mode)]);
-    },
-
-    leftright: function(group, options, prev) {
-        // Build the inner expression
-        var inner = buildExpression(group.value.body, options.reset());
-
-        var innerHeight = 0;
-        var innerDepth = 0;
-
-        // Calculate its height and depth
-        for (var i = 0; i < inner.length; i++) {
-            innerHeight = Math.max(inner[i].height, innerHeight);
-            innerDepth = Math.max(inner[i].depth, innerDepth);
-        }
-
-        // The size of delimiters is the same, regardless of what style we are
-        // in. Thus, to correctly calculate the size of delimiter we need around
-        // a group, we scale down the inner size based on the size.
-        innerHeight *= options.style.sizeMultiplier;
-        innerDepth *= options.style.sizeMultiplier;
-
-        var leftDelim;
-        if (group.value.left === ".") {
-            // Empty delimiters in \left and \right make null delimiter spaces.
-            leftDelim = makeNullDelimiter(options);
-        } else {
-            // Otherwise, use leftRightDelim to generate the correct sized
-            // delimiter.
-            leftDelim = delimiter.leftRightDelim(
-                group.value.left, innerHeight, innerDepth, options,
-                group.mode);
-        }
-        // Add it to the beginning of the expression
-        inner.unshift(leftDelim);
-
-        var rightDelim;
-        // Same for the right delimiter
-        if (group.value.right === ".") {
-            rightDelim = makeNullDelimiter(options);
-        } else {
-            rightDelim = delimiter.leftRightDelim(
-                group.value.right, innerHeight, innerDepth, options,
-                group.mode);
-        }
-        // Add it to the end of the expression.
-        inner.push(rightDelim);
-
-        return makeSpan(
-            ["minner", options.style.cls()], inner, options.getColor());
-    },
-
-    rule: function(group, options, prev) {
-        // Make an empty span for the rule
-        var rule = makeSpan(["mord", "rule"], [], options.getColor());
-
-        // Calculate the shift, width, and height of the rule, and account for units
-        var shift = 0;
-        if (group.value.shift) {
-            shift = group.value.shift.number;
-            if (group.value.shift.unit === "ex") {
-                shift *= fontMetrics.metrics.xHeight;
-            }
-        }
-
-        var width = group.value.width.number;
-        if (group.value.width.unit === "ex") {
-            width *= fontMetrics.metrics.xHeight;
-        }
-
-        var height = group.value.height.number;
-        if (group.value.height.unit === "ex") {
-            height *= fontMetrics.metrics.xHeight;
-        }
-
-        // The sizes of rules are absolute, so make it larger if we are in a
-        // smaller style.
-        shift /= options.style.sizeMultiplier;
-        width /= options.style.sizeMultiplier;
-        height /= options.style.sizeMultiplier;
-
-        // Style the rule to the right size
-        rule.style.borderRightWidth = width + "em";
-        rule.style.borderTopWidth = height + "em";
-        rule.style.bottom = shift + "em";
-
-        // Record the height and width
-        rule.width = width;
-        rule.height = height + shift;
-        rule.depth = -shift;
-
-        return rule;
-    },
-
-    accent: function(group, options, prev) {
-        // Accents are handled in the TeXbook pg. 443, rule 12.
-        var base = group.value.base;
-
-        var supsubGroup;
-        if (group.type === "supsub") {
-            // If our base is a character box, and we have superscripts and
-            // subscripts, the supsub will defer to us. In particular, we want
-            // to attach the superscripts and subscripts to the inner body (so
-            // that the position of the superscripts and subscripts won't be
-            // affected by the height of the accent). We accomplish this by
-            // sticking the base of the accent into the base of the supsub, and
-            // rendering that, while keeping track of where the accent is.
-
-            // The supsub group is the group that was passed in
-            var supsub = group;
-            // The real accent group is the base of the supsub group
-            group = supsub.value.base;
-            // The character box is the base of the accent group
-            base = group.value.base;
-            // Stick the character box into the base of the supsub group
-            supsub.value.base = base;
-
-            // Rerender the supsub group with its new base, and store that
-            // result.
-            supsubGroup = buildGroup(
-                supsub, options.reset(), prev);
-        }
-
-        // Build the base group
-        var body = buildGroup(
-            base, options.withStyle(options.style.cramp()));
-
-        // Calculate the skew of the accent. This is based on the line "If the
-        // nucleus is not a single character, let s = 0; otherwise set s to the
-        // kern amount for the nucleus followed by the \skewchar of its font."
-        // Note that our skew metrics are just the kern between each character
-        // and the skewchar.
-        var skew;
-        if (isCharacterBox(base)) {
-            // If the base is a character box, then we want the skew of the
-            // innermost character. To do that, we find the innermost character:
-            var baseChar = getBaseElem(base);
-            // Then, we render its group to get the symbol inside it
-            var baseGroup = buildGroup(
-                baseChar, options.withStyle(options.style.cramp()));
-            // Finally, we pull the skew off of the symbol.
-            skew = baseGroup.skew;
-            // Note that we now throw away baseGroup, because the layers we
-            // removed with getBaseElem might contain things like \color which
-            // we can't get rid of.
-            // TODO(emily): Find a better way to get the skew
-        } else {
-            skew = 0;
-        }
-
-        // calculate the amount of space between the body and the accent
-        var clearance = Math.min(body.height, fontMetrics.metrics.xHeight);
-
-        // Build the accent
-        var accent = buildCommon.makeSymbol(
-            group.value.accent, "Main-Regular", "math", options.getColor());
-        // Remove the italic correction of the accent, because it only serves to
-        // shift the accent over to a place we don't want.
-        accent.italic = 0;
-
-        // The \vec character that the fonts use is a combining character, and
-        // thus shows up much too far to the left. To account for this, we add a
-        // specific class which shifts the accent over to where we want it.
-        // TODO(emily): Fix this in a better way, like by changing the font
-        var vecClass = group.value.accent === "\\vec" ? "accent-vec" : null;
-
-        var accentBody = makeSpan(["accent-body", vecClass], [
-            makeSpan([], [accent])]);
-
-        accentBody = buildCommon.makeVList([
-            {type: "elem", elem: body},
-            {type: "kern", size: -clearance},
-            {type: "elem", elem: accentBody}
-        ], "firstBaseline", null, options);
-
-        // Shift the accent over by the skew. Note we shift by twice the skew
-        // because we are centering the accent, so by adding 2*skew to the left,
-        // we shift it to the right by 1*skew.
-        accentBody.children[1].style.marginLeft = 2 * skew + "em";
-
-        var accentWrap = makeSpan(["mord", "accent"], [accentBody]);
-
-        if (supsubGroup) {
-            // Here, we replace the "base" child of the supsub with our newly
-            // generated accent.
-            supsubGroup.children[0] = accentWrap;
-
-            // Since we don't rerun the height calculation after replacing the
-            // accent, we manually recalculate height.
-            supsubGroup.height = Math.max(accentWrap.height, supsubGroup.height);
-
-            // Accents should always be ords, even when their innards are not.
-            supsubGroup.classes[0] = "mord";
-
-            return supsubGroup;
-        } else {
-            return accentWrap;
-        }
-    },
-
-    phantom: function(group, options, prev) {
-        var elements = buildExpression(
-            group.value.value,
-            options.withPhantom(),
-            prev
-        );
-
-        // \phantom isn't supposed to affect the elements it contains.
-        // See "color" for more details.
-        return new buildCommon.makeFragment(elements);
     }
+    body = makeSpan(["mtable"], cols);
+    return makeSpan(["mord"], [body], options.getColor());
+};
+
+groupTypes.spacing = function(group, options, prev) {
+    if (group.value === "\\ " || group.value === "\\space" ||
+        group.value === " " || group.value === "~") {
+        // Spaces are generated by adding an actual space. Each of these
+        // things has an entry in the symbols table, so these will be turned
+        // into appropriate outputs.
+        return makeSpan(
+            ["mord", "mspace"],
+            [buildCommon.mathsym(group.value, group.mode)]
+        );
+    } else {
+        // Other kinds of spaces are of arbitrary width. We use CSS to
+        // generate these.
+        return makeSpan(
+            ["mord", "mspace",
+             buildCommon.spacingFunctions[group.value].className]);
+    }
+};
+
+groupTypes.llap = function(group, options, prev) {
+    var inner = makeSpan(
+        ["inner"], [buildGroup(group.value.body, options.reset())]);
+    var fix = makeSpan(["fix"], []);
+    return makeSpan(
+        ["llap", options.style.cls()], [inner, fix]);
+};
+
+groupTypes.rlap = function(group, options, prev) {
+    var inner = makeSpan(
+        ["inner"], [buildGroup(group.value.body, options.reset())]);
+    var fix = makeSpan(["fix"], []);
+    return makeSpan(
+        ["rlap", options.style.cls()], [inner, fix]);
+};
+
+groupTypes.op = function(group, options, prev) {
+    // Operators are handled in the TeXbook pg. 443-444, rule 13(a).
+    var supGroup;
+    var subGroup;
+    var hasLimits = false;
+    if (group.type === "supsub" ) {
+        // If we have limits, supsub will pass us its group to handle. Pull
+        // out the superscript and subscript and set the group to the op in
+        // its base.
+        supGroup = group.value.sup;
+        subGroup = group.value.sub;
+        group = group.value.base;
+        hasLimits = true;
+    }
+
+    // Most operators have a large successor symbol, but these don't.
+    var noSuccessor = [
+        "\\smallint",
+    ];
+
+    var large = false;
+    if (options.style.size === Style.DISPLAY.size &&
+        group.value.symbol &&
+        !utils.contains(noSuccessor, group.value.body)) {
+
+        // Most symbol operators get larger in displaystyle (rule 13)
+        large = true;
+    }
+
+    var base;
+    var baseShift = 0;
+    var slant = 0;
+    if (group.value.symbol) {
+        // If this is a symbol, create the symbol.
+        var style = large ? "Size2-Regular" : "Size1-Regular";
+        base = buildCommon.makeSymbol(
+            group.value.body, style, "math", options.getColor(),
+            ["op-symbol", large ? "large-op" : "small-op", "mop"]);
+
+        // Shift the symbol so its center lies on the axis (rule 13). It
+        // appears that our fonts have the centers of the symbols already
+        // almost on the axis, so these numbers are very small. Note we
+        // don't actually apply this here, but instead it is used either in
+        // the vlist creation or separately when there are no limits.
+        baseShift = (base.height - base.depth) / 2 -
+            fontMetrics.metrics.axisHeight *
+            options.style.sizeMultiplier;
+
+        // The slant of the symbol is just its italic correction.
+        slant = base.italic;
+    } else {
+        // Otherwise, this is a text operator. Build the text from the
+        // operator's name.
+        // TODO(emily): Add a space in the middle of some of these
+        // operators, like \limsup
+        var output = [];
+        for (var i = 1; i < group.value.body.length; i++) {
+            output.push(buildCommon.mathsym(group.value.body[i], group.mode));
+        }
+        base = makeSpan(["mop"], output, options.getColor());
+    }
+
+    if (hasLimits) {
+        // IE 8 clips \int if it is in a display: inline-block. We wrap it
+        // in a new span so it is an inline, and works.
+        base = makeSpan([], [base]);
+
+        var supmid;
+        var supKern;
+        var submid;
+        var subKern;
+        // We manually have to handle the superscripts and subscripts. This,
+        // aside from the kern calculations, is copied from supsub.
+        if (supGroup) {
+            var sup = buildGroup(
+                supGroup, options.withStyle(options.style.sup()));
+            supmid = makeSpan(
+                [options.style.reset(), options.style.sup().cls()], [sup]);
+
+            supKern = Math.max(
+                fontMetrics.metrics.bigOpSpacing1,
+                fontMetrics.metrics.bigOpSpacing3 - sup.depth);
+        }
+
+        if (subGroup) {
+            var sub = buildGroup(
+                subGroup, options.withStyle(options.style.sub()));
+            submid = makeSpan(
+                [options.style.reset(), options.style.sub().cls()],
+                [sub]);
+
+            subKern = Math.max(
+                fontMetrics.metrics.bigOpSpacing2,
+                fontMetrics.metrics.bigOpSpacing4 - sub.height);
+        }
+
+        // Build the final group as a vlist of the possible subscript, base,
+        // and possible superscript.
+        var finalGroup;
+        var top;
+        var bottom;
+        if (!supGroup) {
+            top = base.height - baseShift;
+
+            finalGroup = buildCommon.makeVList([
+                {type: "kern", size: fontMetrics.metrics.bigOpSpacing5},
+                {type: "elem", elem: submid},
+                {type: "kern", size: subKern},
+                {type: "elem", elem: base},
+            ], "top", top, options);
+
+            // Here, we shift the limits by the slant of the symbol. Note
+            // that we are supposed to shift the limits by 1/2 of the slant,
+            // but since we are centering the limits adding a full slant of
+            // margin will shift by 1/2 that.
+            finalGroup.children[0].style.marginLeft = -slant + "em";
+        } else if (!subGroup) {
+            bottom = base.depth + baseShift;
+
+            finalGroup = buildCommon.makeVList([
+                {type: "elem", elem: base},
+                {type: "kern", size: supKern},
+                {type: "elem", elem: supmid},
+                {type: "kern", size: fontMetrics.metrics.bigOpSpacing5},
+            ], "bottom", bottom, options);
+
+            // See comment above about slants
+            finalGroup.children[1].style.marginLeft = slant + "em";
+        } else if (!supGroup && !subGroup) {
+            // This case probably shouldn't occur (this would mean the
+            // supsub was sending us a group with no superscript or
+            // subscript) but be safe.
+            return base;
+        } else {
+            bottom = fontMetrics.metrics.bigOpSpacing5 +
+                submid.height + submid.depth +
+                subKern +
+                base.depth + baseShift;
+
+            finalGroup = buildCommon.makeVList([
+                {type: "kern", size: fontMetrics.metrics.bigOpSpacing5},
+                {type: "elem", elem: submid},
+                {type: "kern", size: subKern},
+                {type: "elem", elem: base},
+                {type: "kern", size: supKern},
+                {type: "elem", elem: supmid},
+                {type: "kern", size: fontMetrics.metrics.bigOpSpacing5},
+            ], "bottom", bottom, options);
+
+            // See comment above about slants
+            finalGroup.children[0].style.marginLeft = -slant + "em";
+            finalGroup.children[2].style.marginLeft = slant + "em";
+        }
+
+        return makeSpan(["mop", "op-limits"], [finalGroup]);
+    } else {
+        if (group.value.symbol) {
+            base.style.top = baseShift + "em";
+        }
+
+        return base;
+    }
+};
+
+groupTypes.katex = function(group, options, prev) {
+    // The KaTeX logo. The offsets for the K and a were chosen to look
+    // good, but the offsets for the T, E, and X were taken from the
+    // definition of \TeX in TeX (see TeXbook pg. 356)
+    var k = makeSpan(
+        ["k"], [buildCommon.mathsym("K", group.mode)]);
+    var a = makeSpan(
+        ["a"], [buildCommon.mathsym("A", group.mode)]);
+
+    a.height = (a.height + 0.2) * 0.75;
+    a.depth = (a.height - 0.2) * 0.75;
+
+    var t = makeSpan(
+        ["t"], [buildCommon.mathsym("T", group.mode)]);
+    var e = makeSpan(
+        ["e"], [buildCommon.mathsym("E", group.mode)]);
+
+    e.height = (e.height - 0.2155);
+    e.depth = (e.depth + 0.2155);
+
+    var x = makeSpan(
+        ["x"], [buildCommon.mathsym("X", group.mode)]);
+
+    return makeSpan(
+        ["katex-logo", "mord"], [k, a, t, e, x], options.getColor());
+};
+
+groupTypes.overline = function(group, options, prev) {
+    // Overlines are handled in the TeXbook pg 443, Rule 9.
+
+    // Build the inner group in the cramped style.
+    var innerGroup = buildGroup(group.value.body,
+            options.withStyle(options.style.cramp()));
+
+    var ruleWidth = fontMetrics.metrics.defaultRuleThickness /
+        options.style.sizeMultiplier;
+
+    // Create the line above the body
+    var line = makeSpan(
+        [options.style.reset(), Style.TEXT.cls(), "overline-line"]);
+    line.height = ruleWidth;
+    line.maxFontSize = 1.0;
+
+    // Generate the vlist, with the appropriate kerns
+    var vlist = buildCommon.makeVList([
+        {type: "elem", elem: innerGroup},
+        {type: "kern", size: 3 * ruleWidth},
+        {type: "elem", elem: line},
+        {type: "kern", size: ruleWidth},
+    ], "firstBaseline", null, options);
+
+    return makeSpan(["overline", "mord"], [vlist], options.getColor());
+};
+
+groupTypes.underline = function(group, options, prev) {
+    // Underlines are handled in the TeXbook pg 443, Rule 10.
+
+    // Build the inner group.
+    var innerGroup = buildGroup(group.value.body, options);
+
+    var ruleWidth = fontMetrics.metrics.defaultRuleThickness /
+        options.style.sizeMultiplier;
+
+    // Create the line above the body
+    var line = makeSpan(
+        [options.style.reset(), Style.TEXT.cls(), "underline-line"]);
+    line.height = ruleWidth;
+    line.maxFontSize = 1.0;
+
+    // Generate the vlist, with the appropriate kerns
+    var vlist = buildCommon.makeVList([
+        {type: "kern", size: ruleWidth},
+        {type: "elem", elem: line},
+        {type: "kern", size: 3 * ruleWidth},
+        {type: "elem", elem: innerGroup},
+    ], "top", innerGroup.height, options);
+
+    return makeSpan(["underline", "mord"], [vlist], options.getColor());
+};
+
+groupTypes.sqrt = function(group, options, prev) {
+    // Square roots are handled in the TeXbook pg. 443, Rule 11.
+
+    // First, we do the same steps as in overline to build the inner group
+    // and line
+    var inner = buildGroup(group.value.body,
+            options.withStyle(options.style.cramp()));
+
+    var ruleWidth = fontMetrics.metrics.defaultRuleThickness /
+        options.style.sizeMultiplier;
+
+    var line = makeSpan(
+        [options.style.reset(), Style.TEXT.cls(), "sqrt-line"], [],
+        options.getColor());
+    line.height = ruleWidth;
+    line.maxFontSize = 1.0;
+
+    var phi = ruleWidth;
+    if (options.style.id < Style.TEXT.id) {
+        phi = fontMetrics.metrics.xHeight;
+    }
+
+    // Calculate the clearance between the body and line
+    var lineClearance = ruleWidth + phi / 4;
+
+    var innerHeight =
+        (inner.height + inner.depth) * options.style.sizeMultiplier;
+    var minDelimiterHeight = innerHeight + lineClearance + ruleWidth;
+
+    // Create a \surd delimiter of the required minimum size
+    var delim = makeSpan(["sqrt-sign"], [
+        delimiter.customSizedDelim("\\surd", minDelimiterHeight,
+                                   false, options, group.mode)],
+                         options.getColor());
+
+    var delimDepth = (delim.height + delim.depth) - ruleWidth;
+
+    // Adjust the clearance based on the delimiter size
+    if (delimDepth > inner.height + inner.depth + lineClearance) {
+        lineClearance =
+            (lineClearance + delimDepth - inner.height - inner.depth) / 2;
+    }
+
+    // Shift the delimiter so that its top lines up with the top of the line
+    var delimShift = -(inner.height + lineClearance + ruleWidth) + delim.height;
+    delim.style.top = delimShift + "em";
+    delim.height -= delimShift;
+    delim.depth += delimShift;
+
+    // We add a special case here, because even when `inner` is empty, we
+    // still get a line. So, we use a simple heuristic to decide if we
+    // should omit the body entirely. (note this doesn't work for something
+    // like `\sqrt{\rlap{x}}`, but if someone is doing that they deserve for
+    // it not to work.
+    var body;
+    if (inner.height === 0 && inner.depth === 0) {
+        body = makeSpan();
+    } else {
+        body = buildCommon.makeVList([
+            {type: "elem", elem: inner},
+            {type: "kern", size: lineClearance},
+            {type: "elem", elem: line},
+            {type: "kern", size: ruleWidth},
+        ], "firstBaseline", null, options);
+    }
+
+    if (!group.value.index) {
+        return makeSpan(["sqrt", "mord"], [delim, body]);
+    } else {
+        // Handle the optional root index
+
+        // The index is always in scriptscript style
+        var root = buildGroup(
+            group.value.index,
+            options.withStyle(Style.SCRIPTSCRIPT));
+        var rootWrap = makeSpan(
+            [options.style.reset(), Style.SCRIPTSCRIPT.cls()],
+            [root]);
+
+        // Figure out the height and depth of the inner part
+        var innerRootHeight = Math.max(delim.height, body.height);
+        var innerRootDepth = Math.max(delim.depth, body.depth);
+
+        // The amount the index is shifted by. This is taken from the TeX
+        // source, in the definition of `\r@@t`.
+        var toShift = 0.6 * (innerRootHeight - innerRootDepth);
+
+        // Build a VList with the superscript shifted up correctly
+        var rootVList = buildCommon.makeVList(
+            [{type: "elem", elem: rootWrap}],
+            "shift", -toShift, options);
+        // Add a class surrounding it so we can add on the appropriate
+        // kerning
+        var rootVListWrap = makeSpan(["root"], [rootVList]);
+
+        return makeSpan(["sqrt", "mord"], [rootVListWrap, delim, body]);
+    }
+};
+
+groupTypes.sizing = function(group, options, prev) {
+    // Handle sizing operators like \Huge. Real TeX doesn't actually allow
+    // these functions inside of math expressions, so we do some special
+    // handling.
+    var inner = buildExpression(group.value.value,
+            options.withSize(group.value.size), prev);
+
+    var span = makeSpan(["mord"],
+        [makeSpan(["sizing", "reset-" + options.size, group.value.size,
+                   options.style.cls()],
+                  inner)]);
+
+    // Calculate the correct maxFontSize manually
+    var fontSize = buildCommon.sizingMultiplier[group.value.size];
+    span.maxFontSize = fontSize * options.style.sizeMultiplier;
+
+    return span;
+};
+
+groupTypes.styling = function(group, options, prev) {
+    // Style changes are handled in the TeXbook on pg. 442, Rule 3.
+
+    // Figure out what style we're changing to.
+    var style = {
+        "display": Style.DISPLAY,
+        "text": Style.TEXT,
+        "script": Style.SCRIPT,
+        "scriptscript": Style.SCRIPTSCRIPT,
+    };
+
+    var newStyle = style[group.value.style];
+
+    // Build the inner expression in the new style.
+    var inner = buildExpression(
+        group.value.value, options.withStyle(newStyle), prev);
+
+    return makeSpan([options.style.reset(), newStyle.cls()], inner);
+};
+
+groupTypes.font = function(group, options, prev) {
+    var font = group.value.font;
+    return buildGroup(group.value.body, options.withFont(font), prev);
+};
+
+groupTypes.delimsizing = function(group, options, prev) {
+    var delim = group.value.value;
+
+    if (delim === ".") {
+        // Empty delimiters still count as elements, even though they don't
+        // show anything.
+        return makeSpan([groupToType[group.value.delimType]]);
+    }
+
+    // Use delimiter.sizedDelim to generate the delimiter.
+    return makeSpan(
+        [groupToType[group.value.delimType]],
+        [delimiter.sizedDelim(
+            delim, group.value.size, options, group.mode)]);
+};
+
+groupTypes.leftright = function(group, options, prev) {
+    // Build the inner expression
+    var inner = buildExpression(group.value.body, options.reset());
+
+    var innerHeight = 0;
+    var innerDepth = 0;
+
+    // Calculate its height and depth
+    for (var i = 0; i < inner.length; i++) {
+        innerHeight = Math.max(inner[i].height, innerHeight);
+        innerDepth = Math.max(inner[i].depth, innerDepth);
+    }
+
+    // The size of delimiters is the same, regardless of what style we are
+    // in. Thus, to correctly calculate the size of delimiter we need around
+    // a group, we scale down the inner size based on the size.
+    innerHeight *= options.style.sizeMultiplier;
+    innerDepth *= options.style.sizeMultiplier;
+
+    var leftDelim;
+    if (group.value.left === ".") {
+        // Empty delimiters in \left and \right make null delimiter spaces.
+        leftDelim = makeNullDelimiter(options);
+    } else {
+        // Otherwise, use leftRightDelim to generate the correct sized
+        // delimiter.
+        leftDelim = delimiter.leftRightDelim(
+            group.value.left, innerHeight, innerDepth, options,
+            group.mode);
+    }
+    // Add it to the beginning of the expression
+    inner.unshift(leftDelim);
+
+    var rightDelim;
+    // Same for the right delimiter
+    if (group.value.right === ".") {
+        rightDelim = makeNullDelimiter(options);
+    } else {
+        rightDelim = delimiter.leftRightDelim(
+            group.value.right, innerHeight, innerDepth, options,
+            group.mode);
+    }
+    // Add it to the end of the expression.
+    inner.push(rightDelim);
+
+    return makeSpan(
+        ["minner", options.style.cls()], inner, options.getColor());
+};
+
+groupTypes.rule = function(group, options, prev) {
+    // Make an empty span for the rule
+    var rule = makeSpan(["mord", "rule"], [], options.getColor());
+
+    // Calculate the shift, width, and height of the rule, and account for units
+    var shift = 0;
+    if (group.value.shift) {
+        shift = group.value.shift.number;
+        if (group.value.shift.unit === "ex") {
+            shift *= fontMetrics.metrics.xHeight;
+        }
+    }
+
+    var width = group.value.width.number;
+    if (group.value.width.unit === "ex") {
+        width *= fontMetrics.metrics.xHeight;
+    }
+
+    var height = group.value.height.number;
+    if (group.value.height.unit === "ex") {
+        height *= fontMetrics.metrics.xHeight;
+    }
+
+    // The sizes of rules are absolute, so make it larger if we are in a
+    // smaller style.
+    shift /= options.style.sizeMultiplier;
+    width /= options.style.sizeMultiplier;
+    height /= options.style.sizeMultiplier;
+
+    // Style the rule to the right size
+    rule.style.borderRightWidth = width + "em";
+    rule.style.borderTopWidth = height + "em";
+    rule.style.bottom = shift + "em";
+
+    // Record the height and width
+    rule.width = width;
+    rule.height = height + shift;
+    rule.depth = -shift;
+
+    return rule;
+};
+
+groupTypes.accent = function(group, options, prev) {
+    // Accents are handled in the TeXbook pg. 443, rule 12.
+    var base = group.value.base;
+
+    var supsubGroup;
+    if (group.type === "supsub") {
+        // If our base is a character box, and we have superscripts and
+        // subscripts, the supsub will defer to us. In particular, we want
+        // to attach the superscripts and subscripts to the inner body (so
+        // that the position of the superscripts and subscripts won't be
+        // affected by the height of the accent). We accomplish this by
+        // sticking the base of the accent into the base of the supsub, and
+        // rendering that, while keeping track of where the accent is.
+
+        // The supsub group is the group that was passed in
+        var supsub = group;
+        // The real accent group is the base of the supsub group
+        group = supsub.value.base;
+        // The character box is the base of the accent group
+        base = group.value.base;
+        // Stick the character box into the base of the supsub group
+        supsub.value.base = base;
+
+        // Rerender the supsub group with its new base, and store that
+        // result.
+        supsubGroup = buildGroup(
+            supsub, options.reset(), prev);
+    }
+
+    // Build the base group
+    var body = buildGroup(
+        base, options.withStyle(options.style.cramp()));
+
+    // Calculate the skew of the accent. This is based on the line "If the
+    // nucleus is not a single character, let s = 0; otherwise set s to the
+    // kern amount for the nucleus followed by the \skewchar of its font."
+    // Note that our skew metrics are just the kern between each character
+    // and the skewchar.
+    var skew;
+    if (isCharacterBox(base)) {
+        // If the base is a character box, then we want the skew of the
+        // innermost character. To do that, we find the innermost character:
+        var baseChar = getBaseElem(base);
+        // Then, we render its group to get the symbol inside it
+        var baseGroup = buildGroup(
+            baseChar, options.withStyle(options.style.cramp()));
+        // Finally, we pull the skew off of the symbol.
+        skew = baseGroup.skew;
+        // Note that we now throw away baseGroup, because the layers we
+        // removed with getBaseElem might contain things like \color which
+        // we can't get rid of.
+        // TODO(emily): Find a better way to get the skew
+    } else {
+        skew = 0;
+    }
+
+    // calculate the amount of space between the body and the accent
+    var clearance = Math.min(body.height, fontMetrics.metrics.xHeight);
+
+    // Build the accent
+    var accent = buildCommon.makeSymbol(
+        group.value.accent, "Main-Regular", "math", options.getColor());
+    // Remove the italic correction of the accent, because it only serves to
+    // shift the accent over to a place we don't want.
+    accent.italic = 0;
+
+    // The \vec character that the fonts use is a combining character, and
+    // thus shows up much too far to the left. To account for this, we add a
+    // specific class which shifts the accent over to where we want it.
+    // TODO(emily): Fix this in a better way, like by changing the font
+    var vecClass = group.value.accent === "\\vec" ? "accent-vec" : null;
+
+    var accentBody = makeSpan(["accent-body", vecClass], [
+        makeSpan([], [accent])]);
+
+    accentBody = buildCommon.makeVList([
+        {type: "elem", elem: body},
+        {type: "kern", size: -clearance},
+        {type: "elem", elem: accentBody},
+    ], "firstBaseline", null, options);
+
+    // Shift the accent over by the skew. Note we shift by twice the skew
+    // because we are centering the accent, so by adding 2*skew to the left,
+    // we shift it to the right by 1*skew.
+    accentBody.children[1].style.marginLeft = 2 * skew + "em";
+
+    var accentWrap = makeSpan(["mord", "accent"], [accentBody]);
+
+    if (supsubGroup) {
+        // Here, we replace the "base" child of the supsub with our newly
+        // generated accent.
+        supsubGroup.children[0] = accentWrap;
+
+        // Since we don't rerun the height calculation after replacing the
+        // accent, we manually recalculate height.
+        supsubGroup.height = Math.max(accentWrap.height, supsubGroup.height);
+
+        // Accents should always be ords, even when their innards are not.
+        supsubGroup.classes[0] = "mord";
+
+        return supsubGroup;
+    } else {
+        return accentWrap;
+    }
+};
+
+groupTypes.phantom = function(group, options, prev) {
+    var elements = buildExpression(
+        group.value.value,
+        options.withPhantom(),
+        prev
+    );
+
+    // \phantom isn't supposed to affect the elements it contains.
+    // See "color" for more details.
+    return new buildCommon.makeFragment(elements);
 };
 
 /**
@@ -16402,7 +17009,7 @@ var buildHTML = function(tree, options) {
 
 module.exports = buildHTML;
 
-},{"./ParseError":139,"./Style":142,"./buildCommon":143,"./delimiter":147,"./domTree":148,"./fontMetrics":150,"./utils":157}],145:[function(require,module,exports){
+},{"./ParseError":145,"./Style":148,"./buildCommon":149,"./delimiter":153,"./domTree":154,"./fontMetrics":156,"./utils":163}],151:[function(require,module,exports){
 /**
  * This file converts a parse tree into a cooresponding MathML tree. The main
  * entry point is the `buildMathML` function, which takes a parse tree from the
@@ -16466,397 +17073,411 @@ var getVariant = function(group, options) {
  * Functions for handling the different types of groups found in the parse
  * tree. Each function should take a parse group and return a MathML node.
  */
-var groupTypes = {
-    mathord: function(group, options) {
-        var node = new mathMLTree.MathNode(
-            "mi",
-            [makeText(group.value, group.mode)]);
+var groupTypes = {};
 
-        var variant = getVariant(group, options);
-        if (variant) {
+groupTypes.mathord = function(group, options) {
+    var node = new mathMLTree.MathNode(
+        "mi",
+        [makeText(group.value, group.mode)]);
+
+    var variant = getVariant(group, options);
+    if (variant) {
+        node.setAttribute("mathvariant", variant);
+    }
+    return node;
+};
+
+groupTypes.textord = function(group, options) {
+    var text = makeText(group.value, group.mode);
+
+    var variant = getVariant(group, options) || "normal";
+
+    var node;
+    if (/[0-9]/.test(group.value)) {
+        // TODO(kevinb) merge adjacent <mn> nodes
+        // do it as a post processing step
+        node = new mathMLTree.MathNode("mn", [text]);
+        if (options.font) {
             node.setAttribute("mathvariant", variant);
         }
-        return node;
-    },
+    } else {
+        node = new mathMLTree.MathNode("mi", [text]);
+        node.setAttribute("mathvariant", variant);
+    }
 
-    textord: function(group, options) {
-        var text = makeText(group.value, group.mode);
+    return node;
+};
 
-        var variant = getVariant(group, options) || "normal";
+groupTypes.bin = function(group) {
+    var node = new mathMLTree.MathNode(
+        "mo", [makeText(group.value, group.mode)]);
 
-        var node;
-        if (/[0-9]/.test(group.value)) {
-            // TODO(kevinb) merge adjacent <mn> nodes
-            // do it as a post processing step
-            node = new mathMLTree.MathNode("mn", [text]);
-            if (options.font) {
-                node.setAttribute("mathvariant", variant);
-            }
-        } else {
-            node = new mathMLTree.MathNode("mi", [text]);
-            node.setAttribute("mathvariant", variant);
+    return node;
+};
+
+groupTypes.rel = function(group) {
+    var node = new mathMLTree.MathNode(
+        "mo", [makeText(group.value, group.mode)]);
+
+    return node;
+};
+
+groupTypes.open = function(group) {
+    var node = new mathMLTree.MathNode(
+        "mo", [makeText(group.value, group.mode)]);
+
+    return node;
+};
+
+groupTypes.close = function(group) {
+    var node = new mathMLTree.MathNode(
+        "mo", [makeText(group.value, group.mode)]);
+
+    return node;
+};
+
+groupTypes.inner = function(group) {
+    var node = new mathMLTree.MathNode(
+        "mo", [makeText(group.value, group.mode)]);
+
+    return node;
+};
+
+groupTypes.punct = function(group) {
+    var node = new mathMLTree.MathNode(
+        "mo", [makeText(group.value, group.mode)]);
+
+    node.setAttribute("separator", "true");
+
+    return node;
+};
+
+groupTypes.ordgroup = function(group, options) {
+    var inner = buildExpression(group.value, options);
+
+    var node = new mathMLTree.MathNode("mrow", inner);
+
+    return node;
+};
+
+groupTypes.text = function(group, options) {
+    var inner = buildExpression(group.value.body, options);
+
+    var node = new mathMLTree.MathNode("mtext", inner);
+
+    return node;
+};
+
+groupTypes.color = function(group, options) {
+    var inner = buildExpression(group.value.value, options);
+
+    var node = new mathMLTree.MathNode("mstyle", inner);
+
+    node.setAttribute("mathcolor", group.value.color);
+
+    return node;
+};
+
+groupTypes.supsub = function(group, options) {
+    var children = [buildGroup(group.value.base, options)];
+
+    if (group.value.sub) {
+        children.push(buildGroup(group.value.sub, options));
+    }
+
+    if (group.value.sup) {
+        children.push(buildGroup(group.value.sup, options));
+    }
+
+    var nodeType;
+    if (!group.value.sub) {
+        nodeType = "msup";
+    } else if (!group.value.sup) {
+        nodeType = "msub";
+    } else {
+        nodeType = "msubsup";
+    }
+
+    var node = new mathMLTree.MathNode(nodeType, children);
+
+    return node;
+};
+
+groupTypes.genfrac = function(group, options) {
+    var node = new mathMLTree.MathNode(
+        "mfrac",
+        [buildGroup(group.value.numer, options),
+         buildGroup(group.value.denom, options)]);
+
+    if (!group.value.hasBarLine) {
+        node.setAttribute("linethickness", "0px");
+    }
+
+    if (group.value.leftDelim != null || group.value.rightDelim != null) {
+        var withDelims = [];
+
+        if (group.value.leftDelim != null) {
+            var leftOp = new mathMLTree.MathNode(
+                "mo", [new mathMLTree.TextNode(group.value.leftDelim)]);
+
+            leftOp.setAttribute("fence", "true");
+
+            withDelims.push(leftOp);
         }
 
-        return node;
-    },
+        withDelims.push(node);
 
-    bin: function(group) {
-        var node = new mathMLTree.MathNode(
-            "mo", [makeText(group.value, group.mode)]);
+        if (group.value.rightDelim != null) {
+            var rightOp = new mathMLTree.MathNode(
+                "mo", [new mathMLTree.TextNode(group.value.rightDelim)]);
 
-        return node;
-    },
+            rightOp.setAttribute("fence", "true");
 
-    rel: function(group) {
-        var node = new mathMLTree.MathNode(
-            "mo", [makeText(group.value, group.mode)]);
-
-        return node;
-    },
-
-    open: function(group) {
-        var node = new mathMLTree.MathNode(
-            "mo", [makeText(group.value, group.mode)]);
-
-        return node;
-    },
-
-    close: function(group) {
-        var node = new mathMLTree.MathNode(
-            "mo", [makeText(group.value, group.mode)]);
-
-        return node;
-    },
-
-    inner: function(group) {
-        var node = new mathMLTree.MathNode(
-            "mo", [makeText(group.value, group.mode)]);
-
-        return node;
-    },
-
-    punct: function(group) {
-        var node = new mathMLTree.MathNode(
-            "mo", [makeText(group.value, group.mode)]);
-
-        node.setAttribute("separator", "true");
-
-        return node;
-    },
-
-    ordgroup: function(group, options) {
-        var inner = buildExpression(group.value, options);
-
-        var node = new mathMLTree.MathNode("mrow", inner);
-
-        return node;
-    },
-
-    text: function(group, options) {
-        var inner = buildExpression(group.value.body, options);
-
-        var node = new mathMLTree.MathNode("mtext", inner);
-
-        return node;
-    },
-
-    color: function(group, options) {
-        var inner = buildExpression(group.value.value, options);
-
-        var node = new mathMLTree.MathNode("mstyle", inner);
-
-        node.setAttribute("mathcolor", group.value.color);
-
-        return node;
-    },
-
-    supsub: function(group, options) {
-        var children = [buildGroup(group.value.base, options)];
-
-        if (group.value.sub) {
-            children.push(buildGroup(group.value.sub, options));
+            withDelims.push(rightOp);
         }
 
-        if (group.value.sup) {
-            children.push(buildGroup(group.value.sup, options));
-        }
-
-        var nodeType;
-        if (!group.value.sub) {
-            nodeType = "msup";
-        } else if (!group.value.sup) {
-            nodeType = "msub";
-        } else {
-            nodeType = "msubsup";
-        }
-
-        var node = new mathMLTree.MathNode(nodeType, children);
-
-        return node;
-    },
-
-    genfrac: function(group, options) {
-        var node = new mathMLTree.MathNode(
-            "mfrac",
-            [buildGroup(group.value.numer, options),
-             buildGroup(group.value.denom, options)]);
-
-        if (!group.value.hasBarLine) {
-            node.setAttribute("linethickness", "0px");
-        }
-
-        if (group.value.leftDelim != null || group.value.rightDelim != null) {
-            var withDelims = [];
-
-            if (group.value.leftDelim != null) {
-                var leftOp = new mathMLTree.MathNode(
-                    "mo", [new mathMLTree.TextNode(group.value.leftDelim)]);
-
-                leftOp.setAttribute("fence", "true");
-
-                withDelims.push(leftOp);
-            }
-
-            withDelims.push(node);
-
-            if (group.value.rightDelim != null) {
-                var rightOp = new mathMLTree.MathNode(
-                    "mo", [new mathMLTree.TextNode(group.value.rightDelim)]);
-
-                rightOp.setAttribute("fence", "true");
-
-                withDelims.push(rightOp);
-            }
-
-            var outerNode = new mathMLTree.MathNode("mrow", withDelims);
-
-            return outerNode;
-        }
-
-        return node;
-    },
-
-    array: function(group, options) {
-        return new mathMLTree.MathNode(
-            "mtable", group.value.body.map(function(row) {
-                return new mathMLTree.MathNode(
-                    "mtr", row.map(function(cell) {
-                        return new mathMLTree.MathNode(
-                            "mtd", [buildGroup(cell, options)]);
-                    }));
-            }));
-    },
-
-    sqrt: function(group, options) {
-        var node;
-        if (group.value.index) {
-            node = new mathMLTree.MathNode(
-                "mroot", [
-                    buildGroup(group.value.body, options),
-                    buildGroup(group.value.index, options)
-                ]);
-        } else {
-            node = new mathMLTree.MathNode(
-                "msqrt", [buildGroup(group.value.body, options)]);
-        }
-
-        return node;
-    },
-
-    leftright: function(group, options) {
-        var inner = buildExpression(group.value.body, options);
-
-        if (group.value.left !== ".") {
-            var leftNode = new mathMLTree.MathNode(
-                "mo", [makeText(group.value.left, group.mode)]);
-
-            leftNode.setAttribute("fence", "true");
-
-            inner.unshift(leftNode);
-        }
-
-        if (group.value.right !== ".") {
-            var rightNode = new mathMLTree.MathNode(
-                "mo", [makeText(group.value.right, group.mode)]);
-
-            rightNode.setAttribute("fence", "true");
-
-            inner.push(rightNode);
-        }
-
-        var outerNode = new mathMLTree.MathNode("mrow", inner);
+        var outerNode = new mathMLTree.MathNode("mrow", withDelims);
 
         return outerNode;
-    },
-
-    accent: function(group, options) {
-        var accentNode = new mathMLTree.MathNode(
-            "mo", [makeText(group.value.accent, group.mode)]);
-
-        var node = new mathMLTree.MathNode(
-            "mover",
-            [buildGroup(group.value.base, options),
-             accentNode]);
-
-        node.setAttribute("accent", "true");
-
-        return node;
-    },
-
-    spacing: function(group) {
-        var node;
-
-        if (group.value === "\\ " || group.value === "\\space" ||
-            group.value === " " || group.value === "~") {
-            node = new mathMLTree.MathNode(
-                "mtext", [new mathMLTree.TextNode("\u00a0")]);
-        } else {
-            node = new mathMLTree.MathNode("mspace");
-
-            node.setAttribute(
-                "width", buildCommon.spacingFunctions[group.value].size);
-        }
-
-        return node;
-    },
-
-    op: function(group) {
-        var node;
-
-        // TODO(emily): handle big operators using the `largeop` attribute
-
-        if (group.value.symbol) {
-            // This is a symbol. Just add the symbol.
-            node = new mathMLTree.MathNode(
-                "mo", [makeText(group.value.body, group.mode)]);
-        } else {
-            // This is a text operator. Add all of the characters from the
-            // operator's name.
-            // TODO(emily): Add a space in the middle of some of these
-            // operators, like \limsup.
-            node = new mathMLTree.MathNode(
-                "mi", [new mathMLTree.TextNode(group.value.body.slice(1))]);
-        }
-
-        return node;
-    },
-
-    katex: function(group) {
-        var node = new mathMLTree.MathNode(
-            "mtext", [new mathMLTree.TextNode("KaTeX")]);
-
-        return node;
-    },
-
-    font: function(group, options) {
-        var font = group.value.font;
-        return buildGroup(group.value.body, options.withFont(font));
-    },
-
-    delimsizing: function(group) {
-        var children = [];
-
-        if (group.value.value !== ".") {
-            children.push(makeText(group.value.value, group.mode));
-        }
-
-        var node = new mathMLTree.MathNode("mo", children);
-
-        if (group.value.delimType === "open" ||
-            group.value.delimType === "close") {
-            // Only some of the delimsizing functions act as fences, and they
-            // return "open" or "close" delimTypes.
-            node.setAttribute("fence", "true");
-        } else {
-            // Explicitly disable fencing if it's not a fence, to override the
-            // defaults.
-            node.setAttribute("fence", "false");
-        }
-
-        return node;
-    },
-
-    styling: function(group, options) {
-        var inner = buildExpression(group.value.value, options);
-
-        var node = new mathMLTree.MathNode("mstyle", inner);
-
-        var styleAttributes = {
-            "display": ["0", "true"],
-            "text": ["0", "false"],
-            "script": ["1", "false"],
-            "scriptscript": ["2", "false"]
-        };
-
-        var attr = styleAttributes[group.value.style];
-
-        node.setAttribute("scriptlevel", attr[0]);
-        node.setAttribute("displaystyle", attr[1]);
-
-        return node;
-    },
-
-    sizing: function(group, options) {
-        var inner = buildExpression(group.value.value, options);
-
-        var node = new mathMLTree.MathNode("mstyle", inner);
-
-        // TODO(emily): This doesn't produce the correct size for nested size
-        // changes, because we don't keep state of what style we're currently
-        // in, so we can't reset the size to normal before changing it.  Now
-        // that we're passing an options parameter we should be able to fix
-        // this.
-        node.setAttribute(
-            "mathsize", buildCommon.sizingMultiplier[group.value.size] + "em");
-
-        return node;
-    },
-
-    overline: function(group, options) {
-        var operator = new mathMLTree.MathNode(
-            "mo", [new mathMLTree.TextNode("\u203e")]);
-        operator.setAttribute("stretchy", "true");
-
-        var node = new mathMLTree.MathNode(
-            "mover",
-            [buildGroup(group.value.body, options),
-             operator]);
-        node.setAttribute("accent", "true");
-
-        return node;
-    },
-
-    rule: function(group) {
-        // TODO(emily): Figure out if there's an actual way to draw black boxes
-        // in MathML.
-        var node = new mathMLTree.MathNode("mrow");
-
-        return node;
-    },
-
-    llap: function(group, options) {
-        var node = new mathMLTree.MathNode(
-            "mpadded", [buildGroup(group.value.body, options)]);
-
-        node.setAttribute("lspace", "-1width");
-        node.setAttribute("width", "0px");
-
-        return node;
-    },
-
-    rlap: function(group, options) {
-        var node = new mathMLTree.MathNode(
-            "mpadded", [buildGroup(group.value.body, options)]);
-
-        node.setAttribute("width", "0px");
-
-        return node;
-    },
-
-    phantom: function(group, options, prev) {
-        var inner = buildExpression(group.value.value, options);
-        return new mathMLTree.MathNode("mphantom", inner);
     }
+
+    return node;
+};
+
+groupTypes.array = function(group, options) {
+    return new mathMLTree.MathNode(
+        "mtable", group.value.body.map(function(row) {
+            return new mathMLTree.MathNode(
+                "mtr", row.map(function(cell) {
+                    return new mathMLTree.MathNode(
+                        "mtd", [buildGroup(cell, options)]);
+                }));
+        }));
+};
+
+groupTypes.sqrt = function(group, options) {
+    var node;
+    if (group.value.index) {
+        node = new mathMLTree.MathNode(
+            "mroot", [
+                buildGroup(group.value.body, options),
+                buildGroup(group.value.index, options),
+            ]);
+    } else {
+        node = new mathMLTree.MathNode(
+            "msqrt", [buildGroup(group.value.body, options)]);
+    }
+
+    return node;
+};
+
+groupTypes.leftright = function(group, options) {
+    var inner = buildExpression(group.value.body, options);
+
+    if (group.value.left !== ".") {
+        var leftNode = new mathMLTree.MathNode(
+            "mo", [makeText(group.value.left, group.mode)]);
+
+        leftNode.setAttribute("fence", "true");
+
+        inner.unshift(leftNode);
+    }
+
+    if (group.value.right !== ".") {
+        var rightNode = new mathMLTree.MathNode(
+            "mo", [makeText(group.value.right, group.mode)]);
+
+        rightNode.setAttribute("fence", "true");
+
+        inner.push(rightNode);
+    }
+
+    var outerNode = new mathMLTree.MathNode("mrow", inner);
+
+    return outerNode;
+};
+
+groupTypes.accent = function(group, options) {
+    var accentNode = new mathMLTree.MathNode(
+        "mo", [makeText(group.value.accent, group.mode)]);
+
+    var node = new mathMLTree.MathNode(
+        "mover",
+        [buildGroup(group.value.base, options),
+         accentNode]);
+
+    node.setAttribute("accent", "true");
+
+    return node;
+};
+
+groupTypes.spacing = function(group) {
+    var node;
+
+    if (group.value === "\\ " || group.value === "\\space" ||
+        group.value === " " || group.value === "~") {
+        node = new mathMLTree.MathNode(
+            "mtext", [new mathMLTree.TextNode("\u00a0")]);
+    } else {
+        node = new mathMLTree.MathNode("mspace");
+
+        node.setAttribute(
+            "width", buildCommon.spacingFunctions[group.value].size);
+    }
+
+    return node;
+};
+
+groupTypes.op = function(group) {
+    var node;
+
+    // TODO(emily): handle big operators using the `largeop` attribute
+
+    if (group.value.symbol) {
+        // This is a symbol. Just add the symbol.
+        node = new mathMLTree.MathNode(
+            "mo", [makeText(group.value.body, group.mode)]);
+    } else {
+        // This is a text operator. Add all of the characters from the
+        // operator's name.
+        // TODO(emily): Add a space in the middle of some of these
+        // operators, like \limsup.
+        node = new mathMLTree.MathNode(
+            "mi", [new mathMLTree.TextNode(group.value.body.slice(1))]);
+    }
+
+    return node;
+};
+
+groupTypes.katex = function(group) {
+    var node = new mathMLTree.MathNode(
+        "mtext", [new mathMLTree.TextNode("KaTeX")]);
+
+    return node;
+};
+
+groupTypes.font = function(group, options) {
+    var font = group.value.font;
+    return buildGroup(group.value.body, options.withFont(font));
+};
+
+groupTypes.delimsizing = function(group) {
+    var children = [];
+
+    if (group.value.value !== ".") {
+        children.push(makeText(group.value.value, group.mode));
+    }
+
+    var node = new mathMLTree.MathNode("mo", children);
+
+    if (group.value.delimType === "open" ||
+        group.value.delimType === "close") {
+        // Only some of the delimsizing functions act as fences, and they
+        // return "open" or "close" delimTypes.
+        node.setAttribute("fence", "true");
+    } else {
+        // Explicitly disable fencing if it's not a fence, to override the
+        // defaults.
+        node.setAttribute("fence", "false");
+    }
+
+    return node;
+};
+
+groupTypes.styling = function(group, options) {
+    var inner = buildExpression(group.value.value, options);
+
+    var node = new mathMLTree.MathNode("mstyle", inner);
+
+    var styleAttributes = {
+        "display": ["0", "true"],
+        "text": ["0", "false"],
+        "script": ["1", "false"],
+        "scriptscript": ["2", "false"],
+    };
+
+    var attr = styleAttributes[group.value.style];
+
+    node.setAttribute("scriptlevel", attr[0]);
+    node.setAttribute("displaystyle", attr[1]);
+
+    return node;
+};
+
+groupTypes.sizing = function(group, options) {
+    var inner = buildExpression(group.value.value, options);
+
+    var node = new mathMLTree.MathNode("mstyle", inner);
+
+    // TODO(emily): This doesn't produce the correct size for nested size
+    // changes, because we don't keep state of what style we're currently
+    // in, so we can't reset the size to normal before changing it.  Now
+    // that we're passing an options parameter we should be able to fix
+    // this.
+    node.setAttribute(
+        "mathsize", buildCommon.sizingMultiplier[group.value.size] + "em");
+
+    return node;
+};
+
+groupTypes.overline = function(group, options) {
+    var operator = new mathMLTree.MathNode(
+        "mo", [new mathMLTree.TextNode("\u203e")]);
+    operator.setAttribute("stretchy", "true");
+
+    var node = new mathMLTree.MathNode(
+        "mover",
+        [buildGroup(group.value.body, options),
+         operator]);
+    node.setAttribute("accent", "true");
+
+    return node;
+};
+
+groupTypes.underline = function(group, options) {
+    var operator = new mathMLTree.MathNode(
+        "mo", [new mathMLTree.TextNode("\u203e")]);
+    operator.setAttribute("stretchy", "true");
+
+    var node = new mathMLTree.MathNode(
+        "munder",
+        [buildGroup(group.value.body, options),
+         operator]);
+    node.setAttribute("accentunder", "true");
+
+    return node;
+};
+
+groupTypes.rule = function(group) {
+    // TODO(emily): Figure out if there's an actual way to draw black boxes
+    // in MathML.
+    var node = new mathMLTree.MathNode("mrow");
+
+    return node;
+};
+
+groupTypes.llap = function(group, options) {
+    var node = new mathMLTree.MathNode(
+        "mpadded", [buildGroup(group.value.body, options)]);
+
+    node.setAttribute("lspace", "-1width");
+    node.setAttribute("width", "0px");
+
+    return node;
+};
+
+groupTypes.rlap = function(group, options) {
+    var node = new mathMLTree.MathNode(
+        "mpadded", [buildGroup(group.value.body, options)]);
+
+    node.setAttribute("width", "0px");
+
+    return node;
+};
+
+groupTypes.phantom = function(group, options, prev) {
+    var inner = buildExpression(group.value.value, options);
+    return new mathMLTree.MathNode("mphantom", inner);
 };
 
 /**
@@ -16923,7 +17544,7 @@ var buildMathML = function(tree, texExpression, options) {
 
 module.exports = buildMathML;
 
-},{"./ParseError":139,"./buildCommon":143,"./fontMetrics":150,"./mathMLTree":153,"./symbols":156,"./utils":157}],146:[function(require,module,exports){
+},{"./ParseError":145,"./buildCommon":149,"./fontMetrics":156,"./mathMLTree":159,"./symbols":162,"./utils":163}],152:[function(require,module,exports){
 var buildHTML = require("./buildHTML");
 var buildMathML = require("./buildMathML");
 var buildCommon = require("./buildCommon");
@@ -16944,7 +17565,7 @@ var buildTree = function(tree, expression, settings) {
     // Setup the default options
     var options = new Options({
         style: startStyle,
-        size: "size5"
+        size: "size5",
     });
 
     // `buildHTML` sometimes messes with the parse tree (like turning bins ->
@@ -16953,7 +17574,7 @@ var buildTree = function(tree, expression, settings) {
     var htmlNode = buildHTML(tree, options);
 
     var katexNode = makeSpan(["katex"], [
-        mathMLNode, htmlNode
+        mathMLNode, htmlNode,
     ]);
 
     if (settings.displayMode) {
@@ -16965,7 +17586,7 @@ var buildTree = function(tree, expression, settings) {
 
 module.exports = buildTree;
 
-},{"./Options":138,"./Settings":141,"./Style":142,"./buildCommon":143,"./buildHTML":144,"./buildMathML":145}],147:[function(require,module,exports){
+},{"./Options":144,"./Settings":147,"./Style":148,"./buildCommon":149,"./buildHTML":150,"./buildMathML":151}],153:[function(require,module,exports){
 /**
  * This file deals with creating delimiters of various sizes. The TeXbook
  * discusses these routines on page 441-442, in the "Another subroutine sets box
@@ -17112,7 +17733,10 @@ var makeInner = function(symbol, font, mode) {
 var makeStackedDelim = function(delim, heightTotal, center, options, mode) {
     // There are four parts, the top, an optional middle, a repeated part, and a
     // bottom.
-    var top, middle, repeat, bottom;
+    var top;
+    var middle;
+    var repeat;
+    var bottom;
     top = repeat = bottom = delim;
     middle = null;
     // Also keep track of what font the delimiters are in
@@ -17293,7 +17917,7 @@ var stackLargeDelimiters = [
     "(", ")", "[", "\\lbrack", "]", "\\rbrack",
     "\\{", "\\lbrace", "\\}", "\\rbrace",
     "\\lfloor", "\\rfloor", "\\lceil", "\\rceil",
-    "\\surd"
+    "\\surd",
 ];
 
 // delimiters that always stack
@@ -17302,12 +17926,12 @@ var stackAlwaysDelimiters = [
     "\\Uparrow", "\\Downarrow", "\\Updownarrow",
     "|", "\\|", "\\vert", "\\Vert",
     "\\lvert", "\\rvert", "\\lVert", "\\rVert",
-    "\\lgroup", "\\rgroup", "\\lmoustache", "\\rmoustache"
+    "\\lgroup", "\\rgroup", "\\lmoustache", "\\rmoustache",
 ];
 
 // and delimiters that never stack
 var stackNeverDelimiters = [
-    "<", ">", "\\langle", "\\rangle", "/", "\\backslash"
+    "<", ">", "\\langle", "\\rangle", "/", "\\backslash", "\\lt", "\\gt",
 ];
 
 // Metrics of the different sizes. Found by looking at TeX's output of
@@ -17320,9 +17944,9 @@ var sizeToMaxHeight = [0, 1.2, 1.8, 2.4, 3.0];
  */
 var makeSizedDelim = function(delim, size, options, mode) {
     // < and > turn into \langle and \rangle in delimiters
-    if (delim === "<") {
+    if (delim === "<" || delim === "\\lt") {
         delim = "\\langle";
-    } else if (delim === ">") {
+    } else if (delim === ">" || delim === "\\gt") {
         delim = "\\rangle";
     }
 
@@ -17358,7 +17982,7 @@ var stackNeverDelimiterSequence = [
     {type: "large", size: 1},
     {type: "large", size: 2},
     {type: "large", size: 3},
-    {type: "large", size: 4}
+    {type: "large", size: 4},
 ];
 
 // Delimiters that always stack try the small delimiters first, then stack
@@ -17366,7 +17990,7 @@ var stackAlwaysDelimiterSequence = [
     {type: "small", style: Style.SCRIPTSCRIPT},
     {type: "small", style: Style.SCRIPT},
     {type: "small", style: Style.TEXT},
-    {type: "stack"}
+    {type: "stack"},
 ];
 
 // Delimiters that stack when large try the small and then large delimiters, and
@@ -17379,7 +18003,7 @@ var stackLargeDelimiterSequence = [
     {type: "large", size: 2},
     {type: "large", size: 3},
     {type: "large", size: 4},
-    {type: "stack"}
+    {type: "stack"},
 ];
 
 /**
@@ -17436,9 +18060,9 @@ var traverseSequence = function(delim, height, sequence, options) {
  * traverse the sequences, and create a delimiter that the sequence tells us to.
  */
 var makeCustomSizedDelim = function(delim, height, center, options, mode) {
-    if (delim === "<") {
+    if (delim === "<" || delim === "\\lt") {
         delim = "\\langle";
-    } else if (delim === ">") {
+    } else if (delim === ">" || delim === "\\gt") {
         delim = "\\rangle";
     }
 
@@ -17503,10 +18127,10 @@ var makeLeftRightDelim = function(delim, height, depth, options, mode) {
 module.exports = {
     sizedDelim: makeSizedDelim,
     customSizedDelim: makeCustomSizedDelim,
-    leftRightDelim: makeLeftRightDelim
+    leftRightDelim: makeLeftRightDelim,
 };
 
-},{"./ParseError":139,"./Style":142,"./buildCommon":143,"./fontMetrics":150,"./symbols":156,"./utils":157}],148:[function(require,module,exports){
+},{"./ParseError":145,"./Style":148,"./buildCommon":149,"./fontMetrics":156,"./symbols":162,"./utils":163}],154:[function(require,module,exports){
 /**
  * These objects store the data about the DOM nodes we create, as well as some
  * extra data. They can then be transformed into real DOM nodes with the
@@ -17774,191 +18398,234 @@ symbolNode.prototype.toMarkup = function() {
 module.exports = {
     span: span,
     documentFragment: documentFragment,
-    symbolNode: symbolNode
+    symbolNode: symbolNode,
 };
 
-},{"./utils":157}],149:[function(require,module,exports){
+},{"./utils":163}],155:[function(require,module,exports){
+/* eslint no-constant-condition:0 */
 var fontMetrics = require("./fontMetrics");
 var parseData = require("./parseData");
 var ParseError = require("./ParseError");
 
 var ParseNode = parseData.ParseNode;
-var ParseResult = parseData.ParseResult;
 
 /**
  * Parse the body of the environment, with rows delimited by \\ and
  * columns delimited by &, and create a nested list in row-major order
  * with one group per cell.
  */
-function parseArray(parser, pos, mode, result) {
-    var row = [], body = [row], rowGaps = [];
+function parseArray(parser, result) {
+    var row = [];
+    var body = [row];
+    var rowGaps = [];
     while (true) {
-        var cell = parser.parseExpression(pos, mode, false, null);
-        row.push(new ParseNode("ordgroup", cell.result, mode));
-        pos = cell.position;
-        var next = cell.peek.text;
+        var cell = parser.parseExpression(false, null);
+        row.push(new ParseNode("ordgroup", cell, parser.mode));
+        var next = parser.nextToken.text;
         if (next === "&") {
-            pos = cell.peek.position;
+            parser.consume();
         } else if (next === "\\end") {
             break;
         } else if (next === "\\\\" || next === "\\cr") {
-            var cr = parser.parseFunction(pos, mode);
-            rowGaps.push(cr.result.value.size);
-            pos = cr.position;
+            var cr = parser.parseFunction();
+            rowGaps.push(cr.value.size);
             row = [];
             body.push(row);
         } else {
+            // TODO: Clean up the following hack once #385 got merged
+            var pos = Math.min(parser.pos + 1, parser.lexer._input.length);
             throw new ParseError("Expected & or \\\\ or \\end",
-                                 parser.lexer, cell.peek.position);
+                                 parser.lexer, pos);
         }
     }
     result.body = body;
     result.rowGaps = rowGaps;
-    return new ParseResult(new ParseNode(result.type, result, mode), pos);
+    return new ParseNode(result.type, result, parser.mode);
 }
 
 /*
- * An environment definition is very similar to a function definition.
- * Each element of the following array may contain
- *  - names: The names associated with a function. This can be used to
- *           share one implementation between several similar environments.
+ * An environment definition is very similar to a function definition:
+ * it is declared with a name or a list of names, a set of properties
+ * and a handler containing the actual implementation.
+ *
+ * The properties include:
  *  - numArgs: The number of arguments after the \begin{name} function.
  *  - argTypes: (optional) Just like for a function
  *  - allowedInText: (optional) Whether or not the environment is allowed inside
  *                   text mode (default false) (not enforced yet)
  *  - numOptionalArgs: (optional) Just like for a function
- *  - handler: The function that is called to handle this environment.
- *             It will receive the following arguments:
- *             - pos: the current position of the parser.
- *             - mode: the current parsing mode.
- *             - envName: the name of the environment, one of the listed names.
- *             - [args]: the arguments passed to \begin.
- *             - positions: the positions associated with these arguments.
+ * A bare number instead of that object indicates the numArgs value.
+ *
+ * The handler function will receive two arguments
+ *  - context: information and references provided by the parser
+ *  - args: an array of arguments passed to \begin{name}
+ * The context contains the following properties:
+ *  - envName: the name of the environment, one of the listed names.
+ *  - parser: the parser object
+ *  - lexer: the lexer object
+ *  - positions: the positions associated with these arguments from args.
+ * The handler must return a ParseResult.
  */
 
-var environmentDefinitions = [
-
-    // Arrays are part of LaTeX, defined in lttab.dtx so its documentation
-    // is part of the source2e.pdf file of LaTeX2e source documentation.
-    {
-        names: ["array"],
-        numArgs: 1,
-        handler: function(pos, mode, envName, colalign, positions) {
-            var parser = this;
-            colalign = colalign.value.map ? colalign.value : [colalign];
-            var cols = colalign.map(function(node) {
-                var ca = node.value;
-                if ("lcr".indexOf(ca) !== -1) {
-                    return {
-                        type: "align",
-                        align: ca
-                    };
-                } else if (ca === "|") {
-                    return {
-                        type: "separator",
-                        separator: "|"
-                    };
-                }
-                throw new ParseError(
-                    "Unknown column alignment: " + node.value,
-                    parser.lexer, positions[1]);
-            });
-            var res = {
-                type: "array",
-                cols: cols,
-                hskipBeforeAndAfter: true // \@preamble in lttab.dtx
-            };
-            res = parseArray(parser, pos, mode, res);
-            return res;
-        }
-    },
-
-    // The matrix environments of amsmath builds on the array environment
-    // of LaTeX, which is discussed above.
-    {
-        names: [
-            "matrix",
-            "pmatrix",
-            "bmatrix",
-            "Bmatrix",
-            "vmatrix",
-            "Vmatrix"
-        ],
-        handler: function(pos, mode, envName) {
-            var delimiters = {
-                "matrix": null,
-                "pmatrix": ["(", ")"],
-                "bmatrix": ["[", "]"],
-                "Bmatrix": ["\\{", "\\}"],
-                "vmatrix": ["|", "|"],
-                "Vmatrix": ["\\Vert", "\\Vert"]
-            }[envName];
-            var res = {
-                type: "array",
-                hskipBeforeAndAfter: false // \hskip -\arraycolsep in amsmath
-            };
-            res = parseArray(this, pos, mode, res);
-            if (delimiters) {
-                res.result = new ParseNode("leftright", {
-                    body: [res.result],
-                    left: delimiters[0],
-                    right: delimiters[1]
-                }, mode);
-            }
-            return res;
-        }
-    },
-
-    // A cases environment (in amsmath.sty) is almost equivalent to
-    // \def\arraystretch{1.2}%
-    // \left\{\begin{array}{@{}l@{\quad}l@{}} … \end{array}\right.
-    {
-        names: ["cases"],
-        handler: function(pos, mode, envName) {
-            var res = {
-                type: "array",
-                arraystretch: 1.2,
-                cols: [{
-                    type: "align",
-                    align: "l",
-                    pregap: 0,
-                    postgap: fontMetrics.metrics.quad
-                }, {
-                    type: "align",
-                    align: "l",
-                    pregap: 0,
-                    postgap: 0
-                }]
-            };
-            res = parseArray(this, pos, mode, res);
-            res.result = new ParseNode("leftright", {
-                body: [res.result],
-                left: "\\{",
-                right: "."
-            }, mode);
-            return res;
-        }
+function defineEnvironment(names, props, handler) {
+    if (typeof names === "string") {
+        names = [names];
     }
-];
-
-module.exports = (function() {
-    // nested function so we don't leak i and j into the module scope
-    var exports = {};
-    for (var i = 0; i < environmentDefinitions.length; ++i) {
-        var def = environmentDefinitions[i];
-        def.greediness = 1;
-        def.allowedInText = !!def.allowedInText;
-        def.numArgs = def.numArgs || 0;
-        def.numOptionalArgs = def.numOptionalArgs || 0;
-        for (var j = 0; j < def.names.length; ++j) {
-            exports[def.names[j]] = def;
-        }
+    if (typeof props === "number") {
+        props = { numArgs: props };
     }
-    return exports;
-})();
+    // Set default values of environments
+    var data = {
+        numArgs: props.numArgs || 0,
+        argTypes: props.argTypes,
+        greediness: 1,
+        allowedInText: !!props.allowedInText,
+        numOptionalArgs: props.numOptionalArgs || 0,
+        handler: handler,
+    };
+    for (var i = 0; i < names.length; ++i) {
+        module.exports[names[i]] = data;
+    }
+}
 
-},{"./ParseError":139,"./fontMetrics":150,"./parseData":154}],150:[function(require,module,exports){
-/* jshint unused:false */
+// Arrays are part of LaTeX, defined in lttab.dtx so its documentation
+// is part of the source2e.pdf file of LaTeX2e source documentation.
+defineEnvironment("array", {
+    numArgs: 1,
+}, function(context, args) {
+    var colalign = args[0];
+    colalign = colalign.value.map ? colalign.value : [colalign];
+    var cols = colalign.map(function(node) {
+        var ca = node.value;
+        if ("lcr".indexOf(ca) !== -1) {
+            return {
+                type: "align",
+                align: ca,
+            };
+        } else if (ca === "|") {
+            return {
+                type: "separator",
+                separator: "|",
+            };
+        }
+        throw new ParseError(
+            "Unknown column alignment: " + node.value,
+            context.lexer, context.positions[1]);
+    });
+    var res = {
+        type: "array",
+        cols: cols,
+        hskipBeforeAndAfter: true, // \@preamble in lttab.dtx
+    };
+    res = parseArray(context.parser, res);
+    return res;
+});
+
+// The matrix environments of amsmath builds on the array environment
+// of LaTeX, which is discussed above.
+defineEnvironment([
+    "matrix",
+    "pmatrix",
+    "bmatrix",
+    "Bmatrix",
+    "vmatrix",
+    "Vmatrix",
+], {
+}, function(context) {
+    var delimiters = {
+        "matrix": null,
+        "pmatrix": ["(", ")"],
+        "bmatrix": ["[", "]"],
+        "Bmatrix": ["\\{", "\\}"],
+        "vmatrix": ["|", "|"],
+        "Vmatrix": ["\\Vert", "\\Vert"],
+    }[context.envName];
+    var res = {
+        type: "array",
+        hskipBeforeAndAfter: false, // \hskip -\arraycolsep in amsmath
+    };
+    res = parseArray(context.parser, res);
+    if (delimiters) {
+        res = new ParseNode("leftright", {
+            body: [res],
+            left: delimiters[0],
+            right: delimiters[1],
+        }, context.mode);
+    }
+    return res;
+});
+
+// A cases environment (in amsmath.sty) is almost equivalent to
+// \def\arraystretch{1.2}%
+// \left\{\begin{array}{@{}l@{\quad}l@{}} … \end{array}\right.
+defineEnvironment("cases", {
+}, function(context) {
+    var res = {
+        type: "array",
+        arraystretch: 1.2,
+        cols: [{
+            type: "align",
+            align: "l",
+            pregap: 0,
+            postgap: fontMetrics.metrics.quad,
+        }, {
+            type: "align",
+            align: "l",
+            pregap: 0,
+            postgap: 0,
+        }],
+    };
+    res = parseArray(context.parser, res);
+    res = new ParseNode("leftright", {
+        body: [res],
+        left: "\\{",
+        right: ".",
+    }, context.mode);
+    return res;
+});
+
+// An aligned environment is like the align* environment
+// except it operates within math mode.
+// Note that we assume \nomallineskiplimit to be zero,
+// so that \strut@ is the same as \strut.
+defineEnvironment("aligned", {
+}, function(context) {
+    var res = {
+        type: "array",
+        cols: [],
+    };
+    res = parseArray(context.parser, res);
+    var emptyGroup = new ParseNode("ordgroup", [], context.mode);
+    var numCols = 0;
+    res.value.body.forEach(function(row) {
+        var i;
+        for (i = 1; i < row.length; i += 2) {
+            row[i].value.unshift(emptyGroup);
+        }
+        if (numCols < row.length) {
+            numCols = row.length;
+        }
+    });
+    for (var i = 0; i < numCols; ++i) {
+        var align = "r";
+        var pregap = 0;
+        if (i % 2 === 1) {
+            align = "l";
+        } else if (i > 0) {
+            pregap = 2; // one \qquad between columns
+        }
+        res.value.cols[i] = {
+            type: "align",
+            align: align,
+            pregap: pregap,
+            postgap: 0,
+        };
+    }
+    return res;
+});
+
+},{"./ParseError":145,"./fontMetrics":156,"./parseData":160}],156:[function(require,module,exports){
+/* eslint no-unused-vars:0 */
 
 var Style = require("./Style");
 
@@ -18072,7 +18739,7 @@ var metrics = {
             return sigma21ScriptScript;
         }
         throw new Error("Unexpected style size: " + style.size);
-    }
+    },
 };
 
 // This map contains a mapping from font name and character code to character
@@ -18082,1782 +18749,1800 @@ var metrics = {
 var metricMap = require("./fontMetricsData");
 
 /**
- * This function is a convience function for looking up information in the
- * metricMap table. It takes a character as a string, and a style
+ * This function is a convenience function for looking up information in the
+ * metricMap table. It takes a character as a string, and a style.
+ *
+ * Note: the `width` property may be undefined if fontMetricsData.js wasn't
+ * built using `Make extended_metrics`.
  */
 var getCharacterMetrics = function(character, style) {
-    return metricMap[style][character.charCodeAt(0)];
+    var metrics = metricMap[style][character.charCodeAt(0)];
+    if (metrics) {
+        return {
+            depth: metrics[0],
+            height: metrics[1],
+            italic: metrics[2],
+            skew: metrics[3],
+            width: metrics[4],
+        };
+    }
 };
 
 module.exports = {
     metrics: metrics,
-    getCharacterMetrics: getCharacterMetrics
+    getCharacterMetrics: getCharacterMetrics,
 };
 
-},{"./Style":142,"./fontMetricsData":151}],151:[function(require,module,exports){
+},{"./Style":148,"./fontMetricsData":157}],157:[function(require,module,exports){
 module.exports = {
-"AMS-Regular": {
-  "65": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "66": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "67": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "68": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "69": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "70": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "71": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "72": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "73": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "74": {"depth": 0.16667, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "75": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "76": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "77": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "78": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "79": {"depth": 0.16667, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "80": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "81": {"depth": 0.16667, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "82": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "83": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "84": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "85": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "86": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "87": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "88": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "89": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "90": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "107": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "165": {"depth": 0.0, "height": 0.675, "italic": 0.025, "skew": 0.0},
-  "174": {"depth": 0.15559, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "240": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "295": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "710": {"depth": 0.0, "height": 0.825, "italic": 0.0, "skew": 0.0},
-  "732": {"depth": 0.0, "height": 0.9, "italic": 0.0, "skew": 0.0},
-  "770": {"depth": 0.0, "height": 0.825, "italic": 0.0, "skew": 0.0},
-  "771": {"depth": 0.0, "height": 0.9, "italic": 0.0, "skew": 0.0},
-  "989": {"depth": 0.08167, "height": 0.58167, "italic": 0.0, "skew": 0.0},
-  "1008": {"depth": 0.0, "height": 0.43056, "italic": 0.04028, "skew": 0.0},
-  "8245": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8463": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8487": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8498": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8502": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8503": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8504": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8513": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8592": {"depth": -0.03598, "height": 0.46402, "italic": 0.0, "skew": 0.0},
-  "8594": {"depth": -0.03598, "height": 0.46402, "italic": 0.0, "skew": 0.0},
-  "8602": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8603": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8606": {"depth": 0.01354, "height": 0.52239, "italic": 0.0, "skew": 0.0},
-  "8608": {"depth": 0.01354, "height": 0.52239, "italic": 0.0, "skew": 0.0},
-  "8610": {"depth": 0.01354, "height": 0.52239, "italic": 0.0, "skew": 0.0},
-  "8611": {"depth": 0.01354, "height": 0.52239, "italic": 0.0, "skew": 0.0},
-  "8619": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8620": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8621": {"depth": -0.13313, "height": 0.37788, "italic": 0.0, "skew": 0.0},
-  "8622": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8624": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8625": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8630": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "8631": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "8634": {"depth": 0.08198, "height": 0.58198, "italic": 0.0, "skew": 0.0},
-  "8635": {"depth": 0.08198, "height": 0.58198, "italic": 0.0, "skew": 0.0},
-  "8638": {"depth": 0.19444, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8639": {"depth": 0.19444, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8642": {"depth": 0.19444, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8643": {"depth": 0.19444, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8644": {"depth": 0.1808, "height": 0.675, "italic": 0.0, "skew": 0.0},
-  "8646": {"depth": 0.1808, "height": 0.675, "italic": 0.0, "skew": 0.0},
-  "8647": {"depth": 0.1808, "height": 0.675, "italic": 0.0, "skew": 0.0},
-  "8648": {"depth": 0.19444, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8649": {"depth": 0.1808, "height": 0.675, "italic": 0.0, "skew": 0.0},
-  "8650": {"depth": 0.19444, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8651": {"depth": 0.01354, "height": 0.52239, "italic": 0.0, "skew": 0.0},
-  "8652": {"depth": 0.01354, "height": 0.52239, "italic": 0.0, "skew": 0.0},
-  "8653": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8654": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8655": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8666": {"depth": 0.13667, "height": 0.63667, "italic": 0.0, "skew": 0.0},
-  "8667": {"depth": 0.13667, "height": 0.63667, "italic": 0.0, "skew": 0.0},
-  "8669": {"depth": -0.13313, "height": 0.37788, "italic": 0.0, "skew": 0.0},
-  "8672": {"depth": -0.064, "height": 0.437, "italic": 0, "skew": 0},
-  "8674": {"depth": -0.064, "height": 0.437, "italic": 0, "skew": 0},
-  "8705": {"depth": 0.0, "height": 0.825, "italic": 0.0, "skew": 0.0},
-  "8708": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8709": {"depth": 0.08167, "height": 0.58167, "italic": 0.0, "skew": 0.0},
-  "8717": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "8722": {"depth": -0.03598, "height": 0.46402, "italic": 0.0, "skew": 0.0},
-  "8724": {"depth": 0.08198, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8726": {"depth": 0.08167, "height": 0.58167, "italic": 0.0, "skew": 0.0},
-  "8733": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8736": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8737": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8738": {"depth": 0.03517, "height": 0.52239, "italic": 0.0, "skew": 0.0},
-  "8739": {"depth": 0.08167, "height": 0.58167, "italic": 0.0, "skew": 0.0},
-  "8740": {"depth": 0.25142, "height": 0.74111, "italic": 0.0, "skew": 0.0},
-  "8741": {"depth": 0.08167, "height": 0.58167, "italic": 0.0, "skew": 0.0},
-  "8742": {"depth": 0.25142, "height": 0.74111, "italic": 0.0, "skew": 0.0},
-  "8756": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8757": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8764": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8765": {"depth": -0.13313, "height": 0.37788, "italic": 0.0, "skew": 0.0},
-  "8769": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8770": {"depth": -0.03625, "height": 0.46375, "italic": 0.0, "skew": 0.0},
-  "8774": {"depth": 0.30274, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "8776": {"depth": -0.01688, "height": 0.48312, "italic": 0.0, "skew": 0.0},
-  "8778": {"depth": 0.08167, "height": 0.58167, "italic": 0.0, "skew": 0.0},
-  "8782": {"depth": 0.06062, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8783": {"depth": 0.06062, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8785": {"depth": 0.08198, "height": 0.58198, "italic": 0.0, "skew": 0.0},
-  "8786": {"depth": 0.08198, "height": 0.58198, "italic": 0.0, "skew": 0.0},
-  "8787": {"depth": 0.08198, "height": 0.58198, "italic": 0.0, "skew": 0.0},
-  "8790": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8791": {"depth": 0.22958, "height": 0.72958, "italic": 0.0, "skew": 0.0},
-  "8796": {"depth": 0.08198, "height": 0.91667, "italic": 0.0, "skew": 0.0},
-  "8806": {"depth": 0.25583, "height": 0.75583, "italic": 0.0, "skew": 0.0},
-  "8807": {"depth": 0.25583, "height": 0.75583, "italic": 0.0, "skew": 0.0},
-  "8808": {"depth": 0.25142, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "8809": {"depth": 0.25142, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "8812": {"depth": 0.25583, "height": 0.75583, "italic": 0.0, "skew": 0.0},
-  "8814": {"depth": 0.20576, "height": 0.70576, "italic": 0.0, "skew": 0.0},
-  "8815": {"depth": 0.20576, "height": 0.70576, "italic": 0.0, "skew": 0.0},
-  "8816": {"depth": 0.30274, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "8817": {"depth": 0.30274, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "8818": {"depth": 0.22958, "height": 0.72958, "italic": 0.0, "skew": 0.0},
-  "8819": {"depth": 0.22958, "height": 0.72958, "italic": 0.0, "skew": 0.0},
-  "8822": {"depth": 0.1808, "height": 0.675, "italic": 0.0, "skew": 0.0},
-  "8823": {"depth": 0.1808, "height": 0.675, "italic": 0.0, "skew": 0.0},
-  "8828": {"depth": 0.13667, "height": 0.63667, "italic": 0.0, "skew": 0.0},
-  "8829": {"depth": 0.13667, "height": 0.63667, "italic": 0.0, "skew": 0.0},
-  "8830": {"depth": 0.22958, "height": 0.72958, "italic": 0.0, "skew": 0.0},
-  "8831": {"depth": 0.22958, "height": 0.72958, "italic": 0.0, "skew": 0.0},
-  "8832": {"depth": 0.20576, "height": 0.70576, "italic": 0.0, "skew": 0.0},
-  "8833": {"depth": 0.20576, "height": 0.70576, "italic": 0.0, "skew": 0.0},
-  "8840": {"depth": 0.30274, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "8841": {"depth": 0.30274, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "8842": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0},
-  "8843": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0},
-  "8847": {"depth": 0.03517, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8848": {"depth": 0.03517, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8858": {"depth": 0.08198, "height": 0.58198, "italic": 0.0, "skew": 0.0},
-  "8859": {"depth": 0.08198, "height": 0.58198, "italic": 0.0, "skew": 0.0},
-  "8861": {"depth": 0.08198, "height": 0.58198, "italic": 0.0, "skew": 0.0},
-  "8862": {"depth": 0.0, "height": 0.675, "italic": 0.0, "skew": 0.0},
-  "8863": {"depth": 0.0, "height": 0.675, "italic": 0.0, "skew": 0.0},
-  "8864": {"depth": 0.0, "height": 0.675, "italic": 0.0, "skew": 0.0},
-  "8865": {"depth": 0.0, "height": 0.675, "italic": 0.0, "skew": 0.0},
-  "8872": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8873": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8874": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8876": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8877": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8878": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8879": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8882": {"depth": 0.03517, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8883": {"depth": 0.03517, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8884": {"depth": 0.13667, "height": 0.63667, "italic": 0.0, "skew": 0.0},
-  "8885": {"depth": 0.13667, "height": 0.63667, "italic": 0.0, "skew": 0.0},
-  "8888": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8890": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "8891": {"depth": 0.19444, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8892": {"depth": 0.19444, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8901": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8903": {"depth": 0.08167, "height": 0.58167, "italic": 0.0, "skew": 0.0},
-  "8905": {"depth": 0.08167, "height": 0.58167, "italic": 0.0, "skew": 0.0},
-  "8906": {"depth": 0.08167, "height": 0.58167, "italic": 0.0, "skew": 0.0},
-  "8907": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8908": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8909": {"depth": -0.03598, "height": 0.46402, "italic": 0.0, "skew": 0.0},
-  "8910": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8911": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8912": {"depth": 0.03517, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8913": {"depth": 0.03517, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8914": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8915": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8916": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8918": {"depth": 0.0391, "height": 0.5391, "italic": 0.0, "skew": 0.0},
-  "8919": {"depth": 0.0391, "height": 0.5391, "italic": 0.0, "skew": 0.0},
-  "8920": {"depth": 0.03517, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8921": {"depth": 0.03517, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "8922": {"depth": 0.38569, "height": 0.88569, "italic": 0.0, "skew": 0.0},
-  "8923": {"depth": 0.38569, "height": 0.88569, "italic": 0.0, "skew": 0.0},
-  "8926": {"depth": 0.13667, "height": 0.63667, "italic": 0.0, "skew": 0.0},
-  "8927": {"depth": 0.13667, "height": 0.63667, "italic": 0.0, "skew": 0.0},
-  "8928": {"depth": 0.30274, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "8929": {"depth": 0.30274, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "8934": {"depth": 0.23222, "height": 0.74111, "italic": 0.0, "skew": 0.0},
-  "8935": {"depth": 0.23222, "height": 0.74111, "italic": 0.0, "skew": 0.0},
-  "8936": {"depth": 0.23222, "height": 0.74111, "italic": 0.0, "skew": 0.0},
-  "8937": {"depth": 0.23222, "height": 0.74111, "italic": 0.0, "skew": 0.0},
-  "8938": {"depth": 0.20576, "height": 0.70576, "italic": 0.0, "skew": 0.0},
-  "8939": {"depth": 0.20576, "height": 0.70576, "italic": 0.0, "skew": 0.0},
-  "8940": {"depth": 0.30274, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "8941": {"depth": 0.30274, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "8994": {"depth": 0.19444, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8995": {"depth": 0.19444, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "9416": {"depth": 0.15559, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "9484": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "9488": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "9492": {"depth": 0.0, "height": 0.37788, "italic": 0.0, "skew": 0.0},
-  "9496": {"depth": 0.0, "height": 0.37788, "italic": 0.0, "skew": 0.0},
-  "9585": {"depth": 0.19444, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "9586": {"depth": 0.19444, "height": 0.74111, "italic": 0.0, "skew": 0.0},
-  "9632": {"depth": 0.0, "height": 0.675, "italic": 0.0, "skew": 0.0},
-  "9633": {"depth": 0.0, "height": 0.675, "italic": 0.0, "skew": 0.0},
-  "9650": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "9651": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "9654": {"depth": 0.03517, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "9660": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "9661": {"depth": 0.0, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "9664": {"depth": 0.03517, "height": 0.54986, "italic": 0.0, "skew": 0.0},
-  "9674": {"depth": 0.11111, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "9733": {"depth": 0.19444, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "10003": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "10016": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "10731": {"depth": 0.11111, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "10846": {"depth": 0.19444, "height": 0.75583, "italic": 0.0, "skew": 0.0},
-  "10877": {"depth": 0.13667, "height": 0.63667, "italic": 0.0, "skew": 0.0},
-  "10878": {"depth": 0.13667, "height": 0.63667, "italic": 0.0, "skew": 0.0},
-  "10885": {"depth": 0.25583, "height": 0.75583, "italic": 0.0, "skew": 0.0},
-  "10886": {"depth": 0.25583, "height": 0.75583, "italic": 0.0, "skew": 0.0},
-  "10887": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0},
-  "10888": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0},
-  "10889": {"depth": 0.26167, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "10890": {"depth": 0.26167, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "10891": {"depth": 0.48256, "height": 0.98256, "italic": 0.0, "skew": 0.0},
-  "10892": {"depth": 0.48256, "height": 0.98256, "italic": 0.0, "skew": 0.0},
-  "10901": {"depth": 0.13667, "height": 0.63667, "italic": 0.0, "skew": 0.0},
-  "10902": {"depth": 0.13667, "height": 0.63667, "italic": 0.0, "skew": 0.0},
-  "10933": {"depth": 0.25142, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "10934": {"depth": 0.25142, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "10935": {"depth": 0.26167, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "10936": {"depth": 0.26167, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "10937": {"depth": 0.26167, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "10938": {"depth": 0.26167, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "10949": {"depth": 0.25583, "height": 0.75583, "italic": 0.0, "skew": 0.0},
-  "10950": {"depth": 0.25583, "height": 0.75583, "italic": 0.0, "skew": 0.0},
-  "10955": {"depth": 0.28481, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "10956": {"depth": 0.28481, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "57350": {"depth": 0.08167, "height": 0.58167, "italic": 0.0, "skew": 0.0},
-  "57351": {"depth": 0.08167, "height": 0.58167, "italic": 0.0, "skew": 0.0},
-  "57352": {"depth": 0.08167, "height": 0.58167, "italic": 0.0, "skew": 0.0},
-  "57353": {"depth": 0.0, "height": 0.43056, "italic": 0.04028, "skew": 0.0},
-  "57356": {"depth": 0.25142, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "57357": {"depth": 0.25142, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "57358": {"depth": 0.41951, "height": 0.91951, "italic": 0.0, "skew": 0.0},
-  "57359": {"depth": 0.30274, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "57360": {"depth": 0.30274, "height": 0.79383, "italic": 0.0, "skew": 0.0},
-  "57361": {"depth": 0.41951, "height": 0.91951, "italic": 0.0, "skew": 0.0},
-  "57366": {"depth": 0.25142, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "57367": {"depth": 0.25142, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "57368": {"depth": 0.25142, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "57369": {"depth": 0.25142, "height": 0.75726, "italic": 0.0, "skew": 0.0},
-  "57370": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0},
-  "57371": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0}
-},
-"Caligraphic-Regular": {
-  "48": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "49": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "50": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "51": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "52": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "53": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "54": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "55": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "56": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "57": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "65": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.19445},
-  "66": {"depth": 0.0, "height": 0.68333, "italic": 0.03041, "skew": 0.13889},
-  "67": {"depth": 0.0, "height": 0.68333, "italic": 0.05834, "skew": 0.13889},
-  "68": {"depth": 0.0, "height": 0.68333, "italic": 0.02778, "skew": 0.08334},
-  "69": {"depth": 0.0, "height": 0.68333, "italic": 0.08944, "skew": 0.11111},
-  "70": {"depth": 0.0, "height": 0.68333, "italic": 0.09931, "skew": 0.11111},
-  "71": {"depth": 0.09722, "height": 0.68333, "italic": 0.0593, "skew": 0.11111},
-  "72": {"depth": 0.0, "height": 0.68333, "italic": 0.00965, "skew": 0.11111},
-  "73": {"depth": 0.0, "height": 0.68333, "italic": 0.07382, "skew": 0.0},
-  "74": {"depth": 0.09722, "height": 0.68333, "italic": 0.18472, "skew": 0.16667},
-  "75": {"depth": 0.0, "height": 0.68333, "italic": 0.01445, "skew": 0.05556},
-  "76": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.13889},
-  "77": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.13889},
-  "78": {"depth": 0.0, "height": 0.68333, "italic": 0.14736, "skew": 0.08334},
-  "79": {"depth": 0.0, "height": 0.68333, "italic": 0.02778, "skew": 0.11111},
-  "80": {"depth": 0.0, "height": 0.68333, "italic": 0.08222, "skew": 0.08334},
-  "81": {"depth": 0.09722, "height": 0.68333, "italic": 0.0, "skew": 0.11111},
-  "82": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.08334},
-  "83": {"depth": 0.0, "height": 0.68333, "italic": 0.075, "skew": 0.13889},
-  "84": {"depth": 0.0, "height": 0.68333, "italic": 0.25417, "skew": 0.0},
-  "85": {"depth": 0.0, "height": 0.68333, "italic": 0.09931, "skew": 0.08334},
-  "86": {"depth": 0.0, "height": 0.68333, "italic": 0.08222, "skew": 0.0},
-  "87": {"depth": 0.0, "height": 0.68333, "italic": 0.08222, "skew": 0.08334},
-  "88": {"depth": 0.0, "height": 0.68333, "italic": 0.14643, "skew": 0.13889},
-  "89": {"depth": 0.09722, "height": 0.68333, "italic": 0.08222, "skew": 0.08334},
-  "90": {"depth": 0.0, "height": 0.68333, "italic": 0.07944, "skew": 0.13889}
-},
-"Fraktur-Regular": {
-  "33": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "34": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "38": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "39": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "40": {"depth": 0.24982, "height": 0.74947, "italic": 0.0, "skew": 0.0},
-  "41": {"depth": 0.24982, "height": 0.74947, "italic": 0.0, "skew": 0.0},
-  "42": {"depth": 0.0, "height": 0.62119, "italic": 0.0, "skew": 0.0},
-  "43": {"depth": 0.08319, "height": 0.58283, "italic": 0.0, "skew": 0.0},
-  "44": {"depth": 0.0, "height": 0.10803, "italic": 0.0, "skew": 0.0},
-  "45": {"depth": 0.08319, "height": 0.58283, "italic": 0.0, "skew": 0.0},
-  "46": {"depth": 0.0, "height": 0.10803, "italic": 0.0, "skew": 0.0},
-  "47": {"depth": 0.24982, "height": 0.74947, "italic": 0.0, "skew": 0.0},
-  "48": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "49": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "50": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "51": {"depth": 0.18906, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "52": {"depth": 0.18906, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "53": {"depth": 0.18906, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "54": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "55": {"depth": 0.18906, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "56": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "57": {"depth": 0.18906, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "58": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "59": {"depth": 0.12604, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "61": {"depth": -0.13099, "height": 0.36866, "italic": 0.0, "skew": 0.0},
-  "63": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "65": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "66": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "67": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "68": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "69": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "70": {"depth": 0.12604, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "71": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "72": {"depth": 0.06302, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "73": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "74": {"depth": 0.12604, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "75": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "76": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "77": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "78": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "79": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "80": {"depth": 0.18906, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "81": {"depth": 0.03781, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "82": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "83": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "84": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "85": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "86": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "87": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "88": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "89": {"depth": 0.18906, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "90": {"depth": 0.12604, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "91": {"depth": 0.24982, "height": 0.74947, "italic": 0.0, "skew": 0.0},
-  "93": {"depth": 0.24982, "height": 0.74947, "italic": 0.0, "skew": 0.0},
-  "94": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "97": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "98": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "99": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "100": {"depth": 0.0, "height": 0.62119, "italic": 0.0, "skew": 0.0},
-  "101": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "102": {"depth": 0.18906, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "103": {"depth": 0.18906, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "104": {"depth": 0.18906, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "105": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "106": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "107": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "108": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "109": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "110": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "111": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "112": {"depth": 0.18906, "height": 0.52396, "italic": 0.0, "skew": 0.0},
-  "113": {"depth": 0.18906, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "114": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "115": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "116": {"depth": 0.0, "height": 0.62119, "italic": 0.0, "skew": 0.0},
-  "117": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "118": {"depth": 0.0, "height": 0.52396, "italic": 0.0, "skew": 0.0},
-  "119": {"depth": 0.0, "height": 0.52396, "italic": 0.0, "skew": 0.0},
-  "120": {"depth": 0.18906, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "121": {"depth": 0.18906, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "122": {"depth": 0.18906, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "8216": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "8217": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "58112": {"depth": 0.0, "height": 0.62119, "italic": 0.0, "skew": 0.0},
-  "58113": {"depth": 0.0, "height": 0.62119, "italic": 0.0, "skew": 0.0},
-  "58114": {"depth": 0.18906, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "58115": {"depth": 0.18906, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "58116": {"depth": 0.18906, "height": 0.47534, "italic": 0.0, "skew": 0.0},
-  "58117": {"depth": 0.0, "height": 0.69141, "italic": 0.0, "skew": 0.0},
-  "58118": {"depth": 0.0, "height": 0.62119, "italic": 0.0, "skew": 0.0},
-  "58119": {"depth": 0.0, "height": 0.47534, "italic": 0.0, "skew": 0.0}
-},
-"Main-Bold": {
-  "33": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "34": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "35": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "36": {"depth": 0.05556, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "37": {"depth": 0.05556, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "38": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "39": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "40": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "41": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "42": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "43": {"depth": 0.13333, "height": 0.63333, "italic": 0.0, "skew": 0.0},
-  "44": {"depth": 0.19444, "height": 0.15556, "italic": 0.0, "skew": 0.0},
-  "45": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "46": {"depth": 0.0, "height": 0.15556, "italic": 0.0, "skew": 0.0},
-  "47": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "48": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "49": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "50": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "51": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "52": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "53": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "54": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "55": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "56": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "57": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "58": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "59": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "60": {"depth": 0.08556, "height": 0.58556, "italic": 0.0, "skew": 0.0},
-  "61": {"depth": -0.10889, "height": 0.39111, "italic": 0.0, "skew": 0.0},
-  "62": {"depth": 0.08556, "height": 0.58556, "italic": 0.0, "skew": 0.0},
-  "63": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "64": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "65": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "66": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "67": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "68": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "69": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "70": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "71": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "72": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "73": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "74": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "75": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "76": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "77": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "78": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "79": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "80": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "81": {"depth": 0.19444, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "82": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "83": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "84": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "85": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "86": {"depth": 0.0, "height": 0.68611, "italic": 0.01597, "skew": 0.0},
-  "87": {"depth": 0.0, "height": 0.68611, "italic": 0.01597, "skew": 0.0},
-  "88": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "89": {"depth": 0.0, "height": 0.68611, "italic": 0.02875, "skew": 0.0},
-  "90": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "91": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "92": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "93": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "94": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "95": {"depth": 0.31, "height": 0.13444, "italic": 0.03194, "skew": 0.0},
-  "96": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "97": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "98": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "99": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "100": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "101": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "102": {"depth": 0.0, "height": 0.69444, "italic": 0.10903, "skew": 0.0},
-  "103": {"depth": 0.19444, "height": 0.44444, "italic": 0.01597, "skew": 0.0},
-  "104": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "105": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "106": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "107": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "108": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "109": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "110": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "111": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "112": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "113": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "114": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "115": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "116": {"depth": 0.0, "height": 0.63492, "italic": 0.0, "skew": 0.0},
-  "117": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "118": {"depth": 0.0, "height": 0.44444, "italic": 0.01597, "skew": 0.0},
-  "119": {"depth": 0.0, "height": 0.44444, "italic": 0.01597, "skew": 0.0},
-  "120": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "121": {"depth": 0.19444, "height": 0.44444, "italic": 0.01597, "skew": 0.0},
-  "122": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "123": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "124": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "125": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "126": {"depth": 0.35, "height": 0.34444, "italic": 0.0, "skew": 0.0},
-  "168": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "172": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "175": {"depth": 0.0, "height": 0.59611, "italic": 0.0, "skew": 0.0},
-  "176": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "177": {"depth": 0.13333, "height": 0.63333, "italic": 0.0, "skew": 0.0},
-  "180": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "215": {"depth": 0.13333, "height": 0.63333, "italic": 0.0, "skew": 0.0},
-  "247": {"depth": 0.13333, "height": 0.63333, "italic": 0.0, "skew": 0.0},
-  "305": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "567": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "710": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "711": {"depth": 0.0, "height": 0.63194, "italic": 0.0, "skew": 0.0},
-  "713": {"depth": 0.0, "height": 0.59611, "italic": 0.0, "skew": 0.0},
-  "714": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "715": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "728": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "729": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "730": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "732": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "768": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "769": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "770": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "771": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "772": {"depth": 0.0, "height": 0.59611, "italic": 0.0, "skew": 0.0},
-  "774": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "775": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "776": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "778": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "779": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "780": {"depth": 0.0, "height": 0.63194, "italic": 0.0, "skew": 0.0},
-  "824": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "915": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "916": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "920": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "923": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "926": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "928": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "931": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "933": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "934": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "936": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "937": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "8211": {"depth": 0.0, "height": 0.44444, "italic": 0.03194, "skew": 0.0},
-  "8212": {"depth": 0.0, "height": 0.44444, "italic": 0.03194, "skew": 0.0},
-  "8216": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8217": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8220": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8221": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8224": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8225": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8242": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8407": {"depth": 0.0, "height": 0.72444, "italic": 0.15486, "skew": 0.0},
-  "8463": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8465": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8467": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8472": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "8476": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8501": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8592": {"depth": -0.10889, "height": 0.39111, "italic": 0.0, "skew": 0.0},
-  "8593": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8594": {"depth": -0.10889, "height": 0.39111, "italic": 0.0, "skew": 0.0},
-  "8595": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8596": {"depth": -0.10889, "height": 0.39111, "italic": 0.0, "skew": 0.0},
-  "8597": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8598": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8599": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8600": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8601": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8636": {"depth": -0.10889, "height": 0.39111, "italic": 0.0, "skew": 0.0},
-  "8637": {"depth": -0.10889, "height": 0.39111, "italic": 0.0, "skew": 0.0},
-  "8640": {"depth": -0.10889, "height": 0.39111, "italic": 0.0, "skew": 0.0},
-  "8641": {"depth": -0.10889, "height": 0.39111, "italic": 0.0, "skew": 0.0},
-  "8656": {"depth": -0.10889, "height": 0.39111, "italic": 0.0, "skew": 0.0},
-  "8657": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8658": {"depth": -0.10889, "height": 0.39111, "italic": 0.0, "skew": 0.0},
-  "8659": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8660": {"depth": -0.10889, "height": 0.39111, "italic": 0.0, "skew": 0.0},
-  "8661": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8704": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8706": {"depth": 0.0, "height": 0.69444, "italic": 0.06389, "skew": 0.0},
-  "8707": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8709": {"depth": 0.05556, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8711": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "8712": {"depth": 0.08556, "height": 0.58556, "italic": 0.0, "skew": 0.0},
-  "8715": {"depth": 0.08556, "height": 0.58556, "italic": 0.0, "skew": 0.0},
-  "8722": {"depth": 0.13333, "height": 0.63333, "italic": 0.0, "skew": 0.0},
-  "8723": {"depth": 0.13333, "height": 0.63333, "italic": 0.0, "skew": 0.0},
-  "8725": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8726": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8727": {"depth": -0.02778, "height": 0.47222, "italic": 0.0, "skew": 0.0},
-  "8728": {"depth": -0.02639, "height": 0.47361, "italic": 0.0, "skew": 0.0},
-  "8729": {"depth": -0.02639, "height": 0.47361, "italic": 0.0, "skew": 0.0},
-  "8730": {"depth": 0.18, "height": 0.82, "italic": 0.0, "skew": 0.0},
-  "8733": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "8734": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "8736": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8739": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8741": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8743": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8744": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8745": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8746": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8747": {"depth": 0.19444, "height": 0.69444, "italic": 0.12778, "skew": 0.0},
-  "8764": {"depth": -0.10889, "height": 0.39111, "italic": 0.0, "skew": 0.0},
-  "8768": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8771": {"depth": 0.00222, "height": 0.50222, "italic": 0.0, "skew": 0.0},
-  "8776": {"depth": 0.02444, "height": 0.52444, "italic": 0.0, "skew": 0.0},
-  "8781": {"depth": 0.00222, "height": 0.50222, "italic": 0.0, "skew": 0.0},
-  "8801": {"depth": 0.00222, "height": 0.50222, "italic": 0.0, "skew": 0.0},
-  "8804": {"depth": 0.19667, "height": 0.69667, "italic": 0.0, "skew": 0.0},
-  "8805": {"depth": 0.19667, "height": 0.69667, "italic": 0.0, "skew": 0.0},
-  "8810": {"depth": 0.08556, "height": 0.58556, "italic": 0.0, "skew": 0.0},
-  "8811": {"depth": 0.08556, "height": 0.58556, "italic": 0.0, "skew": 0.0},
-  "8826": {"depth": 0.08556, "height": 0.58556, "italic": 0.0, "skew": 0.0},
-  "8827": {"depth": 0.08556, "height": 0.58556, "italic": 0.0, "skew": 0.0},
-  "8834": {"depth": 0.08556, "height": 0.58556, "italic": 0.0, "skew": 0.0},
-  "8835": {"depth": 0.08556, "height": 0.58556, "italic": 0.0, "skew": 0.0},
-  "8838": {"depth": 0.19667, "height": 0.69667, "italic": 0.0, "skew": 0.0},
-  "8839": {"depth": 0.19667, "height": 0.69667, "italic": 0.0, "skew": 0.0},
-  "8846": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8849": {"depth": 0.19667, "height": 0.69667, "italic": 0.0, "skew": 0.0},
-  "8850": {"depth": 0.19667, "height": 0.69667, "italic": 0.0, "skew": 0.0},
-  "8851": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8852": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8853": {"depth": 0.13333, "height": 0.63333, "italic": 0.0, "skew": 0.0},
-  "8854": {"depth": 0.13333, "height": 0.63333, "italic": 0.0, "skew": 0.0},
-  "8855": {"depth": 0.13333, "height": 0.63333, "italic": 0.0, "skew": 0.0},
-  "8856": {"depth": 0.13333, "height": 0.63333, "italic": 0.0, "skew": 0.0},
-  "8857": {"depth": 0.13333, "height": 0.63333, "italic": 0.0, "skew": 0.0},
-  "8866": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8867": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8868": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8869": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8900": {"depth": -0.02639, "height": 0.47361, "italic": 0.0, "skew": 0.0},
-  "8901": {"depth": -0.02639, "height": 0.47361, "italic": 0.0, "skew": 0.0},
-  "8902": {"depth": -0.02778, "height": 0.47222, "italic": 0.0, "skew": 0.0},
-  "8968": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8969": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8970": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8971": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8994": {"depth": -0.13889, "height": 0.36111, "italic": 0.0, "skew": 0.0},
-  "8995": {"depth": -0.13889, "height": 0.36111, "italic": 0.0, "skew": 0.0},
-  "9651": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9657": {"depth": -0.02778, "height": 0.47222, "italic": 0.0, "skew": 0.0},
-  "9661": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9667": {"depth": -0.02778, "height": 0.47222, "italic": 0.0, "skew": 0.0},
-  "9711": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9824": {"depth": 0.12963, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9825": {"depth": 0.12963, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9826": {"depth": 0.12963, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9827": {"depth": 0.12963, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9837": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "9838": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9839": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "10216": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "10217": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "10815": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "10927": {"depth": 0.19667, "height": 0.69667, "italic": 0.0, "skew": 0.0},
-  "10928": {"depth": 0.19667, "height": 0.69667, "italic": 0.0, "skew": 0.0}
-},
-"Main-Italic": {
-  "33": {"depth": 0.0, "height": 0.69444, "italic": 0.12417, "skew": 0.0},
-  "34": {"depth": 0.0, "height": 0.69444, "italic": 0.06961, "skew": 0.0},
-  "35": {"depth": 0.19444, "height": 0.69444, "italic": 0.06616, "skew": 0.0},
-  "37": {"depth": 0.05556, "height": 0.75, "italic": 0.13639, "skew": 0.0},
-  "38": {"depth": 0.0, "height": 0.69444, "italic": 0.09694, "skew": 0.0},
-  "39": {"depth": 0.0, "height": 0.69444, "italic": 0.12417, "skew": 0.0},
-  "40": {"depth": 0.25, "height": 0.75, "italic": 0.16194, "skew": 0.0},
-  "41": {"depth": 0.25, "height": 0.75, "italic": 0.03694, "skew": 0.0},
-  "42": {"depth": 0.0, "height": 0.75, "italic": 0.14917, "skew": 0.0},
-  "43": {"depth": 0.05667, "height": 0.56167, "italic": 0.03694, "skew": 0.0},
-  "44": {"depth": 0.19444, "height": 0.10556, "italic": 0.0, "skew": 0.0},
-  "45": {"depth": 0.0, "height": 0.43056, "italic": 0.02826, "skew": 0.0},
-  "46": {"depth": 0.0, "height": 0.10556, "italic": 0.0, "skew": 0.0},
-  "47": {"depth": 0.25, "height": 0.75, "italic": 0.16194, "skew": 0.0},
-  "48": {"depth": 0.0, "height": 0.64444, "italic": 0.13556, "skew": 0.0},
-  "49": {"depth": 0.0, "height": 0.64444, "italic": 0.13556, "skew": 0.0},
-  "50": {"depth": 0.0, "height": 0.64444, "italic": 0.13556, "skew": 0.0},
-  "51": {"depth": 0.0, "height": 0.64444, "italic": 0.13556, "skew": 0.0},
-  "52": {"depth": 0.19444, "height": 0.64444, "italic": 0.13556, "skew": 0.0},
-  "53": {"depth": 0.0, "height": 0.64444, "italic": 0.13556, "skew": 0.0},
-  "54": {"depth": 0.0, "height": 0.64444, "italic": 0.13556, "skew": 0.0},
-  "55": {"depth": 0.19444, "height": 0.64444, "italic": 0.13556, "skew": 0.0},
-  "56": {"depth": 0.0, "height": 0.64444, "italic": 0.13556, "skew": 0.0},
-  "57": {"depth": 0.0, "height": 0.64444, "italic": 0.13556, "skew": 0.0},
-  "58": {"depth": 0.0, "height": 0.43056, "italic": 0.0582, "skew": 0.0},
-  "59": {"depth": 0.19444, "height": 0.43056, "italic": 0.0582, "skew": 0.0},
-  "61": {"depth": -0.13313, "height": 0.36687, "italic": 0.06616, "skew": 0.0},
-  "63": {"depth": 0.0, "height": 0.69444, "italic": 0.1225, "skew": 0.0},
-  "64": {"depth": 0.0, "height": 0.69444, "italic": 0.09597, "skew": 0.0},
-  "65": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "66": {"depth": 0.0, "height": 0.68333, "italic": 0.10257, "skew": 0.0},
-  "67": {"depth": 0.0, "height": 0.68333, "italic": 0.14528, "skew": 0.0},
-  "68": {"depth": 0.0, "height": 0.68333, "italic": 0.09403, "skew": 0.0},
-  "69": {"depth": 0.0, "height": 0.68333, "italic": 0.12028, "skew": 0.0},
-  "70": {"depth": 0.0, "height": 0.68333, "italic": 0.13305, "skew": 0.0},
-  "71": {"depth": 0.0, "height": 0.68333, "italic": 0.08722, "skew": 0.0},
-  "72": {"depth": 0.0, "height": 0.68333, "italic": 0.16389, "skew": 0.0},
-  "73": {"depth": 0.0, "height": 0.68333, "italic": 0.15806, "skew": 0.0},
-  "74": {"depth": 0.0, "height": 0.68333, "italic": 0.14028, "skew": 0.0},
-  "75": {"depth": 0.0, "height": 0.68333, "italic": 0.14528, "skew": 0.0},
-  "76": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "77": {"depth": 0.0, "height": 0.68333, "italic": 0.16389, "skew": 0.0},
-  "78": {"depth": 0.0, "height": 0.68333, "italic": 0.16389, "skew": 0.0},
-  "79": {"depth": 0.0, "height": 0.68333, "italic": 0.09403, "skew": 0.0},
-  "80": {"depth": 0.0, "height": 0.68333, "italic": 0.10257, "skew": 0.0},
-  "81": {"depth": 0.19444, "height": 0.68333, "italic": 0.09403, "skew": 0.0},
-  "82": {"depth": 0.0, "height": 0.68333, "italic": 0.03868, "skew": 0.0},
-  "83": {"depth": 0.0, "height": 0.68333, "italic": 0.11972, "skew": 0.0},
-  "84": {"depth": 0.0, "height": 0.68333, "italic": 0.13305, "skew": 0.0},
-  "85": {"depth": 0.0, "height": 0.68333, "italic": 0.16389, "skew": 0.0},
-  "86": {"depth": 0.0, "height": 0.68333, "italic": 0.18361, "skew": 0.0},
-  "87": {"depth": 0.0, "height": 0.68333, "italic": 0.18361, "skew": 0.0},
-  "88": {"depth": 0.0, "height": 0.68333, "italic": 0.15806, "skew": 0.0},
-  "89": {"depth": 0.0, "height": 0.68333, "italic": 0.19383, "skew": 0.0},
-  "90": {"depth": 0.0, "height": 0.68333, "italic": 0.14528, "skew": 0.0},
-  "91": {"depth": 0.25, "height": 0.75, "italic": 0.1875, "skew": 0.0},
-  "93": {"depth": 0.25, "height": 0.75, "italic": 0.10528, "skew": 0.0},
-  "94": {"depth": 0.0, "height": 0.69444, "italic": 0.06646, "skew": 0.0},
-  "95": {"depth": 0.31, "height": 0.12056, "italic": 0.09208, "skew": 0.0},
-  "97": {"depth": 0.0, "height": 0.43056, "italic": 0.07671, "skew": 0.0},
-  "98": {"depth": 0.0, "height": 0.69444, "italic": 0.06312, "skew": 0.0},
-  "99": {"depth": 0.0, "height": 0.43056, "italic": 0.05653, "skew": 0.0},
-  "100": {"depth": 0.0, "height": 0.69444, "italic": 0.10333, "skew": 0.0},
-  "101": {"depth": 0.0, "height": 0.43056, "italic": 0.07514, "skew": 0.0},
-  "102": {"depth": 0.19444, "height": 0.69444, "italic": 0.21194, "skew": 0.0},
-  "103": {"depth": 0.19444, "height": 0.43056, "italic": 0.08847, "skew": 0.0},
-  "104": {"depth": 0.0, "height": 0.69444, "italic": 0.07671, "skew": 0.0},
-  "105": {"depth": 0.0, "height": 0.65536, "italic": 0.1019, "skew": 0.0},
-  "106": {"depth": 0.19444, "height": 0.65536, "italic": 0.14467, "skew": 0.0},
-  "107": {"depth": 0.0, "height": 0.69444, "italic": 0.10764, "skew": 0.0},
-  "108": {"depth": 0.0, "height": 0.69444, "italic": 0.10333, "skew": 0.0},
-  "109": {"depth": 0.0, "height": 0.43056, "italic": 0.07671, "skew": 0.0},
-  "110": {"depth": 0.0, "height": 0.43056, "italic": 0.07671, "skew": 0.0},
-  "111": {"depth": 0.0, "height": 0.43056, "italic": 0.06312, "skew": 0.0},
-  "112": {"depth": 0.19444, "height": 0.43056, "italic": 0.06312, "skew": 0.0},
-  "113": {"depth": 0.19444, "height": 0.43056, "italic": 0.08847, "skew": 0.0},
-  "114": {"depth": 0.0, "height": 0.43056, "italic": 0.10764, "skew": 0.0},
-  "115": {"depth": 0.0, "height": 0.43056, "italic": 0.08208, "skew": 0.0},
-  "116": {"depth": 0.0, "height": 0.61508, "italic": 0.09486, "skew": 0.0},
-  "117": {"depth": 0.0, "height": 0.43056, "italic": 0.07671, "skew": 0.0},
-  "118": {"depth": 0.0, "height": 0.43056, "italic": 0.10764, "skew": 0.0},
-  "119": {"depth": 0.0, "height": 0.43056, "italic": 0.10764, "skew": 0.0},
-  "120": {"depth": 0.0, "height": 0.43056, "italic": 0.12042, "skew": 0.0},
-  "121": {"depth": 0.19444, "height": 0.43056, "italic": 0.08847, "skew": 0.0},
-  "122": {"depth": 0.0, "height": 0.43056, "italic": 0.12292, "skew": 0.0},
-  "126": {"depth": 0.35, "height": 0.31786, "italic": 0.11585, "skew": 0.0},
-  "163": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "305": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.02778},
-  "567": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.08334},
-  "768": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "769": {"depth": 0.0, "height": 0.69444, "italic": 0.09694, "skew": 0.0},
-  "770": {"depth": 0.0, "height": 0.69444, "italic": 0.06646, "skew": 0.0},
-  "771": {"depth": 0.0, "height": 0.66786, "italic": 0.11585, "skew": 0.0},
-  "772": {"depth": 0.0, "height": 0.56167, "italic": 0.10333, "skew": 0.0},
-  "774": {"depth": 0.0, "height": 0.69444, "italic": 0.10806, "skew": 0.0},
-  "775": {"depth": 0.0, "height": 0.66786, "italic": 0.11752, "skew": 0.0},
-  "776": {"depth": 0.0, "height": 0.66786, "italic": 0.10474, "skew": 0.0},
-  "778": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "779": {"depth": 0.0, "height": 0.69444, "italic": 0.1225, "skew": 0.0},
-  "780": {"depth": 0.0, "height": 0.62847, "italic": 0.08295, "skew": 0.0},
-  "915": {"depth": 0.0, "height": 0.68333, "italic": 0.13305, "skew": 0.0},
-  "916": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "920": {"depth": 0.0, "height": 0.68333, "italic": 0.09403, "skew": 0.0},
-  "923": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "926": {"depth": 0.0, "height": 0.68333, "italic": 0.15294, "skew": 0.0},
-  "928": {"depth": 0.0, "height": 0.68333, "italic": 0.16389, "skew": 0.0},
-  "931": {"depth": 0.0, "height": 0.68333, "italic": 0.12028, "skew": 0.0},
-  "933": {"depth": 0.0, "height": 0.68333, "italic": 0.11111, "skew": 0.0},
-  "934": {"depth": 0.0, "height": 0.68333, "italic": 0.05986, "skew": 0.0},
-  "936": {"depth": 0.0, "height": 0.68333, "italic": 0.11111, "skew": 0.0},
-  "937": {"depth": 0.0, "height": 0.68333, "italic": 0.10257, "skew": 0.0},
-  "8211": {"depth": 0.0, "height": 0.43056, "italic": 0.09208, "skew": 0.0},
-  "8212": {"depth": 0.0, "height": 0.43056, "italic": 0.09208, "skew": 0.0},
-  "8216": {"depth": 0.0, "height": 0.69444, "italic": 0.12417, "skew": 0.0},
-  "8217": {"depth": 0.0, "height": 0.69444, "italic": 0.12417, "skew": 0.0},
-  "8220": {"depth": 0.0, "height": 0.69444, "italic": 0.1685, "skew": 0.0},
-  "8221": {"depth": 0.0, "height": 0.69444, "italic": 0.06961, "skew": 0.0},
-  "8463": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0}
-},
-"Main-Regular": {
-  "32": {"depth": 0.0, "height": 0.0, "italic": 0, "skew": 0},
-  "33": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "34": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "35": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "36": {"depth": 0.05556, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "37": {"depth": 0.05556, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "38": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "39": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "40": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "41": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "42": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "43": {"depth": 0.08333, "height": 0.58333, "italic": 0.0, "skew": 0.0},
-  "44": {"depth": 0.19444, "height": 0.10556, "italic": 0.0, "skew": 0.0},
-  "45": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "46": {"depth": 0.0, "height": 0.10556, "italic": 0.0, "skew": 0.0},
-  "47": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "48": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "49": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "50": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "51": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "52": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "53": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "54": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "55": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "56": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "57": {"depth": 0.0, "height": 0.64444, "italic": 0.0, "skew": 0.0},
-  "58": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "59": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "60": {"depth": 0.0391, "height": 0.5391, "italic": 0.0, "skew": 0.0},
-  "61": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "62": {"depth": 0.0391, "height": 0.5391, "italic": 0.0, "skew": 0.0},
-  "63": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "64": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "65": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "66": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "67": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "68": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "69": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "70": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "71": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "72": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "73": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "74": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "75": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "76": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "77": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "78": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "79": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "80": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "81": {"depth": 0.19444, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "82": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "83": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "84": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "85": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "86": {"depth": 0.0, "height": 0.68333, "italic": 0.01389, "skew": 0.0},
-  "87": {"depth": 0.0, "height": 0.68333, "italic": 0.01389, "skew": 0.0},
-  "88": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "89": {"depth": 0.0, "height": 0.68333, "italic": 0.025, "skew": 0.0},
-  "90": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "91": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "92": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "93": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "94": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "95": {"depth": 0.31, "height": 0.12056, "italic": 0.02778, "skew": 0.0},
-  "96": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "97": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "98": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "99": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "100": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "101": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "102": {"depth": 0.0, "height": 0.69444, "italic": 0.07778, "skew": 0.0},
-  "103": {"depth": 0.19444, "height": 0.43056, "italic": 0.01389, "skew": 0.0},
-  "104": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "105": {"depth": 0.0, "height": 0.66786, "italic": 0.0, "skew": 0.0},
-  "106": {"depth": 0.19444, "height": 0.66786, "italic": 0.0, "skew": 0.0},
-  "107": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "108": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "109": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "110": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "111": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "112": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "113": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "114": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "115": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "116": {"depth": 0.0, "height": 0.61508, "italic": 0.0, "skew": 0.0},
-  "117": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "118": {"depth": 0.0, "height": 0.43056, "italic": 0.01389, "skew": 0.0},
-  "119": {"depth": 0.0, "height": 0.43056, "italic": 0.01389, "skew": 0.0},
-  "120": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "121": {"depth": 0.19444, "height": 0.43056, "italic": 0.01389, "skew": 0.0},
-  "122": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "123": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "124": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "125": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "126": {"depth": 0.35, "height": 0.31786, "italic": 0.0, "skew": 0.0},
-  "160": {"depth": 0.0, "height": 0.0, "italic": 0, "skew": 0},
-  "168": {"depth": 0.0, "height": 0.66786, "italic": 0.0, "skew": 0.0},
-  "172": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "175": {"depth": 0.0, "height": 0.56778, "italic": 0.0, "skew": 0.0},
-  "176": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "177": {"depth": 0.08333, "height": 0.58333, "italic": 0.0, "skew": 0.0},
-  "180": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "215": {"depth": 0.08333, "height": 0.58333, "italic": 0.0, "skew": 0.0},
-  "247": {"depth": 0.08333, "height": 0.58333, "italic": 0.0, "skew": 0.0},
-  "305": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "567": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "710": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "711": {"depth": 0.0, "height": 0.62847, "italic": 0.0, "skew": 0.0},
-  "713": {"depth": 0.0, "height": 0.56778, "italic": 0.0, "skew": 0.0},
-  "714": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "715": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "728": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "729": {"depth": 0.0, "height": 0.66786, "italic": 0.0, "skew": 0.0},
-  "730": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "732": {"depth": 0.0, "height": 0.66786, "italic": 0.0, "skew": 0.0},
-  "768": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "769": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "770": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "771": {"depth": 0.0, "height": 0.66786, "italic": 0.0, "skew": 0.0},
-  "772": {"depth": 0.0, "height": 0.56778, "italic": 0.0, "skew": 0.0},
-  "774": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "775": {"depth": 0.0, "height": 0.66786, "italic": 0.0, "skew": 0.0},
-  "776": {"depth": 0.0, "height": 0.66786, "italic": 0.0, "skew": 0.0},
-  "778": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "779": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "780": {"depth": 0.0, "height": 0.62847, "italic": 0.0, "skew": 0.0},
-  "824": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "915": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "916": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "920": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "923": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "926": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "928": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "931": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "933": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "934": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "936": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "937": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "8211": {"depth": 0.0, "height": 0.43056, "italic": 0.02778, "skew": 0.0},
-  "8212": {"depth": 0.0, "height": 0.43056, "italic": 0.02778, "skew": 0.0},
-  "8216": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8217": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8220": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8221": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8224": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8225": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8230": {"depth": 0.0, "height": 0.12, "italic": 0, "skew": 0},
-  "8242": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8407": {"depth": 0.0, "height": 0.71444, "italic": 0.15382, "skew": 0.0},
-  "8463": {"depth": 0.0, "height": 0.68889, "italic": 0.0, "skew": 0.0},
-  "8465": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8467": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.11111},
-  "8472": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.11111},
-  "8476": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8501": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8592": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8593": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8594": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8595": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8596": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8597": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8598": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8599": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8600": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8601": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8614": {"depth": 0.011, "height": 0.511, "italic": 0, "skew": 0},
-  "8617": {"depth": 0.011, "height": 0.511, "italic": 0, "skew": 0},
-  "8618": {"depth": 0.011, "height": 0.511, "italic": 0, "skew": 0},
-  "8636": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8637": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8640": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8641": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8652": {"depth": 0.011, "height": 0.671, "italic": 0, "skew": 0},
-  "8656": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8657": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8658": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8659": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8660": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8661": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8704": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8706": {"depth": 0.0, "height": 0.69444, "italic": 0.05556, "skew": 0.08334},
-  "8707": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8709": {"depth": 0.05556, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8711": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "8712": {"depth": 0.0391, "height": 0.5391, "italic": 0.0, "skew": 0.0},
-  "8715": {"depth": 0.0391, "height": 0.5391, "italic": 0.0, "skew": 0.0},
-  "8722": {"depth": 0.08333, "height": 0.58333, "italic": 0.0, "skew": 0.0},
-  "8723": {"depth": 0.08333, "height": 0.58333, "italic": 0.0, "skew": 0.0},
-  "8725": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8726": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8727": {"depth": -0.03472, "height": 0.46528, "italic": 0.0, "skew": 0.0},
-  "8728": {"depth": -0.05555, "height": 0.44445, "italic": 0.0, "skew": 0.0},
-  "8729": {"depth": -0.05555, "height": 0.44445, "italic": 0.0, "skew": 0.0},
-  "8730": {"depth": 0.2, "height": 0.8, "italic": 0.0, "skew": 0.0},
-  "8733": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "8734": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "8736": {"depth": 0.0, "height": 0.69224, "italic": 0.0, "skew": 0.0},
-  "8739": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8741": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8743": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8744": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8745": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8746": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8747": {"depth": 0.19444, "height": 0.69444, "italic": 0.11111, "skew": 0.0},
-  "8764": {"depth": -0.13313, "height": 0.36687, "italic": 0.0, "skew": 0.0},
-  "8768": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8771": {"depth": -0.03625, "height": 0.46375, "italic": 0.0, "skew": 0.0},
-  "8773": {"depth": -0.022, "height": 0.589, "italic": 0, "skew": 0},
-  "8776": {"depth": -0.01688, "height": 0.48312, "italic": 0.0, "skew": 0.0},
-  "8781": {"depth": -0.03625, "height": 0.46375, "italic": 0.0, "skew": 0.0},
-  "8784": {"depth": -0.133, "height": 0.67, "italic": 0, "skew": 0},
-  "8800": {"depth": 0.215, "height": 0.716, "italic": 0, "skew": 0},
-  "8801": {"depth": -0.03625, "height": 0.46375, "italic": 0.0, "skew": 0.0},
-  "8804": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0},
-  "8805": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0},
-  "8810": {"depth": 0.0391, "height": 0.5391, "italic": 0.0, "skew": 0.0},
-  "8811": {"depth": 0.0391, "height": 0.5391, "italic": 0.0, "skew": 0.0},
-  "8826": {"depth": 0.0391, "height": 0.5391, "italic": 0.0, "skew": 0.0},
-  "8827": {"depth": 0.0391, "height": 0.5391, "italic": 0.0, "skew": 0.0},
-  "8834": {"depth": 0.0391, "height": 0.5391, "italic": 0.0, "skew": 0.0},
-  "8835": {"depth": 0.0391, "height": 0.5391, "italic": 0.0, "skew": 0.0},
-  "8838": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0},
-  "8839": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0},
-  "8846": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8849": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0},
-  "8850": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0},
-  "8851": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8852": {"depth": 0.0, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "8853": {"depth": 0.08333, "height": 0.58333, "italic": 0.0, "skew": 0.0},
-  "8854": {"depth": 0.08333, "height": 0.58333, "italic": 0.0, "skew": 0.0},
-  "8855": {"depth": 0.08333, "height": 0.58333, "italic": 0.0, "skew": 0.0},
-  "8856": {"depth": 0.08333, "height": 0.58333, "italic": 0.0, "skew": 0.0},
-  "8857": {"depth": 0.08333, "height": 0.58333, "italic": 0.0, "skew": 0.0},
-  "8866": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8867": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8868": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8869": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8872": {"depth": 0.249, "height": 0.75, "italic": 0, "skew": 0},
-  "8900": {"depth": -0.05555, "height": 0.44445, "italic": 0.0, "skew": 0.0},
-  "8901": {"depth": -0.05555, "height": 0.44445, "italic": 0.0, "skew": 0.0},
-  "8902": {"depth": -0.03472, "height": 0.46528, "italic": 0.0, "skew": 0.0},
-  "8904": {"depth": 0.005, "height": 0.505, "italic": 0, "skew": 0},
-  "8942": {"depth": 0.03, "height": 0.9, "italic": 0, "skew": 0},
-  "8943": {"depth": -0.19, "height": 0.31, "italic": 0, "skew": 0},
-  "8945": {"depth": -0.1, "height": 0.82, "italic": 0, "skew": 0},
-  "8968": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8969": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8970": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8971": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8994": {"depth": -0.14236, "height": 0.35764, "italic": 0.0, "skew": 0.0},
-  "8995": {"depth": -0.14236, "height": 0.35764, "italic": 0.0, "skew": 0.0},
-  "9136": {"depth": 0.244, "height": 0.744, "italic": 0, "skew": 0},
-  "9137": {"depth": 0.244, "height": 0.744, "italic": 0, "skew": 0},
-  "9651": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9657": {"depth": -0.03472, "height": 0.46528, "italic": 0.0, "skew": 0.0},
-  "9661": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9667": {"depth": -0.03472, "height": 0.46528, "italic": 0.0, "skew": 0.0},
-  "9711": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9824": {"depth": 0.12963, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9825": {"depth": 0.12963, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9826": {"depth": 0.12963, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9827": {"depth": 0.12963, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9837": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "9838": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "9839": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "10216": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "10217": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "10222": {"depth": 0.244, "height": 0.744, "italic": 0, "skew": 0},
-  "10223": {"depth": 0.244, "height": 0.744, "italic": 0, "skew": 0},
-  "10229": {"depth": 0.011, "height": 0.511, "italic": 0, "skew": 0},
-  "10230": {"depth": 0.011, "height": 0.511, "italic": 0, "skew": 0},
-  "10231": {"depth": 0.011, "height": 0.511, "italic": 0, "skew": 0},
-  "10232": {"depth": 0.024, "height": 0.525, "italic": 0, "skew": 0},
-  "10233": {"depth": 0.024, "height": 0.525, "italic": 0, "skew": 0},
-  "10234": {"depth": 0.024, "height": 0.525, "italic": 0, "skew": 0},
-  "10236": {"depth": 0.011, "height": 0.511, "italic": 0, "skew": 0},
-  "10815": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.0},
-  "10927": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0},
-  "10928": {"depth": 0.13597, "height": 0.63597, "italic": 0.0, "skew": 0.0}
-},
-"Math-BoldItalic": {
-  "47": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "65": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "66": {"depth": 0.0, "height": 0.68611, "italic": 0.04835, "skew": 0.0},
-  "67": {"depth": 0.0, "height": 0.68611, "italic": 0.06979, "skew": 0.0},
-  "68": {"depth": 0.0, "height": 0.68611, "italic": 0.03194, "skew": 0.0},
-  "69": {"depth": 0.0, "height": 0.68611, "italic": 0.05451, "skew": 0.0},
-  "70": {"depth": 0.0, "height": 0.68611, "italic": 0.15972, "skew": 0.0},
-  "71": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "72": {"depth": 0.0, "height": 0.68611, "italic": 0.08229, "skew": 0.0},
-  "73": {"depth": 0.0, "height": 0.68611, "italic": 0.07778, "skew": 0.0},
-  "74": {"depth": 0.0, "height": 0.68611, "italic": 0.10069, "skew": 0.0},
-  "75": {"depth": 0.0, "height": 0.68611, "italic": 0.06979, "skew": 0.0},
-  "76": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "77": {"depth": 0.0, "height": 0.68611, "italic": 0.11424, "skew": 0.0},
-  "78": {"depth": 0.0, "height": 0.68611, "italic": 0.11424, "skew": 0.0},
-  "79": {"depth": 0.0, "height": 0.68611, "italic": 0.03194, "skew": 0.0},
-  "80": {"depth": 0.0, "height": 0.68611, "italic": 0.15972, "skew": 0.0},
-  "81": {"depth": 0.19444, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "82": {"depth": 0.0, "height": 0.68611, "italic": 0.00421, "skew": 0.0},
-  "83": {"depth": 0.0, "height": 0.68611, "italic": 0.05382, "skew": 0.0},
-  "84": {"depth": 0.0, "height": 0.68611, "italic": 0.15972, "skew": 0.0},
-  "85": {"depth": 0.0, "height": 0.68611, "italic": 0.11424, "skew": 0.0},
-  "86": {"depth": 0.0, "height": 0.68611, "italic": 0.25555, "skew": 0.0},
-  "87": {"depth": 0.0, "height": 0.68611, "italic": 0.15972, "skew": 0.0},
-  "88": {"depth": 0.0, "height": 0.68611, "italic": 0.07778, "skew": 0.0},
-  "89": {"depth": 0.0, "height": 0.68611, "italic": 0.25555, "skew": 0.0},
-  "90": {"depth": 0.0, "height": 0.68611, "italic": 0.06979, "skew": 0.0},
-  "97": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "98": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "99": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "100": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "101": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "102": {"depth": 0.19444, "height": 0.69444, "italic": 0.11042, "skew": 0.0},
-  "103": {"depth": 0.19444, "height": 0.44444, "italic": 0.03704, "skew": 0.0},
-  "104": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "105": {"depth": 0.0, "height": 0.69326, "italic": 0.0, "skew": 0.0},
-  "106": {"depth": 0.19444, "height": 0.69326, "italic": 0.0622, "skew": 0.0},
-  "107": {"depth": 0.0, "height": 0.69444, "italic": 0.01852, "skew": 0.0},
-  "108": {"depth": 0.0, "height": 0.69444, "italic": 0.0088, "skew": 0.0},
-  "109": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "110": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "111": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "112": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "113": {"depth": 0.19444, "height": 0.44444, "italic": 0.03704, "skew": 0.0},
-  "114": {"depth": 0.0, "height": 0.44444, "italic": 0.03194, "skew": 0.0},
-  "115": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "116": {"depth": 0.0, "height": 0.63492, "italic": 0.0, "skew": 0.0},
-  "117": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "118": {"depth": 0.0, "height": 0.44444, "italic": 0.03704, "skew": 0.0},
-  "119": {"depth": 0.0, "height": 0.44444, "italic": 0.02778, "skew": 0.0},
-  "120": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "121": {"depth": 0.19444, "height": 0.44444, "italic": 0.03704, "skew": 0.0},
-  "122": {"depth": 0.0, "height": 0.44444, "italic": 0.04213, "skew": 0.0},
-  "915": {"depth": 0.0, "height": 0.68611, "italic": 0.15972, "skew": 0.0},
-  "916": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "920": {"depth": 0.0, "height": 0.68611, "italic": 0.03194, "skew": 0.0},
-  "923": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "926": {"depth": 0.0, "height": 0.68611, "italic": 0.07458, "skew": 0.0},
-  "928": {"depth": 0.0, "height": 0.68611, "italic": 0.08229, "skew": 0.0},
-  "931": {"depth": 0.0, "height": 0.68611, "italic": 0.05451, "skew": 0.0},
-  "933": {"depth": 0.0, "height": 0.68611, "italic": 0.15972, "skew": 0.0},
-  "934": {"depth": 0.0, "height": 0.68611, "italic": 0.0, "skew": 0.0},
-  "936": {"depth": 0.0, "height": 0.68611, "italic": 0.11653, "skew": 0.0},
-  "937": {"depth": 0.0, "height": 0.68611, "italic": 0.04835, "skew": 0.0},
-  "945": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "946": {"depth": 0.19444, "height": 0.69444, "italic": 0.03403, "skew": 0.0},
-  "947": {"depth": 0.19444, "height": 0.44444, "italic": 0.06389, "skew": 0.0},
-  "948": {"depth": 0.0, "height": 0.69444, "italic": 0.03819, "skew": 0.0},
-  "949": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "950": {"depth": 0.19444, "height": 0.69444, "italic": 0.06215, "skew": 0.0},
-  "951": {"depth": 0.19444, "height": 0.44444, "italic": 0.03704, "skew": 0.0},
-  "952": {"depth": 0.0, "height": 0.69444, "italic": 0.03194, "skew": 0.0},
-  "953": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "954": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "955": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "956": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "957": {"depth": 0.0, "height": 0.44444, "italic": 0.06898, "skew": 0.0},
-  "958": {"depth": 0.19444, "height": 0.69444, "italic": 0.03021, "skew": 0.0},
-  "959": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "960": {"depth": 0.0, "height": 0.44444, "italic": 0.03704, "skew": 0.0},
-  "961": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "962": {"depth": 0.09722, "height": 0.44444, "italic": 0.07917, "skew": 0.0},
-  "963": {"depth": 0.0, "height": 0.44444, "italic": 0.03704, "skew": 0.0},
-  "964": {"depth": 0.0, "height": 0.44444, "italic": 0.13472, "skew": 0.0},
-  "965": {"depth": 0.0, "height": 0.44444, "italic": 0.03704, "skew": 0.0},
-  "966": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "967": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "968": {"depth": 0.19444, "height": 0.69444, "italic": 0.03704, "skew": 0.0},
-  "969": {"depth": 0.0, "height": 0.44444, "italic": 0.03704, "skew": 0.0},
-  "977": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "981": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "982": {"depth": 0.0, "height": 0.44444, "italic": 0.03194, "skew": 0.0},
-  "1009": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "1013": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0}
-},
-"Math-Italic": {
-  "47": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "65": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.13889},
-  "66": {"depth": 0.0, "height": 0.68333, "italic": 0.05017, "skew": 0.08334},
-  "67": {"depth": 0.0, "height": 0.68333, "italic": 0.07153, "skew": 0.08334},
-  "68": {"depth": 0.0, "height": 0.68333, "italic": 0.02778, "skew": 0.05556},
-  "69": {"depth": 0.0, "height": 0.68333, "italic": 0.05764, "skew": 0.08334},
-  "70": {"depth": 0.0, "height": 0.68333, "italic": 0.13889, "skew": 0.08334},
-  "71": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.08334},
-  "72": {"depth": 0.0, "height": 0.68333, "italic": 0.08125, "skew": 0.05556},
-  "73": {"depth": 0.0, "height": 0.68333, "italic": 0.07847, "skew": 0.11111},
-  "74": {"depth": 0.0, "height": 0.68333, "italic": 0.09618, "skew": 0.16667},
-  "75": {"depth": 0.0, "height": 0.68333, "italic": 0.07153, "skew": 0.05556},
-  "76": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.02778},
-  "77": {"depth": 0.0, "height": 0.68333, "italic": 0.10903, "skew": 0.08334},
-  "78": {"depth": 0.0, "height": 0.68333, "italic": 0.10903, "skew": 0.08334},
-  "79": {"depth": 0.0, "height": 0.68333, "italic": 0.02778, "skew": 0.08334},
-  "80": {"depth": 0.0, "height": 0.68333, "italic": 0.13889, "skew": 0.08334},
-  "81": {"depth": 0.19444, "height": 0.68333, "italic": 0.0, "skew": 0.08334},
-  "82": {"depth": 0.0, "height": 0.68333, "italic": 0.00773, "skew": 0.08334},
-  "83": {"depth": 0.0, "height": 0.68333, "italic": 0.05764, "skew": 0.08334},
-  "84": {"depth": 0.0, "height": 0.68333, "italic": 0.13889, "skew": 0.08334},
-  "85": {"depth": 0.0, "height": 0.68333, "italic": 0.10903, "skew": 0.02778},
-  "86": {"depth": 0.0, "height": 0.68333, "italic": 0.22222, "skew": 0.0},
-  "87": {"depth": 0.0, "height": 0.68333, "italic": 0.13889, "skew": 0.0},
-  "88": {"depth": 0.0, "height": 0.68333, "italic": 0.07847, "skew": 0.08334},
-  "89": {"depth": 0.0, "height": 0.68333, "italic": 0.22222, "skew": 0.0},
-  "90": {"depth": 0.0, "height": 0.68333, "italic": 0.07153, "skew": 0.08334},
-  "97": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "98": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "99": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "100": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.16667},
-  "101": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "102": {"depth": 0.19444, "height": 0.69444, "italic": 0.10764, "skew": 0.16667},
-  "103": {"depth": 0.19444, "height": 0.43056, "italic": 0.03588, "skew": 0.02778},
-  "104": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "105": {"depth": 0.0, "height": 0.65952, "italic": 0.0, "skew": 0.0},
-  "106": {"depth": 0.19444, "height": 0.65952, "italic": 0.05724, "skew": 0.0},
-  "107": {"depth": 0.0, "height": 0.69444, "italic": 0.03148, "skew": 0.0},
-  "108": {"depth": 0.0, "height": 0.69444, "italic": 0.01968, "skew": 0.08334},
-  "109": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "110": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "111": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "112": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.08334},
-  "113": {"depth": 0.19444, "height": 0.43056, "italic": 0.03588, "skew": 0.08334},
-  "114": {"depth": 0.0, "height": 0.43056, "italic": 0.02778, "skew": 0.05556},
-  "115": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "116": {"depth": 0.0, "height": 0.61508, "italic": 0.0, "skew": 0.08334},
-  "117": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.02778},
-  "118": {"depth": 0.0, "height": 0.43056, "italic": 0.03588, "skew": 0.02778},
-  "119": {"depth": 0.0, "height": 0.43056, "italic": 0.02691, "skew": 0.08334},
-  "120": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.02778},
-  "121": {"depth": 0.19444, "height": 0.43056, "italic": 0.03588, "skew": 0.05556},
-  "122": {"depth": 0.0, "height": 0.43056, "italic": 0.04398, "skew": 0.05556},
-  "915": {"depth": 0.0, "height": 0.68333, "italic": 0.13889, "skew": 0.08334},
-  "916": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.16667},
-  "920": {"depth": 0.0, "height": 0.68333, "italic": 0.02778, "skew": 0.08334},
-  "923": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.16667},
-  "926": {"depth": 0.0, "height": 0.68333, "italic": 0.07569, "skew": 0.08334},
-  "928": {"depth": 0.0, "height": 0.68333, "italic": 0.08125, "skew": 0.05556},
-  "931": {"depth": 0.0, "height": 0.68333, "italic": 0.05764, "skew": 0.08334},
-  "933": {"depth": 0.0, "height": 0.68333, "italic": 0.13889, "skew": 0.05556},
-  "934": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.08334},
-  "936": {"depth": 0.0, "height": 0.68333, "italic": 0.11, "skew": 0.05556},
-  "937": {"depth": 0.0, "height": 0.68333, "italic": 0.05017, "skew": 0.08334},
-  "945": {"depth": 0.0, "height": 0.43056, "italic": 0.0037, "skew": 0.02778},
-  "946": {"depth": 0.19444, "height": 0.69444, "italic": 0.05278, "skew": 0.08334},
-  "947": {"depth": 0.19444, "height": 0.43056, "italic": 0.05556, "skew": 0.0},
-  "948": {"depth": 0.0, "height": 0.69444, "italic": 0.03785, "skew": 0.05556},
-  "949": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.08334},
-  "950": {"depth": 0.19444, "height": 0.69444, "italic": 0.07378, "skew": 0.08334},
-  "951": {"depth": 0.19444, "height": 0.43056, "italic": 0.03588, "skew": 0.05556},
-  "952": {"depth": 0.0, "height": 0.69444, "italic": 0.02778, "skew": 0.08334},
-  "953": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "954": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "955": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "956": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.02778},
-  "957": {"depth": 0.0, "height": 0.43056, "italic": 0.06366, "skew": 0.02778},
-  "958": {"depth": 0.19444, "height": 0.69444, "italic": 0.04601, "skew": 0.11111},
-  "959": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "960": {"depth": 0.0, "height": 0.43056, "italic": 0.03588, "skew": 0.0},
-  "961": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.08334},
-  "962": {"depth": 0.09722, "height": 0.43056, "italic": 0.07986, "skew": 0.08334},
-  "963": {"depth": 0.0, "height": 0.43056, "italic": 0.03588, "skew": 0.0},
-  "964": {"depth": 0.0, "height": 0.43056, "italic": 0.1132, "skew": 0.02778},
-  "965": {"depth": 0.0, "height": 0.43056, "italic": 0.03588, "skew": 0.02778},
-  "966": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.08334},
-  "967": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "968": {"depth": 0.19444, "height": 0.69444, "italic": 0.03588, "skew": 0.11111},
-  "969": {"depth": 0.0, "height": 0.43056, "italic": 0.03588, "skew": 0.0},
-  "977": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.08334},
-  "981": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.08334},
-  "982": {"depth": 0.0, "height": 0.43056, "italic": 0.02778, "skew": 0.0},
-  "1009": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.08334},
-  "1013": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556}
-},
-"Math-Regular": {
-  "65": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.13889},
-  "66": {"depth": 0.0, "height": 0.68333, "italic": 0.05017, "skew": 0.08334},
-  "67": {"depth": 0.0, "height": 0.68333, "italic": 0.07153, "skew": 0.08334},
-  "68": {"depth": 0.0, "height": 0.68333, "italic": 0.02778, "skew": 0.05556},
-  "69": {"depth": 0.0, "height": 0.68333, "italic": 0.05764, "skew": 0.08334},
-  "70": {"depth": 0.0, "height": 0.68333, "italic": 0.13889, "skew": 0.08334},
-  "71": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.08334},
-  "72": {"depth": 0.0, "height": 0.68333, "italic": 0.08125, "skew": 0.05556},
-  "73": {"depth": 0.0, "height": 0.68333, "italic": 0.07847, "skew": 0.11111},
-  "74": {"depth": 0.0, "height": 0.68333, "italic": 0.09618, "skew": 0.16667},
-  "75": {"depth": 0.0, "height": 0.68333, "italic": 0.07153, "skew": 0.05556},
-  "76": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.02778},
-  "77": {"depth": 0.0, "height": 0.68333, "italic": 0.10903, "skew": 0.08334},
-  "78": {"depth": 0.0, "height": 0.68333, "italic": 0.10903, "skew": 0.08334},
-  "79": {"depth": 0.0, "height": 0.68333, "italic": 0.02778, "skew": 0.08334},
-  "80": {"depth": 0.0, "height": 0.68333, "italic": 0.13889, "skew": 0.08334},
-  "81": {"depth": 0.19444, "height": 0.68333, "italic": 0.0, "skew": 0.08334},
-  "82": {"depth": 0.0, "height": 0.68333, "italic": 0.00773, "skew": 0.08334},
-  "83": {"depth": 0.0, "height": 0.68333, "italic": 0.05764, "skew": 0.08334},
-  "84": {"depth": 0.0, "height": 0.68333, "italic": 0.13889, "skew": 0.08334},
-  "85": {"depth": 0.0, "height": 0.68333, "italic": 0.10903, "skew": 0.02778},
-  "86": {"depth": 0.0, "height": 0.68333, "italic": 0.22222, "skew": 0.0},
-  "87": {"depth": 0.0, "height": 0.68333, "italic": 0.13889, "skew": 0.0},
-  "88": {"depth": 0.0, "height": 0.68333, "italic": 0.07847, "skew": 0.08334},
-  "89": {"depth": 0.0, "height": 0.68333, "italic": 0.22222, "skew": 0.0},
-  "90": {"depth": 0.0, "height": 0.68333, "italic": 0.07153, "skew": 0.08334},
-  "97": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "98": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "99": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "100": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.16667},
-  "101": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "102": {"depth": 0.19444, "height": 0.69444, "italic": 0.10764, "skew": 0.16667},
-  "103": {"depth": 0.19444, "height": 0.43056, "italic": 0.03588, "skew": 0.02778},
-  "104": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "105": {"depth": 0.0, "height": 0.65952, "italic": 0.0, "skew": 0.0},
-  "106": {"depth": 0.19444, "height": 0.65952, "italic": 0.05724, "skew": 0.0},
-  "107": {"depth": 0.0, "height": 0.69444, "italic": 0.03148, "skew": 0.0},
-  "108": {"depth": 0.0, "height": 0.69444, "italic": 0.01968, "skew": 0.08334},
-  "109": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "110": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "111": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "112": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.08334},
-  "113": {"depth": 0.19444, "height": 0.43056, "italic": 0.03588, "skew": 0.08334},
-  "114": {"depth": 0.0, "height": 0.43056, "italic": 0.02778, "skew": 0.05556},
-  "115": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "116": {"depth": 0.0, "height": 0.61508, "italic": 0.0, "skew": 0.08334},
-  "117": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.02778},
-  "118": {"depth": 0.0, "height": 0.43056, "italic": 0.03588, "skew": 0.02778},
-  "119": {"depth": 0.0, "height": 0.43056, "italic": 0.02691, "skew": 0.08334},
-  "120": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.02778},
-  "121": {"depth": 0.19444, "height": 0.43056, "italic": 0.03588, "skew": 0.05556},
-  "122": {"depth": 0.0, "height": 0.43056, "italic": 0.04398, "skew": 0.05556},
-  "915": {"depth": 0.0, "height": 0.68333, "italic": 0.13889, "skew": 0.08334},
-  "916": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.16667},
-  "920": {"depth": 0.0, "height": 0.68333, "italic": 0.02778, "skew": 0.08334},
-  "923": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.16667},
-  "926": {"depth": 0.0, "height": 0.68333, "italic": 0.07569, "skew": 0.08334},
-  "928": {"depth": 0.0, "height": 0.68333, "italic": 0.08125, "skew": 0.05556},
-  "931": {"depth": 0.0, "height": 0.68333, "italic": 0.05764, "skew": 0.08334},
-  "933": {"depth": 0.0, "height": 0.68333, "italic": 0.13889, "skew": 0.05556},
-  "934": {"depth": 0.0, "height": 0.68333, "italic": 0.0, "skew": 0.08334},
-  "936": {"depth": 0.0, "height": 0.68333, "italic": 0.11, "skew": 0.05556},
-  "937": {"depth": 0.0, "height": 0.68333, "italic": 0.05017, "skew": 0.08334},
-  "945": {"depth": 0.0, "height": 0.43056, "italic": 0.0037, "skew": 0.02778},
-  "946": {"depth": 0.19444, "height": 0.69444, "italic": 0.05278, "skew": 0.08334},
-  "947": {"depth": 0.19444, "height": 0.43056, "italic": 0.05556, "skew": 0.0},
-  "948": {"depth": 0.0, "height": 0.69444, "italic": 0.03785, "skew": 0.05556},
-  "949": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.08334},
-  "950": {"depth": 0.19444, "height": 0.69444, "italic": 0.07378, "skew": 0.08334},
-  "951": {"depth": 0.19444, "height": 0.43056, "italic": 0.03588, "skew": 0.05556},
-  "952": {"depth": 0.0, "height": 0.69444, "italic": 0.02778, "skew": 0.08334},
-  "953": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "954": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "955": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "956": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.02778},
-  "957": {"depth": 0.0, "height": 0.43056, "italic": 0.06366, "skew": 0.02778},
-  "958": {"depth": 0.19444, "height": 0.69444, "italic": 0.04601, "skew": 0.11111},
-  "959": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "960": {"depth": 0.0, "height": 0.43056, "italic": 0.03588, "skew": 0.0},
-  "961": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.08334},
-  "962": {"depth": 0.09722, "height": 0.43056, "italic": 0.07986, "skew": 0.08334},
-  "963": {"depth": 0.0, "height": 0.43056, "italic": 0.03588, "skew": 0.0},
-  "964": {"depth": 0.0, "height": 0.43056, "italic": 0.1132, "skew": 0.02778},
-  "965": {"depth": 0.0, "height": 0.43056, "italic": 0.03588, "skew": 0.02778},
-  "966": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.08334},
-  "967": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.05556},
-  "968": {"depth": 0.19444, "height": 0.69444, "italic": 0.03588, "skew": 0.11111},
-  "969": {"depth": 0.0, "height": 0.43056, "italic": 0.03588, "skew": 0.0},
-  "977": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.08334},
-  "981": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.08334},
-  "982": {"depth": 0.0, "height": 0.43056, "italic": 0.02778, "skew": 0.0},
-  "1009": {"depth": 0.19444, "height": 0.43056, "italic": 0.0, "skew": 0.08334},
-  "1013": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.05556}
-},
-"SansSerif-Regular": {
-  "33": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "34": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "35": {"depth": 0.19444, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "36": {"depth": 0.05556, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "37": {"depth": 0.05556, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "38": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "39": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "40": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "41": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "42": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "43": {"depth": 0.08333, "height": 0.58333, "italic": 0.0, "skew": 0.0},
-  "44": {"depth": 0.125, "height": 0.08333, "italic": 0.0, "skew": 0.0},
-  "45": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "46": {"depth": 0.0, "height": 0.08333, "italic": 0.0, "skew": 0.0},
-  "47": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "48": {"depth": 0.0, "height": 0.65556, "italic": 0.0, "skew": 0.0},
-  "49": {"depth": 0.0, "height": 0.65556, "italic": 0.0, "skew": 0.0},
-  "50": {"depth": 0.0, "height": 0.65556, "italic": 0.0, "skew": 0.0},
-  "51": {"depth": 0.0, "height": 0.65556, "italic": 0.0, "skew": 0.0},
-  "52": {"depth": 0.0, "height": 0.65556, "italic": 0.0, "skew": 0.0},
-  "53": {"depth": 0.0, "height": 0.65556, "italic": 0.0, "skew": 0.0},
-  "54": {"depth": 0.0, "height": 0.65556, "italic": 0.0, "skew": 0.0},
-  "55": {"depth": 0.0, "height": 0.65556, "italic": 0.0, "skew": 0.0},
-  "56": {"depth": 0.0, "height": 0.65556, "italic": 0.0, "skew": 0.0},
-  "57": {"depth": 0.0, "height": 0.65556, "italic": 0.0, "skew": 0.0},
-  "58": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "59": {"depth": 0.125, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "61": {"depth": -0.13, "height": 0.37, "italic": 0.0, "skew": 0.0},
-  "63": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "64": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "65": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "66": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "67": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "68": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "69": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "70": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "71": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "72": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "73": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "74": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "75": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "76": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "77": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "78": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "79": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "80": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "81": {"depth": 0.125, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "82": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "83": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "84": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "85": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "86": {"depth": 0.0, "height": 0.69444, "italic": 0.01389, "skew": 0.0},
-  "87": {"depth": 0.0, "height": 0.69444, "italic": 0.01389, "skew": 0.0},
-  "88": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "89": {"depth": 0.0, "height": 0.69444, "italic": 0.025, "skew": 0.0},
-  "90": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "91": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "93": {"depth": 0.25, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "94": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "95": {"depth": 0.35, "height": 0.09444, "italic": 0.02778, "skew": 0.0},
-  "97": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "98": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "99": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "100": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "101": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "102": {"depth": 0.0, "height": 0.69444, "italic": 0.06944, "skew": 0.0},
-  "103": {"depth": 0.19444, "height": 0.44444, "italic": 0.01389, "skew": 0.0},
-  "104": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "105": {"depth": 0.0, "height": 0.67937, "italic": 0.0, "skew": 0.0},
-  "106": {"depth": 0.19444, "height": 0.67937, "italic": 0.0, "skew": 0.0},
-  "107": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "108": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "109": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "110": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "111": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "112": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "113": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "114": {"depth": 0.0, "height": 0.44444, "italic": 0.01389, "skew": 0.0},
-  "115": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "116": {"depth": 0.0, "height": 0.57143, "italic": 0.0, "skew": 0.0},
-  "117": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "118": {"depth": 0.0, "height": 0.44444, "italic": 0.01389, "skew": 0.0},
-  "119": {"depth": 0.0, "height": 0.44444, "italic": 0.01389, "skew": 0.0},
-  "120": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "121": {"depth": 0.19444, "height": 0.44444, "italic": 0.01389, "skew": 0.0},
-  "122": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "126": {"depth": 0.35, "height": 0.32659, "italic": 0.0, "skew": 0.0},
-  "305": {"depth": 0.0, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "567": {"depth": 0.19444, "height": 0.44444, "italic": 0.0, "skew": 0.0},
-  "768": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "769": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "770": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "771": {"depth": 0.0, "height": 0.67659, "italic": 0.0, "skew": 0.0},
-  "772": {"depth": 0.0, "height": 0.60889, "italic": 0.0, "skew": 0.0},
-  "774": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "775": {"depth": 0.0, "height": 0.67937, "italic": 0.0, "skew": 0.0},
-  "776": {"depth": 0.0, "height": 0.67937, "italic": 0.0, "skew": 0.0},
-  "778": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "779": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "780": {"depth": 0.0, "height": 0.63194, "italic": 0.0, "skew": 0.0},
-  "915": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "916": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "920": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "923": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "926": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "928": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "931": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "933": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "934": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "936": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "937": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8211": {"depth": 0.0, "height": 0.44444, "italic": 0.02778, "skew": 0.0},
-  "8212": {"depth": 0.0, "height": 0.44444, "italic": 0.02778, "skew": 0.0},
-  "8216": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8217": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8220": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "8221": {"depth": 0.0, "height": 0.69444, "italic": 0.0, "skew": 0.0}
-},
-"Script-Regular": {
-  "65": {"depth": 0.0, "height": 0.7, "italic": 0.22925, "skew": 0.0},
-  "66": {"depth": 0.0, "height": 0.7, "italic": 0.04087, "skew": 0.0},
-  "67": {"depth": 0.0, "height": 0.7, "italic": 0.1689, "skew": 0.0},
-  "68": {"depth": 0.0, "height": 0.7, "italic": 0.09371, "skew": 0.0},
-  "69": {"depth": 0.0, "height": 0.7, "italic": 0.18583, "skew": 0.0},
-  "70": {"depth": 0.0, "height": 0.7, "italic": 0.13634, "skew": 0.0},
-  "71": {"depth": 0.0, "height": 0.7, "italic": 0.17322, "skew": 0.0},
-  "72": {"depth": 0.0, "height": 0.7, "italic": 0.29694, "skew": 0.0},
-  "73": {"depth": 0.0, "height": 0.7, "italic": 0.19189, "skew": 0.0},
-  "74": {"depth": 0.27778, "height": 0.7, "italic": 0.19189, "skew": 0.0},
-  "75": {"depth": 0.0, "height": 0.7, "italic": 0.31259, "skew": 0.0},
-  "76": {"depth": 0.0, "height": 0.7, "italic": 0.19189, "skew": 0.0},
-  "77": {"depth": 0.0, "height": 0.7, "italic": 0.15981, "skew": 0.0},
-  "78": {"depth": 0.0, "height": 0.7, "italic": 0.3525, "skew": 0.0},
-  "79": {"depth": 0.0, "height": 0.7, "italic": 0.08078, "skew": 0.0},
-  "80": {"depth": 0.0, "height": 0.7, "italic": 0.08078, "skew": 0.0},
-  "81": {"depth": 0.0, "height": 0.7, "italic": 0.03305, "skew": 0.0},
-  "82": {"depth": 0.0, "height": 0.7, "italic": 0.06259, "skew": 0.0},
-  "83": {"depth": 0.0, "height": 0.7, "italic": 0.19189, "skew": 0.0},
-  "84": {"depth": 0.0, "height": 0.7, "italic": 0.29087, "skew": 0.0},
-  "85": {"depth": 0.0, "height": 0.7, "italic": 0.25815, "skew": 0.0},
-  "86": {"depth": 0.0, "height": 0.7, "italic": 0.27523, "skew": 0.0},
-  "87": {"depth": 0.0, "height": 0.7, "italic": 0.27523, "skew": 0.0},
-  "88": {"depth": 0.0, "height": 0.7, "italic": 0.26006, "skew": 0.0},
-  "89": {"depth": 0.0, "height": 0.7, "italic": 0.2939, "skew": 0.0},
-  "90": {"depth": 0.0, "height": 0.7, "italic": 0.24037, "skew": 0.0}
-},
-"Size1-Regular": {
-  "40": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "41": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "47": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "91": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "92": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "93": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "123": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "125": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "710": {"depth": 0.0, "height": 0.72222, "italic": 0.0, "skew": 0.0},
-  "732": {"depth": 0.0, "height": 0.72222, "italic": 0.0, "skew": 0.0},
-  "770": {"depth": 0.0, "height": 0.72222, "italic": 0.0, "skew": 0.0},
-  "771": {"depth": 0.0, "height": 0.72222, "italic": 0.0, "skew": 0.0},
-  "8214": {"depth": -0.00099, "height": 0.601, "italic": 0.0, "skew": 0.0},
-  "8593": {"depth": 1e-05, "height": 0.6, "italic": 0.0, "skew": 0.0},
-  "8595": {"depth": 1e-05, "height": 0.6, "italic": 0.0, "skew": 0.0},
-  "8657": {"depth": 1e-05, "height": 0.6, "italic": 0.0, "skew": 0.0},
-  "8659": {"depth": 1e-05, "height": 0.6, "italic": 0.0, "skew": 0.0},
-  "8719": {"depth": 0.25001, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8720": {"depth": 0.25001, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8721": {"depth": 0.25001, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8730": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "8739": {"depth": -0.00599, "height": 0.606, "italic": 0.0, "skew": 0.0},
-  "8741": {"depth": -0.00599, "height": 0.606, "italic": 0.0, "skew": 0.0},
-  "8747": {"depth": 0.30612, "height": 0.805, "italic": 0.19445, "skew": 0.0},
-  "8748": {"depth": 0.306, "height": 0.805, "italic": 0.19445, "skew": 0.0},
-  "8749": {"depth": 0.306, "height": 0.805, "italic": 0.19445, "skew": 0.0},
-  "8750": {"depth": 0.30612, "height": 0.805, "italic": 0.19445, "skew": 0.0},
-  "8896": {"depth": 0.25001, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8897": {"depth": 0.25001, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8898": {"depth": 0.25001, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8899": {"depth": 0.25001, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8968": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "8969": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "8970": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "8971": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "9168": {"depth": -0.00099, "height": 0.601, "italic": 0.0, "skew": 0.0},
-  "10216": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "10217": {"depth": 0.35001, "height": 0.85, "italic": 0.0, "skew": 0.0},
-  "10752": {"depth": 0.25001, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "10753": {"depth": 0.25001, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "10754": {"depth": 0.25001, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "10756": {"depth": 0.25001, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "10758": {"depth": 0.25001, "height": 0.75, "italic": 0.0, "skew": 0.0}
-},
-"Size2-Regular": {
-  "40": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "41": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "47": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "91": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "92": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "93": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "123": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "125": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "710": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "732": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "770": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "771": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8719": {"depth": 0.55001, "height": 1.05, "italic": 0.0, "skew": 0.0},
-  "8720": {"depth": 0.55001, "height": 1.05, "italic": 0.0, "skew": 0.0},
-  "8721": {"depth": 0.55001, "height": 1.05, "italic": 0.0, "skew": 0.0},
-  "8730": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "8747": {"depth": 0.86225, "height": 1.36, "italic": 0.44445, "skew": 0.0},
-  "8748": {"depth": 0.862, "height": 1.36, "italic": 0.44445, "skew": 0.0},
-  "8749": {"depth": 0.862, "height": 1.36, "italic": 0.44445, "skew": 0.0},
-  "8750": {"depth": 0.86225, "height": 1.36, "italic": 0.44445, "skew": 0.0},
-  "8896": {"depth": 0.55001, "height": 1.05, "italic": 0.0, "skew": 0.0},
-  "8897": {"depth": 0.55001, "height": 1.05, "italic": 0.0, "skew": 0.0},
-  "8898": {"depth": 0.55001, "height": 1.05, "italic": 0.0, "skew": 0.0},
-  "8899": {"depth": 0.55001, "height": 1.05, "italic": 0.0, "skew": 0.0},
-  "8968": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "8969": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "8970": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "8971": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "10216": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "10217": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "10752": {"depth": 0.55001, "height": 1.05, "italic": 0.0, "skew": 0.0},
-  "10753": {"depth": 0.55001, "height": 1.05, "italic": 0.0, "skew": 0.0},
-  "10754": {"depth": 0.55001, "height": 1.05, "italic": 0.0, "skew": 0.0},
-  "10756": {"depth": 0.55001, "height": 1.05, "italic": 0.0, "skew": 0.0},
-  "10758": {"depth": 0.55001, "height": 1.05, "italic": 0.0, "skew": 0.0}
-},
-"Size3-Regular": {
-  "40": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "41": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "47": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "91": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "92": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "93": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "123": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "125": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "710": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "732": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "770": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "771": {"depth": 0.0, "height": 0.75, "italic": 0.0, "skew": 0.0},
-  "8730": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "8968": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "8969": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "8970": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "8971": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "10216": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0},
-  "10217": {"depth": 0.95003, "height": 1.45, "italic": 0.0, "skew": 0.0}
-},
-"Size4-Regular": {
-  "40": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "41": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "47": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "91": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "92": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "93": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "123": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "125": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "710": {"depth": 0.0, "height": 0.825, "italic": 0.0, "skew": 0.0},
-  "732": {"depth": 0.0, "height": 0.825, "italic": 0.0, "skew": 0.0},
-  "770": {"depth": 0.0, "height": 0.825, "italic": 0.0, "skew": 0.0},
-  "771": {"depth": 0.0, "height": 0.825, "italic": 0.0, "skew": 0.0},
-  "8730": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "8968": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "8969": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "8970": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "8971": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "9115": {"depth": 0.64502, "height": 1.155, "italic": 0.0, "skew": 0.0},
-  "9116": {"depth": 1e-05, "height": 0.6, "italic": 0.0, "skew": 0.0},
-  "9117": {"depth": 0.64502, "height": 1.155, "italic": 0.0, "skew": 0.0},
-  "9118": {"depth": 0.64502, "height": 1.155, "italic": 0.0, "skew": 0.0},
-  "9119": {"depth": 1e-05, "height": 0.6, "italic": 0.0, "skew": 0.0},
-  "9120": {"depth": 0.64502, "height": 1.155, "italic": 0.0, "skew": 0.0},
-  "9121": {"depth": 0.64502, "height": 1.155, "italic": 0.0, "skew": 0.0},
-  "9122": {"depth": -0.00099, "height": 0.601, "italic": 0.0, "skew": 0.0},
-  "9123": {"depth": 0.64502, "height": 1.155, "italic": 0.0, "skew": 0.0},
-  "9124": {"depth": 0.64502, "height": 1.155, "italic": 0.0, "skew": 0.0},
-  "9125": {"depth": -0.00099, "height": 0.601, "italic": 0.0, "skew": 0.0},
-  "9126": {"depth": 0.64502, "height": 1.155, "italic": 0.0, "skew": 0.0},
-  "9127": {"depth": 1e-05, "height": 0.9, "italic": 0.0, "skew": 0.0},
-  "9128": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "9129": {"depth": 0.90001, "height": 0.0, "italic": 0.0, "skew": 0.0},
-  "9130": {"depth": 0.0, "height": 0.3, "italic": 0.0, "skew": 0.0},
-  "9131": {"depth": 1e-05, "height": 0.9, "italic": 0.0, "skew": 0.0},
-  "9132": {"depth": 0.65002, "height": 1.15, "italic": 0.0, "skew": 0.0},
-  "9133": {"depth": 0.90001, "height": 0.0, "italic": 0.0, "skew": 0.0},
-  "9143": {"depth": 0.88502, "height": 0.915, "italic": 0.0, "skew": 0.0},
-  "10216": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "10217": {"depth": 1.25003, "height": 1.75, "italic": 0.0, "skew": 0.0},
-  "57344": {"depth": -0.00499, "height": 0.605, "italic": 0.0, "skew": 0.0},
-  "57345": {"depth": -0.00499, "height": 0.605, "italic": 0.0, "skew": 0.0},
-  "57680": {"depth": 0.0, "height": 0.12, "italic": 0.0, "skew": 0.0},
-  "57681": {"depth": 0.0, "height": 0.12, "italic": 0.0, "skew": 0.0},
-  "57682": {"depth": 0.0, "height": 0.12, "italic": 0.0, "skew": 0.0},
-  "57683": {"depth": 0.0, "height": 0.12, "italic": 0.0, "skew": 0.0}
-},
-"Typewriter-Regular": {
-  "33": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "34": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "35": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "36": {"depth": 0.08333, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "37": {"depth": 0.08333, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "38": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "39": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "40": {"depth": 0.08333, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "41": {"depth": 0.08333, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "42": {"depth": 0.0, "height": 0.52083, "italic": 0.0, "skew": 0.0},
-  "43": {"depth": -0.08056, "height": 0.53055, "italic": 0.0, "skew": 0.0},
-  "44": {"depth": 0.13889, "height": 0.125, "italic": 0.0, "skew": 0.0},
-  "45": {"depth": -0.08056, "height": 0.53055, "italic": 0.0, "skew": 0.0},
-  "46": {"depth": 0.0, "height": 0.125, "italic": 0.0, "skew": 0.0},
-  "47": {"depth": 0.08333, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "48": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "49": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "50": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "51": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "52": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "53": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "54": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "55": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "56": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "57": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "58": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "59": {"depth": 0.13889, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "60": {"depth": -0.05556, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "61": {"depth": -0.19549, "height": 0.41562, "italic": 0.0, "skew": 0.0},
-  "62": {"depth": -0.05556, "height": 0.55556, "italic": 0.0, "skew": 0.0},
-  "63": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "64": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "65": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "66": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "67": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "68": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "69": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "70": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "71": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "72": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "73": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "74": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "75": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "76": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "77": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "78": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "79": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "80": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "81": {"depth": 0.13889, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "82": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "83": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "84": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "85": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "86": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "87": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "88": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "89": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "90": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "91": {"depth": 0.08333, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "92": {"depth": 0.08333, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "93": {"depth": 0.08333, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "94": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "95": {"depth": 0.09514, "height": 0.0, "italic": 0.0, "skew": 0.0},
-  "96": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "97": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "98": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "99": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "100": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "101": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "102": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "103": {"depth": 0.22222, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "104": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "105": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "106": {"depth": 0.22222, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "107": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "108": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "109": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "110": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "111": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "112": {"depth": 0.22222, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "113": {"depth": 0.22222, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "114": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "115": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "116": {"depth": 0.0, "height": 0.55358, "italic": 0.0, "skew": 0.0},
-  "117": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "118": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "119": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "120": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "121": {"depth": 0.22222, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "122": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "123": {"depth": 0.08333, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "124": {"depth": 0.08333, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "125": {"depth": 0.08333, "height": 0.69444, "italic": 0.0, "skew": 0.0},
-  "126": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "127": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "305": {"depth": 0.0, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "567": {"depth": 0.22222, "height": 0.43056, "italic": 0.0, "skew": 0.0},
-  "768": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "769": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "770": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "771": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "772": {"depth": 0.0, "height": 0.56555, "italic": 0.0, "skew": 0.0},
-  "774": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "776": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "778": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "780": {"depth": 0.0, "height": 0.56597, "italic": 0.0, "skew": 0.0},
-  "915": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "916": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "920": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "923": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "926": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "928": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "931": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "933": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "934": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "936": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "937": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "2018": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "2019": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0},
-  "8242": {"depth": 0.0, "height": 0.61111, "italic": 0.0, "skew": 0.0}
-}};
+    "AMS-Regular": {
+        "65": [0, 0.68889, 0, 0],
+        "66": [0, 0.68889, 0, 0],
+        "67": [0, 0.68889, 0, 0],
+        "68": [0, 0.68889, 0, 0],
+        "69": [0, 0.68889, 0, 0],
+        "70": [0, 0.68889, 0, 0],
+        "71": [0, 0.68889, 0, 0],
+        "72": [0, 0.68889, 0, 0],
+        "73": [0, 0.68889, 0, 0],
+        "74": [0.16667, 0.68889, 0, 0],
+        "75": [0, 0.68889, 0, 0],
+        "76": [0, 0.68889, 0, 0],
+        "77": [0, 0.68889, 0, 0],
+        "78": [0, 0.68889, 0, 0],
+        "79": [0.16667, 0.68889, 0, 0],
+        "80": [0, 0.68889, 0, 0],
+        "81": [0.16667, 0.68889, 0, 0],
+        "82": [0, 0.68889, 0, 0],
+        "83": [0, 0.68889, 0, 0],
+        "84": [0, 0.68889, 0, 0],
+        "85": [0, 0.68889, 0, 0],
+        "86": [0, 0.68889, 0, 0],
+        "87": [0, 0.68889, 0, 0],
+        "88": [0, 0.68889, 0, 0],
+        "89": [0, 0.68889, 0, 0],
+        "90": [0, 0.68889, 0, 0],
+        "107": [0, 0.68889, 0, 0],
+        "165": [0, 0.675, 0.025, 0],
+        "174": [0.15559, 0.69224, 0, 0],
+        "240": [0, 0.68889, 0, 0],
+        "295": [0, 0.68889, 0, 0],
+        "710": [0, 0.825, 0, 0],
+        "732": [0, 0.9, 0, 0],
+        "770": [0, 0.825, 0, 0],
+        "771": [0, 0.9, 0, 0],
+        "989": [0.08167, 0.58167, 0, 0],
+        "1008": [0, 0.43056, 0.04028, 0],
+        "8245": [0, 0.54986, 0, 0],
+        "8463": [0, 0.68889, 0, 0],
+        "8487": [0, 0.68889, 0, 0],
+        "8498": [0, 0.68889, 0, 0],
+        "8502": [0, 0.68889, 0, 0],
+        "8503": [0, 0.68889, 0, 0],
+        "8504": [0, 0.68889, 0, 0],
+        "8513": [0, 0.68889, 0, 0],
+        "8592": [-0.03598, 0.46402, 0, 0],
+        "8594": [-0.03598, 0.46402, 0, 0],
+        "8602": [-0.13313, 0.36687, 0, 0],
+        "8603": [-0.13313, 0.36687, 0, 0],
+        "8606": [0.01354, 0.52239, 0, 0],
+        "8608": [0.01354, 0.52239, 0, 0],
+        "8610": [0.01354, 0.52239, 0, 0],
+        "8611": [0.01354, 0.52239, 0, 0],
+        "8619": [0, 0.54986, 0, 0],
+        "8620": [0, 0.54986, 0, 0],
+        "8621": [-0.13313, 0.37788, 0, 0],
+        "8622": [-0.13313, 0.36687, 0, 0],
+        "8624": [0, 0.69224, 0, 0],
+        "8625": [0, 0.69224, 0, 0],
+        "8630": [0, 0.43056, 0, 0],
+        "8631": [0, 0.43056, 0, 0],
+        "8634": [0.08198, 0.58198, 0, 0],
+        "8635": [0.08198, 0.58198, 0, 0],
+        "8638": [0.19444, 0.69224, 0, 0],
+        "8639": [0.19444, 0.69224, 0, 0],
+        "8642": [0.19444, 0.69224, 0, 0],
+        "8643": [0.19444, 0.69224, 0, 0],
+        "8644": [0.1808, 0.675, 0, 0],
+        "8646": [0.1808, 0.675, 0, 0],
+        "8647": [0.1808, 0.675, 0, 0],
+        "8648": [0.19444, 0.69224, 0, 0],
+        "8649": [0.1808, 0.675, 0, 0],
+        "8650": [0.19444, 0.69224, 0, 0],
+        "8651": [0.01354, 0.52239, 0, 0],
+        "8652": [0.01354, 0.52239, 0, 0],
+        "8653": [-0.13313, 0.36687, 0, 0],
+        "8654": [-0.13313, 0.36687, 0, 0],
+        "8655": [-0.13313, 0.36687, 0, 0],
+        "8666": [0.13667, 0.63667, 0, 0],
+        "8667": [0.13667, 0.63667, 0, 0],
+        "8669": [-0.13313, 0.37788, 0, 0],
+        "8672": [-0.064, 0.437, 0, 0],
+        "8674": [-0.064, 0.437, 0, 0],
+        "8705": [0, 0.825, 0, 0],
+        "8708": [0, 0.68889, 0, 0],
+        "8709": [0.08167, 0.58167, 0, 0],
+        "8717": [0, 0.43056, 0, 0],
+        "8722": [-0.03598, 0.46402, 0, 0],
+        "8724": [0.08198, 0.69224, 0, 0],
+        "8726": [0.08167, 0.58167, 0, 0],
+        "8733": [0, 0.69224, 0, 0],
+        "8736": [0, 0.69224, 0, 0],
+        "8737": [0, 0.69224, 0, 0],
+        "8738": [0.03517, 0.52239, 0, 0],
+        "8739": [0.08167, 0.58167, 0, 0],
+        "8740": [0.25142, 0.74111, 0, 0],
+        "8741": [0.08167, 0.58167, 0, 0],
+        "8742": [0.25142, 0.74111, 0, 0],
+        "8756": [0, 0.69224, 0, 0],
+        "8757": [0, 0.69224, 0, 0],
+        "8764": [-0.13313, 0.36687, 0, 0],
+        "8765": [-0.13313, 0.37788, 0, 0],
+        "8769": [-0.13313, 0.36687, 0, 0],
+        "8770": [-0.03625, 0.46375, 0, 0],
+        "8774": [0.30274, 0.79383, 0, 0],
+        "8776": [-0.01688, 0.48312, 0, 0],
+        "8778": [0.08167, 0.58167, 0, 0],
+        "8782": [0.06062, 0.54986, 0, 0],
+        "8783": [0.06062, 0.54986, 0, 0],
+        "8785": [0.08198, 0.58198, 0, 0],
+        "8786": [0.08198, 0.58198, 0, 0],
+        "8787": [0.08198, 0.58198, 0, 0],
+        "8790": [0, 0.69224, 0, 0],
+        "8791": [0.22958, 0.72958, 0, 0],
+        "8796": [0.08198, 0.91667, 0, 0],
+        "8806": [0.25583, 0.75583, 0, 0],
+        "8807": [0.25583, 0.75583, 0, 0],
+        "8808": [0.25142, 0.75726, 0, 0],
+        "8809": [0.25142, 0.75726, 0, 0],
+        "8812": [0.25583, 0.75583, 0, 0],
+        "8814": [0.20576, 0.70576, 0, 0],
+        "8815": [0.20576, 0.70576, 0, 0],
+        "8816": [0.30274, 0.79383, 0, 0],
+        "8817": [0.30274, 0.79383, 0, 0],
+        "8818": [0.22958, 0.72958, 0, 0],
+        "8819": [0.22958, 0.72958, 0, 0],
+        "8822": [0.1808, 0.675, 0, 0],
+        "8823": [0.1808, 0.675, 0, 0],
+        "8828": [0.13667, 0.63667, 0, 0],
+        "8829": [0.13667, 0.63667, 0, 0],
+        "8830": [0.22958, 0.72958, 0, 0],
+        "8831": [0.22958, 0.72958, 0, 0],
+        "8832": [0.20576, 0.70576, 0, 0],
+        "8833": [0.20576, 0.70576, 0, 0],
+        "8840": [0.30274, 0.79383, 0, 0],
+        "8841": [0.30274, 0.79383, 0, 0],
+        "8842": [0.13597, 0.63597, 0, 0],
+        "8843": [0.13597, 0.63597, 0, 0],
+        "8847": [0.03517, 0.54986, 0, 0],
+        "8848": [0.03517, 0.54986, 0, 0],
+        "8858": [0.08198, 0.58198, 0, 0],
+        "8859": [0.08198, 0.58198, 0, 0],
+        "8861": [0.08198, 0.58198, 0, 0],
+        "8862": [0, 0.675, 0, 0],
+        "8863": [0, 0.675, 0, 0],
+        "8864": [0, 0.675, 0, 0],
+        "8865": [0, 0.675, 0, 0],
+        "8872": [0, 0.69224, 0, 0],
+        "8873": [0, 0.69224, 0, 0],
+        "8874": [0, 0.69224, 0, 0],
+        "8876": [0, 0.68889, 0, 0],
+        "8877": [0, 0.68889, 0, 0],
+        "8878": [0, 0.68889, 0, 0],
+        "8879": [0, 0.68889, 0, 0],
+        "8882": [0.03517, 0.54986, 0, 0],
+        "8883": [0.03517, 0.54986, 0, 0],
+        "8884": [0.13667, 0.63667, 0, 0],
+        "8885": [0.13667, 0.63667, 0, 0],
+        "8888": [0, 0.54986, 0, 0],
+        "8890": [0.19444, 0.43056, 0, 0],
+        "8891": [0.19444, 0.69224, 0, 0],
+        "8892": [0.19444, 0.69224, 0, 0],
+        "8901": [0, 0.54986, 0, 0],
+        "8903": [0.08167, 0.58167, 0, 0],
+        "8905": [0.08167, 0.58167, 0, 0],
+        "8906": [0.08167, 0.58167, 0, 0],
+        "8907": [0, 0.69224, 0, 0],
+        "8908": [0, 0.69224, 0, 0],
+        "8909": [-0.03598, 0.46402, 0, 0],
+        "8910": [0, 0.54986, 0, 0],
+        "8911": [0, 0.54986, 0, 0],
+        "8912": [0.03517, 0.54986, 0, 0],
+        "8913": [0.03517, 0.54986, 0, 0],
+        "8914": [0, 0.54986, 0, 0],
+        "8915": [0, 0.54986, 0, 0],
+        "8916": [0, 0.69224, 0, 0],
+        "8918": [0.0391, 0.5391, 0, 0],
+        "8919": [0.0391, 0.5391, 0, 0],
+        "8920": [0.03517, 0.54986, 0, 0],
+        "8921": [0.03517, 0.54986, 0, 0],
+        "8922": [0.38569, 0.88569, 0, 0],
+        "8923": [0.38569, 0.88569, 0, 0],
+        "8926": [0.13667, 0.63667, 0, 0],
+        "8927": [0.13667, 0.63667, 0, 0],
+        "8928": [0.30274, 0.79383, 0, 0],
+        "8929": [0.30274, 0.79383, 0, 0],
+        "8934": [0.23222, 0.74111, 0, 0],
+        "8935": [0.23222, 0.74111, 0, 0],
+        "8936": [0.23222, 0.74111, 0, 0],
+        "8937": [0.23222, 0.74111, 0, 0],
+        "8938": [0.20576, 0.70576, 0, 0],
+        "8939": [0.20576, 0.70576, 0, 0],
+        "8940": [0.30274, 0.79383, 0, 0],
+        "8941": [0.30274, 0.79383, 0, 0],
+        "8994": [0.19444, 0.69224, 0, 0],
+        "8995": [0.19444, 0.69224, 0, 0],
+        "9416": [0.15559, 0.69224, 0, 0],
+        "9484": [0, 0.69224, 0, 0],
+        "9488": [0, 0.69224, 0, 0],
+        "9492": [0, 0.37788, 0, 0],
+        "9496": [0, 0.37788, 0, 0],
+        "9585": [0.19444, 0.68889, 0, 0],
+        "9586": [0.19444, 0.74111, 0, 0],
+        "9632": [0, 0.675, 0, 0],
+        "9633": [0, 0.675, 0, 0],
+        "9650": [0, 0.54986, 0, 0],
+        "9651": [0, 0.54986, 0, 0],
+        "9654": [0.03517, 0.54986, 0, 0],
+        "9660": [0, 0.54986, 0, 0],
+        "9661": [0, 0.54986, 0, 0],
+        "9664": [0.03517, 0.54986, 0, 0],
+        "9674": [0.11111, 0.69224, 0, 0],
+        "9733": [0.19444, 0.69224, 0, 0],
+        "10003": [0, 0.69224, 0, 0],
+        "10016": [0, 0.69224, 0, 0],
+        "10731": [0.11111, 0.69224, 0, 0],
+        "10846": [0.19444, 0.75583, 0, 0],
+        "10877": [0.13667, 0.63667, 0, 0],
+        "10878": [0.13667, 0.63667, 0, 0],
+        "10885": [0.25583, 0.75583, 0, 0],
+        "10886": [0.25583, 0.75583, 0, 0],
+        "10887": [0.13597, 0.63597, 0, 0],
+        "10888": [0.13597, 0.63597, 0, 0],
+        "10889": [0.26167, 0.75726, 0, 0],
+        "10890": [0.26167, 0.75726, 0, 0],
+        "10891": [0.48256, 0.98256, 0, 0],
+        "10892": [0.48256, 0.98256, 0, 0],
+        "10901": [0.13667, 0.63667, 0, 0],
+        "10902": [0.13667, 0.63667, 0, 0],
+        "10933": [0.25142, 0.75726, 0, 0],
+        "10934": [0.25142, 0.75726, 0, 0],
+        "10935": [0.26167, 0.75726, 0, 0],
+        "10936": [0.26167, 0.75726, 0, 0],
+        "10937": [0.26167, 0.75726, 0, 0],
+        "10938": [0.26167, 0.75726, 0, 0],
+        "10949": [0.25583, 0.75583, 0, 0],
+        "10950": [0.25583, 0.75583, 0, 0],
+        "10955": [0.28481, 0.79383, 0, 0],
+        "10956": [0.28481, 0.79383, 0, 0],
+        "57350": [0.08167, 0.58167, 0, 0],
+        "57351": [0.08167, 0.58167, 0, 0],
+        "57352": [0.08167, 0.58167, 0, 0],
+        "57353": [0, 0.43056, 0.04028, 0],
+        "57356": [0.25142, 0.75726, 0, 0],
+        "57357": [0.25142, 0.75726, 0, 0],
+        "57358": [0.41951, 0.91951, 0, 0],
+        "57359": [0.30274, 0.79383, 0, 0],
+        "57360": [0.30274, 0.79383, 0, 0],
+        "57361": [0.41951, 0.91951, 0, 0],
+        "57366": [0.25142, 0.75726, 0, 0],
+        "57367": [0.25142, 0.75726, 0, 0],
+        "57368": [0.25142, 0.75726, 0, 0],
+        "57369": [0.25142, 0.75726, 0, 0],
+        "57370": [0.13597, 0.63597, 0, 0],
+        "57371": [0.13597, 0.63597, 0, 0],
+    },
+    "Caligraphic-Regular": {
+        "48": [0, 0.43056, 0, 0],
+        "49": [0, 0.43056, 0, 0],
+        "50": [0, 0.43056, 0, 0],
+        "51": [0.19444, 0.43056, 0, 0],
+        "52": [0.19444, 0.43056, 0, 0],
+        "53": [0.19444, 0.43056, 0, 0],
+        "54": [0, 0.64444, 0, 0],
+        "55": [0.19444, 0.43056, 0, 0],
+        "56": [0, 0.64444, 0, 0],
+        "57": [0.19444, 0.43056, 0, 0],
+        "65": [0, 0.68333, 0, 0.19445],
+        "66": [0, 0.68333, 0.03041, 0.13889],
+        "67": [0, 0.68333, 0.05834, 0.13889],
+        "68": [0, 0.68333, 0.02778, 0.08334],
+        "69": [0, 0.68333, 0.08944, 0.11111],
+        "70": [0, 0.68333, 0.09931, 0.11111],
+        "71": [0.09722, 0.68333, 0.0593, 0.11111],
+        "72": [0, 0.68333, 0.00965, 0.11111],
+        "73": [0, 0.68333, 0.07382, 0],
+        "74": [0.09722, 0.68333, 0.18472, 0.16667],
+        "75": [0, 0.68333, 0.01445, 0.05556],
+        "76": [0, 0.68333, 0, 0.13889],
+        "77": [0, 0.68333, 0, 0.13889],
+        "78": [0, 0.68333, 0.14736, 0.08334],
+        "79": [0, 0.68333, 0.02778, 0.11111],
+        "80": [0, 0.68333, 0.08222, 0.08334],
+        "81": [0.09722, 0.68333, 0, 0.11111],
+        "82": [0, 0.68333, 0, 0.08334],
+        "83": [0, 0.68333, 0.075, 0.13889],
+        "84": [0, 0.68333, 0.25417, 0],
+        "85": [0, 0.68333, 0.09931, 0.08334],
+        "86": [0, 0.68333, 0.08222, 0],
+        "87": [0, 0.68333, 0.08222, 0.08334],
+        "88": [0, 0.68333, 0.14643, 0.13889],
+        "89": [0.09722, 0.68333, 0.08222, 0.08334],
+        "90": [0, 0.68333, 0.07944, 0.13889],
+    },
+    "Fraktur-Regular": {
+        "33": [0, 0.69141, 0, 0],
+        "34": [0, 0.69141, 0, 0],
+        "38": [0, 0.69141, 0, 0],
+        "39": [0, 0.69141, 0, 0],
+        "40": [0.24982, 0.74947, 0, 0],
+        "41": [0.24982, 0.74947, 0, 0],
+        "42": [0, 0.62119, 0, 0],
+        "43": [0.08319, 0.58283, 0, 0],
+        "44": [0, 0.10803, 0, 0],
+        "45": [0.08319, 0.58283, 0, 0],
+        "46": [0, 0.10803, 0, 0],
+        "47": [0.24982, 0.74947, 0, 0],
+        "48": [0, 0.47534, 0, 0],
+        "49": [0, 0.47534, 0, 0],
+        "50": [0, 0.47534, 0, 0],
+        "51": [0.18906, 0.47534, 0, 0],
+        "52": [0.18906, 0.47534, 0, 0],
+        "53": [0.18906, 0.47534, 0, 0],
+        "54": [0, 0.69141, 0, 0],
+        "55": [0.18906, 0.47534, 0, 0],
+        "56": [0, 0.69141, 0, 0],
+        "57": [0.18906, 0.47534, 0, 0],
+        "58": [0, 0.47534, 0, 0],
+        "59": [0.12604, 0.47534, 0, 0],
+        "61": [-0.13099, 0.36866, 0, 0],
+        "63": [0, 0.69141, 0, 0],
+        "65": [0, 0.69141, 0, 0],
+        "66": [0, 0.69141, 0, 0],
+        "67": [0, 0.69141, 0, 0],
+        "68": [0, 0.69141, 0, 0],
+        "69": [0, 0.69141, 0, 0],
+        "70": [0.12604, 0.69141, 0, 0],
+        "71": [0, 0.69141, 0, 0],
+        "72": [0.06302, 0.69141, 0, 0],
+        "73": [0, 0.69141, 0, 0],
+        "74": [0.12604, 0.69141, 0, 0],
+        "75": [0, 0.69141, 0, 0],
+        "76": [0, 0.69141, 0, 0],
+        "77": [0, 0.69141, 0, 0],
+        "78": [0, 0.69141, 0, 0],
+        "79": [0, 0.69141, 0, 0],
+        "80": [0.18906, 0.69141, 0, 0],
+        "81": [0.03781, 0.69141, 0, 0],
+        "82": [0, 0.69141, 0, 0],
+        "83": [0, 0.69141, 0, 0],
+        "84": [0, 0.69141, 0, 0],
+        "85": [0, 0.69141, 0, 0],
+        "86": [0, 0.69141, 0, 0],
+        "87": [0, 0.69141, 0, 0],
+        "88": [0, 0.69141, 0, 0],
+        "89": [0.18906, 0.69141, 0, 0],
+        "90": [0.12604, 0.69141, 0, 0],
+        "91": [0.24982, 0.74947, 0, 0],
+        "93": [0.24982, 0.74947, 0, 0],
+        "94": [0, 0.69141, 0, 0],
+        "97": [0, 0.47534, 0, 0],
+        "98": [0, 0.69141, 0, 0],
+        "99": [0, 0.47534, 0, 0],
+        "100": [0, 0.62119, 0, 0],
+        "101": [0, 0.47534, 0, 0],
+        "102": [0.18906, 0.69141, 0, 0],
+        "103": [0.18906, 0.47534, 0, 0],
+        "104": [0.18906, 0.69141, 0, 0],
+        "105": [0, 0.69141, 0, 0],
+        "106": [0, 0.69141, 0, 0],
+        "107": [0, 0.69141, 0, 0],
+        "108": [0, 0.69141, 0, 0],
+        "109": [0, 0.47534, 0, 0],
+        "110": [0, 0.47534, 0, 0],
+        "111": [0, 0.47534, 0, 0],
+        "112": [0.18906, 0.52396, 0, 0],
+        "113": [0.18906, 0.47534, 0, 0],
+        "114": [0, 0.47534, 0, 0],
+        "115": [0, 0.47534, 0, 0],
+        "116": [0, 0.62119, 0, 0],
+        "117": [0, 0.47534, 0, 0],
+        "118": [0, 0.52396, 0, 0],
+        "119": [0, 0.52396, 0, 0],
+        "120": [0.18906, 0.47534, 0, 0],
+        "121": [0.18906, 0.47534, 0, 0],
+        "122": [0.18906, 0.47534, 0, 0],
+        "8216": [0, 0.69141, 0, 0],
+        "8217": [0, 0.69141, 0, 0],
+        "58112": [0, 0.62119, 0, 0],
+        "58113": [0, 0.62119, 0, 0],
+        "58114": [0.18906, 0.69141, 0, 0],
+        "58115": [0.18906, 0.69141, 0, 0],
+        "58116": [0.18906, 0.47534, 0, 0],
+        "58117": [0, 0.69141, 0, 0],
+        "58118": [0, 0.62119, 0, 0],
+        "58119": [0, 0.47534, 0, 0],
+    },
+    "Main-Bold": {
+        "33": [0, 0.69444, 0, 0],
+        "34": [0, 0.69444, 0, 0],
+        "35": [0.19444, 0.69444, 0, 0],
+        "36": [0.05556, 0.75, 0, 0],
+        "37": [0.05556, 0.75, 0, 0],
+        "38": [0, 0.69444, 0, 0],
+        "39": [0, 0.69444, 0, 0],
+        "40": [0.25, 0.75, 0, 0],
+        "41": [0.25, 0.75, 0, 0],
+        "42": [0, 0.75, 0, 0],
+        "43": [0.13333, 0.63333, 0, 0],
+        "44": [0.19444, 0.15556, 0, 0],
+        "45": [0, 0.44444, 0, 0],
+        "46": [0, 0.15556, 0, 0],
+        "47": [0.25, 0.75, 0, 0],
+        "48": [0, 0.64444, 0, 0],
+        "49": [0, 0.64444, 0, 0],
+        "50": [0, 0.64444, 0, 0],
+        "51": [0, 0.64444, 0, 0],
+        "52": [0, 0.64444, 0, 0],
+        "53": [0, 0.64444, 0, 0],
+        "54": [0, 0.64444, 0, 0],
+        "55": [0, 0.64444, 0, 0],
+        "56": [0, 0.64444, 0, 0],
+        "57": [0, 0.64444, 0, 0],
+        "58": [0, 0.44444, 0, 0],
+        "59": [0.19444, 0.44444, 0, 0],
+        "60": [0.08556, 0.58556, 0, 0],
+        "61": [-0.10889, 0.39111, 0, 0],
+        "62": [0.08556, 0.58556, 0, 0],
+        "63": [0, 0.69444, 0, 0],
+        "64": [0, 0.69444, 0, 0],
+        "65": [0, 0.68611, 0, 0],
+        "66": [0, 0.68611, 0, 0],
+        "67": [0, 0.68611, 0, 0],
+        "68": [0, 0.68611, 0, 0],
+        "69": [0, 0.68611, 0, 0],
+        "70": [0, 0.68611, 0, 0],
+        "71": [0, 0.68611, 0, 0],
+        "72": [0, 0.68611, 0, 0],
+        "73": [0, 0.68611, 0, 0],
+        "74": [0, 0.68611, 0, 0],
+        "75": [0, 0.68611, 0, 0],
+        "76": [0, 0.68611, 0, 0],
+        "77": [0, 0.68611, 0, 0],
+        "78": [0, 0.68611, 0, 0],
+        "79": [0, 0.68611, 0, 0],
+        "80": [0, 0.68611, 0, 0],
+        "81": [0.19444, 0.68611, 0, 0],
+        "82": [0, 0.68611, 0, 0],
+        "83": [0, 0.68611, 0, 0],
+        "84": [0, 0.68611, 0, 0],
+        "85": [0, 0.68611, 0, 0],
+        "86": [0, 0.68611, 0.01597, 0],
+        "87": [0, 0.68611, 0.01597, 0],
+        "88": [0, 0.68611, 0, 0],
+        "89": [0, 0.68611, 0.02875, 0],
+        "90": [0, 0.68611, 0, 0],
+        "91": [0.25, 0.75, 0, 0],
+        "92": [0.25, 0.75, 0, 0],
+        "93": [0.25, 0.75, 0, 0],
+        "94": [0, 0.69444, 0, 0],
+        "95": [0.31, 0.13444, 0.03194, 0],
+        "96": [0, 0.69444, 0, 0],
+        "97": [0, 0.44444, 0, 0],
+        "98": [0, 0.69444, 0, 0],
+        "99": [0, 0.44444, 0, 0],
+        "100": [0, 0.69444, 0, 0],
+        "101": [0, 0.44444, 0, 0],
+        "102": [0, 0.69444, 0.10903, 0],
+        "103": [0.19444, 0.44444, 0.01597, 0],
+        "104": [0, 0.69444, 0, 0],
+        "105": [0, 0.69444, 0, 0],
+        "106": [0.19444, 0.69444, 0, 0],
+        "107": [0, 0.69444, 0, 0],
+        "108": [0, 0.69444, 0, 0],
+        "109": [0, 0.44444, 0, 0],
+        "110": [0, 0.44444, 0, 0],
+        "111": [0, 0.44444, 0, 0],
+        "112": [0.19444, 0.44444, 0, 0],
+        "113": [0.19444, 0.44444, 0, 0],
+        "114": [0, 0.44444, 0, 0],
+        "115": [0, 0.44444, 0, 0],
+        "116": [0, 0.63492, 0, 0],
+        "117": [0, 0.44444, 0, 0],
+        "118": [0, 0.44444, 0.01597, 0],
+        "119": [0, 0.44444, 0.01597, 0],
+        "120": [0, 0.44444, 0, 0],
+        "121": [0.19444, 0.44444, 0.01597, 0],
+        "122": [0, 0.44444, 0, 0],
+        "123": [0.25, 0.75, 0, 0],
+        "124": [0.25, 0.75, 0, 0],
+        "125": [0.25, 0.75, 0, 0],
+        "126": [0.35, 0.34444, 0, 0],
+        "168": [0, 0.69444, 0, 0],
+        "172": [0, 0.44444, 0, 0],
+        "175": [0, 0.59611, 0, 0],
+        "176": [0, 0.69444, 0, 0],
+        "177": [0.13333, 0.63333, 0, 0],
+        "180": [0, 0.69444, 0, 0],
+        "215": [0.13333, 0.63333, 0, 0],
+        "247": [0.13333, 0.63333, 0, 0],
+        "305": [0, 0.44444, 0, 0],
+        "567": [0.19444, 0.44444, 0, 0],
+        "710": [0, 0.69444, 0, 0],
+        "711": [0, 0.63194, 0, 0],
+        "713": [0, 0.59611, 0, 0],
+        "714": [0, 0.69444, 0, 0],
+        "715": [0, 0.69444, 0, 0],
+        "728": [0, 0.69444, 0, 0],
+        "729": [0, 0.69444, 0, 0],
+        "730": [0, 0.69444, 0, 0],
+        "732": [0, 0.69444, 0, 0],
+        "768": [0, 0.69444, 0, 0],
+        "769": [0, 0.69444, 0, 0],
+        "770": [0, 0.69444, 0, 0],
+        "771": [0, 0.69444, 0, 0],
+        "772": [0, 0.59611, 0, 0],
+        "774": [0, 0.69444, 0, 0],
+        "775": [0, 0.69444, 0, 0],
+        "776": [0, 0.69444, 0, 0],
+        "778": [0, 0.69444, 0, 0],
+        "779": [0, 0.69444, 0, 0],
+        "780": [0, 0.63194, 0, 0],
+        "824": [0.19444, 0.69444, 0, 0],
+        "915": [0, 0.68611, 0, 0],
+        "916": [0, 0.68611, 0, 0],
+        "920": [0, 0.68611, 0, 0],
+        "923": [0, 0.68611, 0, 0],
+        "926": [0, 0.68611, 0, 0],
+        "928": [0, 0.68611, 0, 0],
+        "931": [0, 0.68611, 0, 0],
+        "933": [0, 0.68611, 0, 0],
+        "934": [0, 0.68611, 0, 0],
+        "936": [0, 0.68611, 0, 0],
+        "937": [0, 0.68611, 0, 0],
+        "8211": [0, 0.44444, 0.03194, 0],
+        "8212": [0, 0.44444, 0.03194, 0],
+        "8216": [0, 0.69444, 0, 0],
+        "8217": [0, 0.69444, 0, 0],
+        "8220": [0, 0.69444, 0, 0],
+        "8221": [0, 0.69444, 0, 0],
+        "8224": [0.19444, 0.69444, 0, 0],
+        "8225": [0.19444, 0.69444, 0, 0],
+        "8242": [0, 0.55556, 0, 0],
+        "8407": [0, 0.72444, 0.15486, 0],
+        "8463": [0, 0.69444, 0, 0],
+        "8465": [0, 0.69444, 0, 0],
+        "8467": [0, 0.69444, 0, 0],
+        "8472": [0.19444, 0.44444, 0, 0],
+        "8476": [0, 0.69444, 0, 0],
+        "8501": [0, 0.69444, 0, 0],
+        "8592": [-0.10889, 0.39111, 0, 0],
+        "8593": [0.19444, 0.69444, 0, 0],
+        "8594": [-0.10889, 0.39111, 0, 0],
+        "8595": [0.19444, 0.69444, 0, 0],
+        "8596": [-0.10889, 0.39111, 0, 0],
+        "8597": [0.25, 0.75, 0, 0],
+        "8598": [0.19444, 0.69444, 0, 0],
+        "8599": [0.19444, 0.69444, 0, 0],
+        "8600": [0.19444, 0.69444, 0, 0],
+        "8601": [0.19444, 0.69444, 0, 0],
+        "8636": [-0.10889, 0.39111, 0, 0],
+        "8637": [-0.10889, 0.39111, 0, 0],
+        "8640": [-0.10889, 0.39111, 0, 0],
+        "8641": [-0.10889, 0.39111, 0, 0],
+        "8656": [-0.10889, 0.39111, 0, 0],
+        "8657": [0.19444, 0.69444, 0, 0],
+        "8658": [-0.10889, 0.39111, 0, 0],
+        "8659": [0.19444, 0.69444, 0, 0],
+        "8660": [-0.10889, 0.39111, 0, 0],
+        "8661": [0.25, 0.75, 0, 0],
+        "8704": [0, 0.69444, 0, 0],
+        "8706": [0, 0.69444, 0.06389, 0],
+        "8707": [0, 0.69444, 0, 0],
+        "8709": [0.05556, 0.75, 0, 0],
+        "8711": [0, 0.68611, 0, 0],
+        "8712": [0.08556, 0.58556, 0, 0],
+        "8715": [0.08556, 0.58556, 0, 0],
+        "8722": [0.13333, 0.63333, 0, 0],
+        "8723": [0.13333, 0.63333, 0, 0],
+        "8725": [0.25, 0.75, 0, 0],
+        "8726": [0.25, 0.75, 0, 0],
+        "8727": [-0.02778, 0.47222, 0, 0],
+        "8728": [-0.02639, 0.47361, 0, 0],
+        "8729": [-0.02639, 0.47361, 0, 0],
+        "8730": [0.18, 0.82, 0, 0],
+        "8733": [0, 0.44444, 0, 0],
+        "8734": [0, 0.44444, 0, 0],
+        "8736": [0, 0.69224, 0, 0],
+        "8739": [0.25, 0.75, 0, 0],
+        "8741": [0.25, 0.75, 0, 0],
+        "8743": [0, 0.55556, 0, 0],
+        "8744": [0, 0.55556, 0, 0],
+        "8745": [0, 0.55556, 0, 0],
+        "8746": [0, 0.55556, 0, 0],
+        "8747": [0.19444, 0.69444, 0.12778, 0],
+        "8764": [-0.10889, 0.39111, 0, 0],
+        "8768": [0.19444, 0.69444, 0, 0],
+        "8771": [0.00222, 0.50222, 0, 0],
+        "8776": [0.02444, 0.52444, 0, 0],
+        "8781": [0.00222, 0.50222, 0, 0],
+        "8801": [0.00222, 0.50222, 0, 0],
+        "8804": [0.19667, 0.69667, 0, 0],
+        "8805": [0.19667, 0.69667, 0, 0],
+        "8810": [0.08556, 0.58556, 0, 0],
+        "8811": [0.08556, 0.58556, 0, 0],
+        "8826": [0.08556, 0.58556, 0, 0],
+        "8827": [0.08556, 0.58556, 0, 0],
+        "8834": [0.08556, 0.58556, 0, 0],
+        "8835": [0.08556, 0.58556, 0, 0],
+        "8838": [0.19667, 0.69667, 0, 0],
+        "8839": [0.19667, 0.69667, 0, 0],
+        "8846": [0, 0.55556, 0, 0],
+        "8849": [0.19667, 0.69667, 0, 0],
+        "8850": [0.19667, 0.69667, 0, 0],
+        "8851": [0, 0.55556, 0, 0],
+        "8852": [0, 0.55556, 0, 0],
+        "8853": [0.13333, 0.63333, 0, 0],
+        "8854": [0.13333, 0.63333, 0, 0],
+        "8855": [0.13333, 0.63333, 0, 0],
+        "8856": [0.13333, 0.63333, 0, 0],
+        "8857": [0.13333, 0.63333, 0, 0],
+        "8866": [0, 0.69444, 0, 0],
+        "8867": [0, 0.69444, 0, 0],
+        "8868": [0, 0.69444, 0, 0],
+        "8869": [0, 0.69444, 0, 0],
+        "8900": [-0.02639, 0.47361, 0, 0],
+        "8901": [-0.02639, 0.47361, 0, 0],
+        "8902": [-0.02778, 0.47222, 0, 0],
+        "8968": [0.25, 0.75, 0, 0],
+        "8969": [0.25, 0.75, 0, 0],
+        "8970": [0.25, 0.75, 0, 0],
+        "8971": [0.25, 0.75, 0, 0],
+        "8994": [-0.13889, 0.36111, 0, 0],
+        "8995": [-0.13889, 0.36111, 0, 0],
+        "9651": [0.19444, 0.69444, 0, 0],
+        "9657": [-0.02778, 0.47222, 0, 0],
+        "9661": [0.19444, 0.69444, 0, 0],
+        "9667": [-0.02778, 0.47222, 0, 0],
+        "9711": [0.19444, 0.69444, 0, 0],
+        "9824": [0.12963, 0.69444, 0, 0],
+        "9825": [0.12963, 0.69444, 0, 0],
+        "9826": [0.12963, 0.69444, 0, 0],
+        "9827": [0.12963, 0.69444, 0, 0],
+        "9837": [0, 0.75, 0, 0],
+        "9838": [0.19444, 0.69444, 0, 0],
+        "9839": [0.19444, 0.69444, 0, 0],
+        "10216": [0.25, 0.75, 0, 0],
+        "10217": [0.25, 0.75, 0, 0],
+        "10815": [0, 0.68611, 0, 0],
+        "10927": [0.19667, 0.69667, 0, 0],
+        "10928": [0.19667, 0.69667, 0, 0],
+    },
+    "Main-Italic": {
+        "33": [0, 0.69444, 0.12417, 0],
+        "34": [0, 0.69444, 0.06961, 0],
+        "35": [0.19444, 0.69444, 0.06616, 0],
+        "37": [0.05556, 0.75, 0.13639, 0],
+        "38": [0, 0.69444, 0.09694, 0],
+        "39": [0, 0.69444, 0.12417, 0],
+        "40": [0.25, 0.75, 0.16194, 0],
+        "41": [0.25, 0.75, 0.03694, 0],
+        "42": [0, 0.75, 0.14917, 0],
+        "43": [0.05667, 0.56167, 0.03694, 0],
+        "44": [0.19444, 0.10556, 0, 0],
+        "45": [0, 0.43056, 0.02826, 0],
+        "46": [0, 0.10556, 0, 0],
+        "47": [0.25, 0.75, 0.16194, 0],
+        "48": [0, 0.64444, 0.13556, 0],
+        "49": [0, 0.64444, 0.13556, 0],
+        "50": [0, 0.64444, 0.13556, 0],
+        "51": [0, 0.64444, 0.13556, 0],
+        "52": [0.19444, 0.64444, 0.13556, 0],
+        "53": [0, 0.64444, 0.13556, 0],
+        "54": [0, 0.64444, 0.13556, 0],
+        "55": [0.19444, 0.64444, 0.13556, 0],
+        "56": [0, 0.64444, 0.13556, 0],
+        "57": [0, 0.64444, 0.13556, 0],
+        "58": [0, 0.43056, 0.0582, 0],
+        "59": [0.19444, 0.43056, 0.0582, 0],
+        "61": [-0.13313, 0.36687, 0.06616, 0],
+        "63": [0, 0.69444, 0.1225, 0],
+        "64": [0, 0.69444, 0.09597, 0],
+        "65": [0, 0.68333, 0, 0],
+        "66": [0, 0.68333, 0.10257, 0],
+        "67": [0, 0.68333, 0.14528, 0],
+        "68": [0, 0.68333, 0.09403, 0],
+        "69": [0, 0.68333, 0.12028, 0],
+        "70": [0, 0.68333, 0.13305, 0],
+        "71": [0, 0.68333, 0.08722, 0],
+        "72": [0, 0.68333, 0.16389, 0],
+        "73": [0, 0.68333, 0.15806, 0],
+        "74": [0, 0.68333, 0.14028, 0],
+        "75": [0, 0.68333, 0.14528, 0],
+        "76": [0, 0.68333, 0, 0],
+        "77": [0, 0.68333, 0.16389, 0],
+        "78": [0, 0.68333, 0.16389, 0],
+        "79": [0, 0.68333, 0.09403, 0],
+        "80": [0, 0.68333, 0.10257, 0],
+        "81": [0.19444, 0.68333, 0.09403, 0],
+        "82": [0, 0.68333, 0.03868, 0],
+        "83": [0, 0.68333, 0.11972, 0],
+        "84": [0, 0.68333, 0.13305, 0],
+        "85": [0, 0.68333, 0.16389, 0],
+        "86": [0, 0.68333, 0.18361, 0],
+        "87": [0, 0.68333, 0.18361, 0],
+        "88": [0, 0.68333, 0.15806, 0],
+        "89": [0, 0.68333, 0.19383, 0],
+        "90": [0, 0.68333, 0.14528, 0],
+        "91": [0.25, 0.75, 0.1875, 0],
+        "93": [0.25, 0.75, 0.10528, 0],
+        "94": [0, 0.69444, 0.06646, 0],
+        "95": [0.31, 0.12056, 0.09208, 0],
+        "97": [0, 0.43056, 0.07671, 0],
+        "98": [0, 0.69444, 0.06312, 0],
+        "99": [0, 0.43056, 0.05653, 0],
+        "100": [0, 0.69444, 0.10333, 0],
+        "101": [0, 0.43056, 0.07514, 0],
+        "102": [0.19444, 0.69444, 0.21194, 0],
+        "103": [0.19444, 0.43056, 0.08847, 0],
+        "104": [0, 0.69444, 0.07671, 0],
+        "105": [0, 0.65536, 0.1019, 0],
+        "106": [0.19444, 0.65536, 0.14467, 0],
+        "107": [0, 0.69444, 0.10764, 0],
+        "108": [0, 0.69444, 0.10333, 0],
+        "109": [0, 0.43056, 0.07671, 0],
+        "110": [0, 0.43056, 0.07671, 0],
+        "111": [0, 0.43056, 0.06312, 0],
+        "112": [0.19444, 0.43056, 0.06312, 0],
+        "113": [0.19444, 0.43056, 0.08847, 0],
+        "114": [0, 0.43056, 0.10764, 0],
+        "115": [0, 0.43056, 0.08208, 0],
+        "116": [0, 0.61508, 0.09486, 0],
+        "117": [0, 0.43056, 0.07671, 0],
+        "118": [0, 0.43056, 0.10764, 0],
+        "119": [0, 0.43056, 0.10764, 0],
+        "120": [0, 0.43056, 0.12042, 0],
+        "121": [0.19444, 0.43056, 0.08847, 0],
+        "122": [0, 0.43056, 0.12292, 0],
+        "126": [0.35, 0.31786, 0.11585, 0],
+        "163": [0, 0.69444, 0, 0],
+        "305": [0, 0.43056, 0, 0.02778],
+        "567": [0.19444, 0.43056, 0, 0.08334],
+        "768": [0, 0.69444, 0, 0],
+        "769": [0, 0.69444, 0.09694, 0],
+        "770": [0, 0.69444, 0.06646, 0],
+        "771": [0, 0.66786, 0.11585, 0],
+        "772": [0, 0.56167, 0.10333, 0],
+        "774": [0, 0.69444, 0.10806, 0],
+        "775": [0, 0.66786, 0.11752, 0],
+        "776": [0, 0.66786, 0.10474, 0],
+        "778": [0, 0.69444, 0, 0],
+        "779": [0, 0.69444, 0.1225, 0],
+        "780": [0, 0.62847, 0.08295, 0],
+        "915": [0, 0.68333, 0.13305, 0],
+        "916": [0, 0.68333, 0, 0],
+        "920": [0, 0.68333, 0.09403, 0],
+        "923": [0, 0.68333, 0, 0],
+        "926": [0, 0.68333, 0.15294, 0],
+        "928": [0, 0.68333, 0.16389, 0],
+        "931": [0, 0.68333, 0.12028, 0],
+        "933": [0, 0.68333, 0.11111, 0],
+        "934": [0, 0.68333, 0.05986, 0],
+        "936": [0, 0.68333, 0.11111, 0],
+        "937": [0, 0.68333, 0.10257, 0],
+        "8211": [0, 0.43056, 0.09208, 0],
+        "8212": [0, 0.43056, 0.09208, 0],
+        "8216": [0, 0.69444, 0.12417, 0],
+        "8217": [0, 0.69444, 0.12417, 0],
+        "8220": [0, 0.69444, 0.1685, 0],
+        "8221": [0, 0.69444, 0.06961, 0],
+        "8463": [0, 0.68889, 0, 0],
+    },
+    "Main-Regular": {
+        "32": [0, 0, 0, 0],
+        "33": [0, 0.69444, 0, 0],
+        "34": [0, 0.69444, 0, 0],
+        "35": [0.19444, 0.69444, 0, 0],
+        "36": [0.05556, 0.75, 0, 0],
+        "37": [0.05556, 0.75, 0, 0],
+        "38": [0, 0.69444, 0, 0],
+        "39": [0, 0.69444, 0, 0],
+        "40": [0.25, 0.75, 0, 0],
+        "41": [0.25, 0.75, 0, 0],
+        "42": [0, 0.75, 0, 0],
+        "43": [0.08333, 0.58333, 0, 0],
+        "44": [0.19444, 0.10556, 0, 0],
+        "45": [0, 0.43056, 0, 0],
+        "46": [0, 0.10556, 0, 0],
+        "47": [0.25, 0.75, 0, 0],
+        "48": [0, 0.64444, 0, 0],
+        "49": [0, 0.64444, 0, 0],
+        "50": [0, 0.64444, 0, 0],
+        "51": [0, 0.64444, 0, 0],
+        "52": [0, 0.64444, 0, 0],
+        "53": [0, 0.64444, 0, 0],
+        "54": [0, 0.64444, 0, 0],
+        "55": [0, 0.64444, 0, 0],
+        "56": [0, 0.64444, 0, 0],
+        "57": [0, 0.64444, 0, 0],
+        "58": [0, 0.43056, 0, 0],
+        "59": [0.19444, 0.43056, 0, 0],
+        "60": [0.0391, 0.5391, 0, 0],
+        "61": [-0.13313, 0.36687, 0, 0],
+        "62": [0.0391, 0.5391, 0, 0],
+        "63": [0, 0.69444, 0, 0],
+        "64": [0, 0.69444, 0, 0],
+        "65": [0, 0.68333, 0, 0],
+        "66": [0, 0.68333, 0, 0],
+        "67": [0, 0.68333, 0, 0],
+        "68": [0, 0.68333, 0, 0],
+        "69": [0, 0.68333, 0, 0],
+        "70": [0, 0.68333, 0, 0],
+        "71": [0, 0.68333, 0, 0],
+        "72": [0, 0.68333, 0, 0],
+        "73": [0, 0.68333, 0, 0],
+        "74": [0, 0.68333, 0, 0],
+        "75": [0, 0.68333, 0, 0],
+        "76": [0, 0.68333, 0, 0],
+        "77": [0, 0.68333, 0, 0],
+        "78": [0, 0.68333, 0, 0],
+        "79": [0, 0.68333, 0, 0],
+        "80": [0, 0.68333, 0, 0],
+        "81": [0.19444, 0.68333, 0, 0],
+        "82": [0, 0.68333, 0, 0],
+        "83": [0, 0.68333, 0, 0],
+        "84": [0, 0.68333, 0, 0],
+        "85": [0, 0.68333, 0, 0],
+        "86": [0, 0.68333, 0.01389, 0],
+        "87": [0, 0.68333, 0.01389, 0],
+        "88": [0, 0.68333, 0, 0],
+        "89": [0, 0.68333, 0.025, 0],
+        "90": [0, 0.68333, 0, 0],
+        "91": [0.25, 0.75, 0, 0],
+        "92": [0.25, 0.75, 0, 0],
+        "93": [0.25, 0.75, 0, 0],
+        "94": [0, 0.69444, 0, 0],
+        "95": [0.31, 0.12056, 0.02778, 0],
+        "96": [0, 0.69444, 0, 0],
+        "97": [0, 0.43056, 0, 0],
+        "98": [0, 0.69444, 0, 0],
+        "99": [0, 0.43056, 0, 0],
+        "100": [0, 0.69444, 0, 0],
+        "101": [0, 0.43056, 0, 0],
+        "102": [0, 0.69444, 0.07778, 0],
+        "103": [0.19444, 0.43056, 0.01389, 0],
+        "104": [0, 0.69444, 0, 0],
+        "105": [0, 0.66786, 0, 0],
+        "106": [0.19444, 0.66786, 0, 0],
+        "107": [0, 0.69444, 0, 0],
+        "108": [0, 0.69444, 0, 0],
+        "109": [0, 0.43056, 0, 0],
+        "110": [0, 0.43056, 0, 0],
+        "111": [0, 0.43056, 0, 0],
+        "112": [0.19444, 0.43056, 0, 0],
+        "113": [0.19444, 0.43056, 0, 0],
+        "114": [0, 0.43056, 0, 0],
+        "115": [0, 0.43056, 0, 0],
+        "116": [0, 0.61508, 0, 0],
+        "117": [0, 0.43056, 0, 0],
+        "118": [0, 0.43056, 0.01389, 0],
+        "119": [0, 0.43056, 0.01389, 0],
+        "120": [0, 0.43056, 0, 0],
+        "121": [0.19444, 0.43056, 0.01389, 0],
+        "122": [0, 0.43056, 0, 0],
+        "123": [0.25, 0.75, 0, 0],
+        "124": [0.25, 0.75, 0, 0],
+        "125": [0.25, 0.75, 0, 0],
+        "126": [0.35, 0.31786, 0, 0],
+        "160": [0, 0, 0, 0],
+        "168": [0, 0.66786, 0, 0],
+        "172": [0, 0.43056, 0, 0],
+        "175": [0, 0.56778, 0, 0],
+        "176": [0, 0.69444, 0, 0],
+        "177": [0.08333, 0.58333, 0, 0],
+        "180": [0, 0.69444, 0, 0],
+        "215": [0.08333, 0.58333, 0, 0],
+        "247": [0.08333, 0.58333, 0, 0],
+        "305": [0, 0.43056, 0, 0],
+        "567": [0.19444, 0.43056, 0, 0],
+        "710": [0, 0.69444, 0, 0],
+        "711": [0, 0.62847, 0, 0],
+        "713": [0, 0.56778, 0, 0],
+        "714": [0, 0.69444, 0, 0],
+        "715": [0, 0.69444, 0, 0],
+        "728": [0, 0.69444, 0, 0],
+        "729": [0, 0.66786, 0, 0],
+        "730": [0, 0.69444, 0, 0],
+        "732": [0, 0.66786, 0, 0],
+        "768": [0, 0.69444, 0, 0],
+        "769": [0, 0.69444, 0, 0],
+        "770": [0, 0.69444, 0, 0],
+        "771": [0, 0.66786, 0, 0],
+        "772": [0, 0.56778, 0, 0],
+        "774": [0, 0.69444, 0, 0],
+        "775": [0, 0.66786, 0, 0],
+        "776": [0, 0.66786, 0, 0],
+        "778": [0, 0.69444, 0, 0],
+        "779": [0, 0.69444, 0, 0],
+        "780": [0, 0.62847, 0, 0],
+        "824": [0.19444, 0.69444, 0, 0],
+        "915": [0, 0.68333, 0, 0],
+        "916": [0, 0.68333, 0, 0],
+        "920": [0, 0.68333, 0, 0],
+        "923": [0, 0.68333, 0, 0],
+        "926": [0, 0.68333, 0, 0],
+        "928": [0, 0.68333, 0, 0],
+        "931": [0, 0.68333, 0, 0],
+        "933": [0, 0.68333, 0, 0],
+        "934": [0, 0.68333, 0, 0],
+        "936": [0, 0.68333, 0, 0],
+        "937": [0, 0.68333, 0, 0],
+        "8211": [0, 0.43056, 0.02778, 0],
+        "8212": [0, 0.43056, 0.02778, 0],
+        "8216": [0, 0.69444, 0, 0],
+        "8217": [0, 0.69444, 0, 0],
+        "8220": [0, 0.69444, 0, 0],
+        "8221": [0, 0.69444, 0, 0],
+        "8224": [0.19444, 0.69444, 0, 0],
+        "8225": [0.19444, 0.69444, 0, 0],
+        "8230": [0, 0.12, 0, 0],
+        "8242": [0, 0.55556, 0, 0],
+        "8407": [0, 0.71444, 0.15382, 0],
+        "8463": [0, 0.68889, 0, 0],
+        "8465": [0, 0.69444, 0, 0],
+        "8467": [0, 0.69444, 0, 0.11111],
+        "8472": [0.19444, 0.43056, 0, 0.11111],
+        "8476": [0, 0.69444, 0, 0],
+        "8501": [0, 0.69444, 0, 0],
+        "8592": [-0.13313, 0.36687, 0, 0],
+        "8593": [0.19444, 0.69444, 0, 0],
+        "8594": [-0.13313, 0.36687, 0, 0],
+        "8595": [0.19444, 0.69444, 0, 0],
+        "8596": [-0.13313, 0.36687, 0, 0],
+        "8597": [0.25, 0.75, 0, 0],
+        "8598": [0.19444, 0.69444, 0, 0],
+        "8599": [0.19444, 0.69444, 0, 0],
+        "8600": [0.19444, 0.69444, 0, 0],
+        "8601": [0.19444, 0.69444, 0, 0],
+        "8614": [0.011, 0.511, 0, 0],
+        "8617": [0.011, 0.511, 0, 0],
+        "8618": [0.011, 0.511, 0, 0],
+        "8636": [-0.13313, 0.36687, 0, 0],
+        "8637": [-0.13313, 0.36687, 0, 0],
+        "8640": [-0.13313, 0.36687, 0, 0],
+        "8641": [-0.13313, 0.36687, 0, 0],
+        "8652": [0.011, 0.671, 0, 0],
+        "8656": [-0.13313, 0.36687, 0, 0],
+        "8657": [0.19444, 0.69444, 0, 0],
+        "8658": [-0.13313, 0.36687, 0, 0],
+        "8659": [0.19444, 0.69444, 0, 0],
+        "8660": [-0.13313, 0.36687, 0, 0],
+        "8661": [0.25, 0.75, 0, 0],
+        "8704": [0, 0.69444, 0, 0],
+        "8706": [0, 0.69444, 0.05556, 0.08334],
+        "8707": [0, 0.69444, 0, 0],
+        "8709": [0.05556, 0.75, 0, 0],
+        "8711": [0, 0.68333, 0, 0],
+        "8712": [0.0391, 0.5391, 0, 0],
+        "8715": [0.0391, 0.5391, 0, 0],
+        "8722": [0.08333, 0.58333, 0, 0],
+        "8723": [0.08333, 0.58333, 0, 0],
+        "8725": [0.25, 0.75, 0, 0],
+        "8726": [0.25, 0.75, 0, 0],
+        "8727": [-0.03472, 0.46528, 0, 0],
+        "8728": [-0.05555, 0.44445, 0, 0],
+        "8729": [-0.05555, 0.44445, 0, 0],
+        "8730": [0.2, 0.8, 0, 0],
+        "8733": [0, 0.43056, 0, 0],
+        "8734": [0, 0.43056, 0, 0],
+        "8736": [0, 0.69224, 0, 0],
+        "8739": [0.25, 0.75, 0, 0],
+        "8741": [0.25, 0.75, 0, 0],
+        "8743": [0, 0.55556, 0, 0],
+        "8744": [0, 0.55556, 0, 0],
+        "8745": [0, 0.55556, 0, 0],
+        "8746": [0, 0.55556, 0, 0],
+        "8747": [0.19444, 0.69444, 0.11111, 0],
+        "8764": [-0.13313, 0.36687, 0, 0],
+        "8768": [0.19444, 0.69444, 0, 0],
+        "8771": [-0.03625, 0.46375, 0, 0],
+        "8773": [-0.022, 0.589, 0, 0],
+        "8776": [-0.01688, 0.48312, 0, 0],
+        "8781": [-0.03625, 0.46375, 0, 0],
+        "8784": [-0.133, 0.67, 0, 0],
+        "8800": [0.215, 0.716, 0, 0],
+        "8801": [-0.03625, 0.46375, 0, 0],
+        "8804": [0.13597, 0.63597, 0, 0],
+        "8805": [0.13597, 0.63597, 0, 0],
+        "8810": [0.0391, 0.5391, 0, 0],
+        "8811": [0.0391, 0.5391, 0, 0],
+        "8826": [0.0391, 0.5391, 0, 0],
+        "8827": [0.0391, 0.5391, 0, 0],
+        "8834": [0.0391, 0.5391, 0, 0],
+        "8835": [0.0391, 0.5391, 0, 0],
+        "8838": [0.13597, 0.63597, 0, 0],
+        "8839": [0.13597, 0.63597, 0, 0],
+        "8846": [0, 0.55556, 0, 0],
+        "8849": [0.13597, 0.63597, 0, 0],
+        "8850": [0.13597, 0.63597, 0, 0],
+        "8851": [0, 0.55556, 0, 0],
+        "8852": [0, 0.55556, 0, 0],
+        "8853": [0.08333, 0.58333, 0, 0],
+        "8854": [0.08333, 0.58333, 0, 0],
+        "8855": [0.08333, 0.58333, 0, 0],
+        "8856": [0.08333, 0.58333, 0, 0],
+        "8857": [0.08333, 0.58333, 0, 0],
+        "8866": [0, 0.69444, 0, 0],
+        "8867": [0, 0.69444, 0, 0],
+        "8868": [0, 0.69444, 0, 0],
+        "8869": [0, 0.69444, 0, 0],
+        "8872": [0.249, 0.75, 0, 0],
+        "8900": [-0.05555, 0.44445, 0, 0],
+        "8901": [-0.05555, 0.44445, 0, 0],
+        "8902": [-0.03472, 0.46528, 0, 0],
+        "8904": [0.005, 0.505, 0, 0],
+        "8942": [0.03, 0.9, 0, 0],
+        "8943": [-0.19, 0.31, 0, 0],
+        "8945": [-0.1, 0.82, 0, 0],
+        "8968": [0.25, 0.75, 0, 0],
+        "8969": [0.25, 0.75, 0, 0],
+        "8970": [0.25, 0.75, 0, 0],
+        "8971": [0.25, 0.75, 0, 0],
+        "8994": [-0.14236, 0.35764, 0, 0],
+        "8995": [-0.14236, 0.35764, 0, 0],
+        "9136": [0.244, 0.744, 0, 0],
+        "9137": [0.244, 0.744, 0, 0],
+        "9651": [0.19444, 0.69444, 0, 0],
+        "9657": [-0.03472, 0.46528, 0, 0],
+        "9661": [0.19444, 0.69444, 0, 0],
+        "9667": [-0.03472, 0.46528, 0, 0],
+        "9711": [0.19444, 0.69444, 0, 0],
+        "9824": [0.12963, 0.69444, 0, 0],
+        "9825": [0.12963, 0.69444, 0, 0],
+        "9826": [0.12963, 0.69444, 0, 0],
+        "9827": [0.12963, 0.69444, 0, 0],
+        "9837": [0, 0.75, 0, 0],
+        "9838": [0.19444, 0.69444, 0, 0],
+        "9839": [0.19444, 0.69444, 0, 0],
+        "10216": [0.25, 0.75, 0, 0],
+        "10217": [0.25, 0.75, 0, 0],
+        "10222": [0.244, 0.744, 0, 0],
+        "10223": [0.244, 0.744, 0, 0],
+        "10229": [0.011, 0.511, 0, 0],
+        "10230": [0.011, 0.511, 0, 0],
+        "10231": [0.011, 0.511, 0, 0],
+        "10232": [0.024, 0.525, 0, 0],
+        "10233": [0.024, 0.525, 0, 0],
+        "10234": [0.024, 0.525, 0, 0],
+        "10236": [0.011, 0.511, 0, 0],
+        "10815": [0, 0.68333, 0, 0],
+        "10927": [0.13597, 0.63597, 0, 0],
+        "10928": [0.13597, 0.63597, 0, 0],
+    },
+    "Math-BoldItalic": {
+        "47": [0.19444, 0.69444, 0, 0],
+        "65": [0, 0.68611, 0, 0],
+        "66": [0, 0.68611, 0.04835, 0],
+        "67": [0, 0.68611, 0.06979, 0],
+        "68": [0, 0.68611, 0.03194, 0],
+        "69": [0, 0.68611, 0.05451, 0],
+        "70": [0, 0.68611, 0.15972, 0],
+        "71": [0, 0.68611, 0, 0],
+        "72": [0, 0.68611, 0.08229, 0],
+        "73": [0, 0.68611, 0.07778, 0],
+        "74": [0, 0.68611, 0.10069, 0],
+        "75": [0, 0.68611, 0.06979, 0],
+        "76": [0, 0.68611, 0, 0],
+        "77": [0, 0.68611, 0.11424, 0],
+        "78": [0, 0.68611, 0.11424, 0],
+        "79": [0, 0.68611, 0.03194, 0],
+        "80": [0, 0.68611, 0.15972, 0],
+        "81": [0.19444, 0.68611, 0, 0],
+        "82": [0, 0.68611, 0.00421, 0],
+        "83": [0, 0.68611, 0.05382, 0],
+        "84": [0, 0.68611, 0.15972, 0],
+        "85": [0, 0.68611, 0.11424, 0],
+        "86": [0, 0.68611, 0.25555, 0],
+        "87": [0, 0.68611, 0.15972, 0],
+        "88": [0, 0.68611, 0.07778, 0],
+        "89": [0, 0.68611, 0.25555, 0],
+        "90": [0, 0.68611, 0.06979, 0],
+        "97": [0, 0.44444, 0, 0],
+        "98": [0, 0.69444, 0, 0],
+        "99": [0, 0.44444, 0, 0],
+        "100": [0, 0.69444, 0, 0],
+        "101": [0, 0.44444, 0, 0],
+        "102": [0.19444, 0.69444, 0.11042, 0],
+        "103": [0.19444, 0.44444, 0.03704, 0],
+        "104": [0, 0.69444, 0, 0],
+        "105": [0, 0.69326, 0, 0],
+        "106": [0.19444, 0.69326, 0.0622, 0],
+        "107": [0, 0.69444, 0.01852, 0],
+        "108": [0, 0.69444, 0.0088, 0],
+        "109": [0, 0.44444, 0, 0],
+        "110": [0, 0.44444, 0, 0],
+        "111": [0, 0.44444, 0, 0],
+        "112": [0.19444, 0.44444, 0, 0],
+        "113": [0.19444, 0.44444, 0.03704, 0],
+        "114": [0, 0.44444, 0.03194, 0],
+        "115": [0, 0.44444, 0, 0],
+        "116": [0, 0.63492, 0, 0],
+        "117": [0, 0.44444, 0, 0],
+        "118": [0, 0.44444, 0.03704, 0],
+        "119": [0, 0.44444, 0.02778, 0],
+        "120": [0, 0.44444, 0, 0],
+        "121": [0.19444, 0.44444, 0.03704, 0],
+        "122": [0, 0.44444, 0.04213, 0],
+        "915": [0, 0.68611, 0.15972, 0],
+        "916": [0, 0.68611, 0, 0],
+        "920": [0, 0.68611, 0.03194, 0],
+        "923": [0, 0.68611, 0, 0],
+        "926": [0, 0.68611, 0.07458, 0],
+        "928": [0, 0.68611, 0.08229, 0],
+        "931": [0, 0.68611, 0.05451, 0],
+        "933": [0, 0.68611, 0.15972, 0],
+        "934": [0, 0.68611, 0, 0],
+        "936": [0, 0.68611, 0.11653, 0],
+        "937": [0, 0.68611, 0.04835, 0],
+        "945": [0, 0.44444, 0, 0],
+        "946": [0.19444, 0.69444, 0.03403, 0],
+        "947": [0.19444, 0.44444, 0.06389, 0],
+        "948": [0, 0.69444, 0.03819, 0],
+        "949": [0, 0.44444, 0, 0],
+        "950": [0.19444, 0.69444, 0.06215, 0],
+        "951": [0.19444, 0.44444, 0.03704, 0],
+        "952": [0, 0.69444, 0.03194, 0],
+        "953": [0, 0.44444, 0, 0],
+        "954": [0, 0.44444, 0, 0],
+        "955": [0, 0.69444, 0, 0],
+        "956": [0.19444, 0.44444, 0, 0],
+        "957": [0, 0.44444, 0.06898, 0],
+        "958": [0.19444, 0.69444, 0.03021, 0],
+        "959": [0, 0.44444, 0, 0],
+        "960": [0, 0.44444, 0.03704, 0],
+        "961": [0.19444, 0.44444, 0, 0],
+        "962": [0.09722, 0.44444, 0.07917, 0],
+        "963": [0, 0.44444, 0.03704, 0],
+        "964": [0, 0.44444, 0.13472, 0],
+        "965": [0, 0.44444, 0.03704, 0],
+        "966": [0.19444, 0.44444, 0, 0],
+        "967": [0.19444, 0.44444, 0, 0],
+        "968": [0.19444, 0.69444, 0.03704, 0],
+        "969": [0, 0.44444, 0.03704, 0],
+        "977": [0, 0.69444, 0, 0],
+        "981": [0.19444, 0.69444, 0, 0],
+        "982": [0, 0.44444, 0.03194, 0],
+        "1009": [0.19444, 0.44444, 0, 0],
+        "1013": [0, 0.44444, 0, 0],
+    },
+    "Math-Italic": {
+        "47": [0.19444, 0.69444, 0, 0],
+        "65": [0, 0.68333, 0, 0.13889],
+        "66": [0, 0.68333, 0.05017, 0.08334],
+        "67": [0, 0.68333, 0.07153, 0.08334],
+        "68": [0, 0.68333, 0.02778, 0.05556],
+        "69": [0, 0.68333, 0.05764, 0.08334],
+        "70": [0, 0.68333, 0.13889, 0.08334],
+        "71": [0, 0.68333, 0, 0.08334],
+        "72": [0, 0.68333, 0.08125, 0.05556],
+        "73": [0, 0.68333, 0.07847, 0.11111],
+        "74": [0, 0.68333, 0.09618, 0.16667],
+        "75": [0, 0.68333, 0.07153, 0.05556],
+        "76": [0, 0.68333, 0, 0.02778],
+        "77": [0, 0.68333, 0.10903, 0.08334],
+        "78": [0, 0.68333, 0.10903, 0.08334],
+        "79": [0, 0.68333, 0.02778, 0.08334],
+        "80": [0, 0.68333, 0.13889, 0.08334],
+        "81": [0.19444, 0.68333, 0, 0.08334],
+        "82": [0, 0.68333, 0.00773, 0.08334],
+        "83": [0, 0.68333, 0.05764, 0.08334],
+        "84": [0, 0.68333, 0.13889, 0.08334],
+        "85": [0, 0.68333, 0.10903, 0.02778],
+        "86": [0, 0.68333, 0.22222, 0],
+        "87": [0, 0.68333, 0.13889, 0],
+        "88": [0, 0.68333, 0.07847, 0.08334],
+        "89": [0, 0.68333, 0.22222, 0],
+        "90": [0, 0.68333, 0.07153, 0.08334],
+        "97": [0, 0.43056, 0, 0],
+        "98": [0, 0.69444, 0, 0],
+        "99": [0, 0.43056, 0, 0.05556],
+        "100": [0, 0.69444, 0, 0.16667],
+        "101": [0, 0.43056, 0, 0.05556],
+        "102": [0.19444, 0.69444, 0.10764, 0.16667],
+        "103": [0.19444, 0.43056, 0.03588, 0.02778],
+        "104": [0, 0.69444, 0, 0],
+        "105": [0, 0.65952, 0, 0],
+        "106": [0.19444, 0.65952, 0.05724, 0],
+        "107": [0, 0.69444, 0.03148, 0],
+        "108": [0, 0.69444, 0.01968, 0.08334],
+        "109": [0, 0.43056, 0, 0],
+        "110": [0, 0.43056, 0, 0],
+        "111": [0, 0.43056, 0, 0.05556],
+        "112": [0.19444, 0.43056, 0, 0.08334],
+        "113": [0.19444, 0.43056, 0.03588, 0.08334],
+        "114": [0, 0.43056, 0.02778, 0.05556],
+        "115": [0, 0.43056, 0, 0.05556],
+        "116": [0, 0.61508, 0, 0.08334],
+        "117": [0, 0.43056, 0, 0.02778],
+        "118": [0, 0.43056, 0.03588, 0.02778],
+        "119": [0, 0.43056, 0.02691, 0.08334],
+        "120": [0, 0.43056, 0, 0.02778],
+        "121": [0.19444, 0.43056, 0.03588, 0.05556],
+        "122": [0, 0.43056, 0.04398, 0.05556],
+        "915": [0, 0.68333, 0.13889, 0.08334],
+        "916": [0, 0.68333, 0, 0.16667],
+        "920": [0, 0.68333, 0.02778, 0.08334],
+        "923": [0, 0.68333, 0, 0.16667],
+        "926": [0, 0.68333, 0.07569, 0.08334],
+        "928": [0, 0.68333, 0.08125, 0.05556],
+        "931": [0, 0.68333, 0.05764, 0.08334],
+        "933": [0, 0.68333, 0.13889, 0.05556],
+        "934": [0, 0.68333, 0, 0.08334],
+        "936": [0, 0.68333, 0.11, 0.05556],
+        "937": [0, 0.68333, 0.05017, 0.08334],
+        "945": [0, 0.43056, 0.0037, 0.02778],
+        "946": [0.19444, 0.69444, 0.05278, 0.08334],
+        "947": [0.19444, 0.43056, 0.05556, 0],
+        "948": [0, 0.69444, 0.03785, 0.05556],
+        "949": [0, 0.43056, 0, 0.08334],
+        "950": [0.19444, 0.69444, 0.07378, 0.08334],
+        "951": [0.19444, 0.43056, 0.03588, 0.05556],
+        "952": [0, 0.69444, 0.02778, 0.08334],
+        "953": [0, 0.43056, 0, 0.05556],
+        "954": [0, 0.43056, 0, 0],
+        "955": [0, 0.69444, 0, 0],
+        "956": [0.19444, 0.43056, 0, 0.02778],
+        "957": [0, 0.43056, 0.06366, 0.02778],
+        "958": [0.19444, 0.69444, 0.04601, 0.11111],
+        "959": [0, 0.43056, 0, 0.05556],
+        "960": [0, 0.43056, 0.03588, 0],
+        "961": [0.19444, 0.43056, 0, 0.08334],
+        "962": [0.09722, 0.43056, 0.07986, 0.08334],
+        "963": [0, 0.43056, 0.03588, 0],
+        "964": [0, 0.43056, 0.1132, 0.02778],
+        "965": [0, 0.43056, 0.03588, 0.02778],
+        "966": [0.19444, 0.43056, 0, 0.08334],
+        "967": [0.19444, 0.43056, 0, 0.05556],
+        "968": [0.19444, 0.69444, 0.03588, 0.11111],
+        "969": [0, 0.43056, 0.03588, 0],
+        "977": [0, 0.69444, 0, 0.08334],
+        "981": [0.19444, 0.69444, 0, 0.08334],
+        "982": [0, 0.43056, 0.02778, 0],
+        "1009": [0.19444, 0.43056, 0, 0.08334],
+        "1013": [0, 0.43056, 0, 0.05556],
+    },
+    "Math-Regular": {
+        "65": [0, 0.68333, 0, 0.13889],
+        "66": [0, 0.68333, 0.05017, 0.08334],
+        "67": [0, 0.68333, 0.07153, 0.08334],
+        "68": [0, 0.68333, 0.02778, 0.05556],
+        "69": [0, 0.68333, 0.05764, 0.08334],
+        "70": [0, 0.68333, 0.13889, 0.08334],
+        "71": [0, 0.68333, 0, 0.08334],
+        "72": [0, 0.68333, 0.08125, 0.05556],
+        "73": [0, 0.68333, 0.07847, 0.11111],
+        "74": [0, 0.68333, 0.09618, 0.16667],
+        "75": [0, 0.68333, 0.07153, 0.05556],
+        "76": [0, 0.68333, 0, 0.02778],
+        "77": [0, 0.68333, 0.10903, 0.08334],
+        "78": [0, 0.68333, 0.10903, 0.08334],
+        "79": [0, 0.68333, 0.02778, 0.08334],
+        "80": [0, 0.68333, 0.13889, 0.08334],
+        "81": [0.19444, 0.68333, 0, 0.08334],
+        "82": [0, 0.68333, 0.00773, 0.08334],
+        "83": [0, 0.68333, 0.05764, 0.08334],
+        "84": [0, 0.68333, 0.13889, 0.08334],
+        "85": [0, 0.68333, 0.10903, 0.02778],
+        "86": [0, 0.68333, 0.22222, 0],
+        "87": [0, 0.68333, 0.13889, 0],
+        "88": [0, 0.68333, 0.07847, 0.08334],
+        "89": [0, 0.68333, 0.22222, 0],
+        "90": [0, 0.68333, 0.07153, 0.08334],
+        "97": [0, 0.43056, 0, 0],
+        "98": [0, 0.69444, 0, 0],
+        "99": [0, 0.43056, 0, 0.05556],
+        "100": [0, 0.69444, 0, 0.16667],
+        "101": [0, 0.43056, 0, 0.05556],
+        "102": [0.19444, 0.69444, 0.10764, 0.16667],
+        "103": [0.19444, 0.43056, 0.03588, 0.02778],
+        "104": [0, 0.69444, 0, 0],
+        "105": [0, 0.65952, 0, 0],
+        "106": [0.19444, 0.65952, 0.05724, 0],
+        "107": [0, 0.69444, 0.03148, 0],
+        "108": [0, 0.69444, 0.01968, 0.08334],
+        "109": [0, 0.43056, 0, 0],
+        "110": [0, 0.43056, 0, 0],
+        "111": [0, 0.43056, 0, 0.05556],
+        "112": [0.19444, 0.43056, 0, 0.08334],
+        "113": [0.19444, 0.43056, 0.03588, 0.08334],
+        "114": [0, 0.43056, 0.02778, 0.05556],
+        "115": [0, 0.43056, 0, 0.05556],
+        "116": [0, 0.61508, 0, 0.08334],
+        "117": [0, 0.43056, 0, 0.02778],
+        "118": [0, 0.43056, 0.03588, 0.02778],
+        "119": [0, 0.43056, 0.02691, 0.08334],
+        "120": [0, 0.43056, 0, 0.02778],
+        "121": [0.19444, 0.43056, 0.03588, 0.05556],
+        "122": [0, 0.43056, 0.04398, 0.05556],
+        "915": [0, 0.68333, 0.13889, 0.08334],
+        "916": [0, 0.68333, 0, 0.16667],
+        "920": [0, 0.68333, 0.02778, 0.08334],
+        "923": [0, 0.68333, 0, 0.16667],
+        "926": [0, 0.68333, 0.07569, 0.08334],
+        "928": [0, 0.68333, 0.08125, 0.05556],
+        "931": [0, 0.68333, 0.05764, 0.08334],
+        "933": [0, 0.68333, 0.13889, 0.05556],
+        "934": [0, 0.68333, 0, 0.08334],
+        "936": [0, 0.68333, 0.11, 0.05556],
+        "937": [0, 0.68333, 0.05017, 0.08334],
+        "945": [0, 0.43056, 0.0037, 0.02778],
+        "946": [0.19444, 0.69444, 0.05278, 0.08334],
+        "947": [0.19444, 0.43056, 0.05556, 0],
+        "948": [0, 0.69444, 0.03785, 0.05556],
+        "949": [0, 0.43056, 0, 0.08334],
+        "950": [0.19444, 0.69444, 0.07378, 0.08334],
+        "951": [0.19444, 0.43056, 0.03588, 0.05556],
+        "952": [0, 0.69444, 0.02778, 0.08334],
+        "953": [0, 0.43056, 0, 0.05556],
+        "954": [0, 0.43056, 0, 0],
+        "955": [0, 0.69444, 0, 0],
+        "956": [0.19444, 0.43056, 0, 0.02778],
+        "957": [0, 0.43056, 0.06366, 0.02778],
+        "958": [0.19444, 0.69444, 0.04601, 0.11111],
+        "959": [0, 0.43056, 0, 0.05556],
+        "960": [0, 0.43056, 0.03588, 0],
+        "961": [0.19444, 0.43056, 0, 0.08334],
+        "962": [0.09722, 0.43056, 0.07986, 0.08334],
+        "963": [0, 0.43056, 0.03588, 0],
+        "964": [0, 0.43056, 0.1132, 0.02778],
+        "965": [0, 0.43056, 0.03588, 0.02778],
+        "966": [0.19444, 0.43056, 0, 0.08334],
+        "967": [0.19444, 0.43056, 0, 0.05556],
+        "968": [0.19444, 0.69444, 0.03588, 0.11111],
+        "969": [0, 0.43056, 0.03588, 0],
+        "977": [0, 0.69444, 0, 0.08334],
+        "981": [0.19444, 0.69444, 0, 0.08334],
+        "982": [0, 0.43056, 0.02778, 0],
+        "1009": [0.19444, 0.43056, 0, 0.08334],
+        "1013": [0, 0.43056, 0, 0.05556],
+    },
+    "SansSerif-Regular": {
+        "33": [0, 0.69444, 0, 0],
+        "34": [0, 0.69444, 0, 0],
+        "35": [0.19444, 0.69444, 0, 0],
+        "36": [0.05556, 0.75, 0, 0],
+        "37": [0.05556, 0.75, 0, 0],
+        "38": [0, 0.69444, 0, 0],
+        "39": [0, 0.69444, 0, 0],
+        "40": [0.25, 0.75, 0, 0],
+        "41": [0.25, 0.75, 0, 0],
+        "42": [0, 0.75, 0, 0],
+        "43": [0.08333, 0.58333, 0, 0],
+        "44": [0.125, 0.08333, 0, 0],
+        "45": [0, 0.44444, 0, 0],
+        "46": [0, 0.08333, 0, 0],
+        "47": [0.25, 0.75, 0, 0],
+        "48": [0, 0.65556, 0, 0],
+        "49": [0, 0.65556, 0, 0],
+        "50": [0, 0.65556, 0, 0],
+        "51": [0, 0.65556, 0, 0],
+        "52": [0, 0.65556, 0, 0],
+        "53": [0, 0.65556, 0, 0],
+        "54": [0, 0.65556, 0, 0],
+        "55": [0, 0.65556, 0, 0],
+        "56": [0, 0.65556, 0, 0],
+        "57": [0, 0.65556, 0, 0],
+        "58": [0, 0.44444, 0, 0],
+        "59": [0.125, 0.44444, 0, 0],
+        "61": [-0.13, 0.37, 0, 0],
+        "63": [0, 0.69444, 0, 0],
+        "64": [0, 0.69444, 0, 0],
+        "65": [0, 0.69444, 0, 0],
+        "66": [0, 0.69444, 0, 0],
+        "67": [0, 0.69444, 0, 0],
+        "68": [0, 0.69444, 0, 0],
+        "69": [0, 0.69444, 0, 0],
+        "70": [0, 0.69444, 0, 0],
+        "71": [0, 0.69444, 0, 0],
+        "72": [0, 0.69444, 0, 0],
+        "73": [0, 0.69444, 0, 0],
+        "74": [0, 0.69444, 0, 0],
+        "75": [0, 0.69444, 0, 0],
+        "76": [0, 0.69444, 0, 0],
+        "77": [0, 0.69444, 0, 0],
+        "78": [0, 0.69444, 0, 0],
+        "79": [0, 0.69444, 0, 0],
+        "80": [0, 0.69444, 0, 0],
+        "81": [0.125, 0.69444, 0, 0],
+        "82": [0, 0.69444, 0, 0],
+        "83": [0, 0.69444, 0, 0],
+        "84": [0, 0.69444, 0, 0],
+        "85": [0, 0.69444, 0, 0],
+        "86": [0, 0.69444, 0.01389, 0],
+        "87": [0, 0.69444, 0.01389, 0],
+        "88": [0, 0.69444, 0, 0],
+        "89": [0, 0.69444, 0.025, 0],
+        "90": [0, 0.69444, 0, 0],
+        "91": [0.25, 0.75, 0, 0],
+        "93": [0.25, 0.75, 0, 0],
+        "94": [0, 0.69444, 0, 0],
+        "95": [0.35, 0.09444, 0.02778, 0],
+        "97": [0, 0.44444, 0, 0],
+        "98": [0, 0.69444, 0, 0],
+        "99": [0, 0.44444, 0, 0],
+        "100": [0, 0.69444, 0, 0],
+        "101": [0, 0.44444, 0, 0],
+        "102": [0, 0.69444, 0.06944, 0],
+        "103": [0.19444, 0.44444, 0.01389, 0],
+        "104": [0, 0.69444, 0, 0],
+        "105": [0, 0.67937, 0, 0],
+        "106": [0.19444, 0.67937, 0, 0],
+        "107": [0, 0.69444, 0, 0],
+        "108": [0, 0.69444, 0, 0],
+        "109": [0, 0.44444, 0, 0],
+        "110": [0, 0.44444, 0, 0],
+        "111": [0, 0.44444, 0, 0],
+        "112": [0.19444, 0.44444, 0, 0],
+        "113": [0.19444, 0.44444, 0, 0],
+        "114": [0, 0.44444, 0.01389, 0],
+        "115": [0, 0.44444, 0, 0],
+        "116": [0, 0.57143, 0, 0],
+        "117": [0, 0.44444, 0, 0],
+        "118": [0, 0.44444, 0.01389, 0],
+        "119": [0, 0.44444, 0.01389, 0],
+        "120": [0, 0.44444, 0, 0],
+        "121": [0.19444, 0.44444, 0.01389, 0],
+        "122": [0, 0.44444, 0, 0],
+        "126": [0.35, 0.32659, 0, 0],
+        "305": [0, 0.44444, 0, 0],
+        "567": [0.19444, 0.44444, 0, 0],
+        "768": [0, 0.69444, 0, 0],
+        "769": [0, 0.69444, 0, 0],
+        "770": [0, 0.69444, 0, 0],
+        "771": [0, 0.67659, 0, 0],
+        "772": [0, 0.60889, 0, 0],
+        "774": [0, 0.69444, 0, 0],
+        "775": [0, 0.67937, 0, 0],
+        "776": [0, 0.67937, 0, 0],
+        "778": [0, 0.69444, 0, 0],
+        "779": [0, 0.69444, 0, 0],
+        "780": [0, 0.63194, 0, 0],
+        "915": [0, 0.69444, 0, 0],
+        "916": [0, 0.69444, 0, 0],
+        "920": [0, 0.69444, 0, 0],
+        "923": [0, 0.69444, 0, 0],
+        "926": [0, 0.69444, 0, 0],
+        "928": [0, 0.69444, 0, 0],
+        "931": [0, 0.69444, 0, 0],
+        "933": [0, 0.69444, 0, 0],
+        "934": [0, 0.69444, 0, 0],
+        "936": [0, 0.69444, 0, 0],
+        "937": [0, 0.69444, 0, 0],
+        "8211": [0, 0.44444, 0.02778, 0],
+        "8212": [0, 0.44444, 0.02778, 0],
+        "8216": [0, 0.69444, 0, 0],
+        "8217": [0, 0.69444, 0, 0],
+        "8220": [0, 0.69444, 0, 0],
+        "8221": [0, 0.69444, 0, 0],
+    },
+    "Script-Regular": {
+        "65": [0, 0.7, 0.22925, 0],
+        "66": [0, 0.7, 0.04087, 0],
+        "67": [0, 0.7, 0.1689, 0],
+        "68": [0, 0.7, 0.09371, 0],
+        "69": [0, 0.7, 0.18583, 0],
+        "70": [0, 0.7, 0.13634, 0],
+        "71": [0, 0.7, 0.17322, 0],
+        "72": [0, 0.7, 0.29694, 0],
+        "73": [0, 0.7, 0.19189, 0],
+        "74": [0.27778, 0.7, 0.19189, 0],
+        "75": [0, 0.7, 0.31259, 0],
+        "76": [0, 0.7, 0.19189, 0],
+        "77": [0, 0.7, 0.15981, 0],
+        "78": [0, 0.7, 0.3525, 0],
+        "79": [0, 0.7, 0.08078, 0],
+        "80": [0, 0.7, 0.08078, 0],
+        "81": [0, 0.7, 0.03305, 0],
+        "82": [0, 0.7, 0.06259, 0],
+        "83": [0, 0.7, 0.19189, 0],
+        "84": [0, 0.7, 0.29087, 0],
+        "85": [0, 0.7, 0.25815, 0],
+        "86": [0, 0.7, 0.27523, 0],
+        "87": [0, 0.7, 0.27523, 0],
+        "88": [0, 0.7, 0.26006, 0],
+        "89": [0, 0.7, 0.2939, 0],
+        "90": [0, 0.7, 0.24037, 0],
+    },
+    "Size1-Regular": {
+        "40": [0.35001, 0.85, 0, 0],
+        "41": [0.35001, 0.85, 0, 0],
+        "47": [0.35001, 0.85, 0, 0],
+        "91": [0.35001, 0.85, 0, 0],
+        "92": [0.35001, 0.85, 0, 0],
+        "93": [0.35001, 0.85, 0, 0],
+        "123": [0.35001, 0.85, 0, 0],
+        "125": [0.35001, 0.85, 0, 0],
+        "710": [0, 0.72222, 0, 0],
+        "732": [0, 0.72222, 0, 0],
+        "770": [0, 0.72222, 0, 0],
+        "771": [0, 0.72222, 0, 0],
+        "8214": [-0.00099, 0.601, 0, 0],
+        "8593": [1e-05, 0.6, 0, 0],
+        "8595": [1e-05, 0.6, 0, 0],
+        "8657": [1e-05, 0.6, 0, 0],
+        "8659": [1e-05, 0.6, 0, 0],
+        "8719": [0.25001, 0.75, 0, 0],
+        "8720": [0.25001, 0.75, 0, 0],
+        "8721": [0.25001, 0.75, 0, 0],
+        "8730": [0.35001, 0.85, 0, 0],
+        "8739": [-0.00599, 0.606, 0, 0],
+        "8741": [-0.00599, 0.606, 0, 0],
+        "8747": [0.30612, 0.805, 0.19445, 0],
+        "8748": [0.306, 0.805, 0.19445, 0],
+        "8749": [0.306, 0.805, 0.19445, 0],
+        "8750": [0.30612, 0.805, 0.19445, 0],
+        "8896": [0.25001, 0.75, 0, 0],
+        "8897": [0.25001, 0.75, 0, 0],
+        "8898": [0.25001, 0.75, 0, 0],
+        "8899": [0.25001, 0.75, 0, 0],
+        "8968": [0.35001, 0.85, 0, 0],
+        "8969": [0.35001, 0.85, 0, 0],
+        "8970": [0.35001, 0.85, 0, 0],
+        "8971": [0.35001, 0.85, 0, 0],
+        "9168": [-0.00099, 0.601, 0, 0],
+        "10216": [0.35001, 0.85, 0, 0],
+        "10217": [0.35001, 0.85, 0, 0],
+        "10752": [0.25001, 0.75, 0, 0],
+        "10753": [0.25001, 0.75, 0, 0],
+        "10754": [0.25001, 0.75, 0, 0],
+        "10756": [0.25001, 0.75, 0, 0],
+        "10758": [0.25001, 0.75, 0, 0],
+    },
+    "Size2-Regular": {
+        "40": [0.65002, 1.15, 0, 0],
+        "41": [0.65002, 1.15, 0, 0],
+        "47": [0.65002, 1.15, 0, 0],
+        "91": [0.65002, 1.15, 0, 0],
+        "92": [0.65002, 1.15, 0, 0],
+        "93": [0.65002, 1.15, 0, 0],
+        "123": [0.65002, 1.15, 0, 0],
+        "125": [0.65002, 1.15, 0, 0],
+        "710": [0, 0.75, 0, 0],
+        "732": [0, 0.75, 0, 0],
+        "770": [0, 0.75, 0, 0],
+        "771": [0, 0.75, 0, 0],
+        "8719": [0.55001, 1.05, 0, 0],
+        "8720": [0.55001, 1.05, 0, 0],
+        "8721": [0.55001, 1.05, 0, 0],
+        "8730": [0.65002, 1.15, 0, 0],
+        "8747": [0.86225, 1.36, 0.44445, 0],
+        "8748": [0.862, 1.36, 0.44445, 0],
+        "8749": [0.862, 1.36, 0.44445, 0],
+        "8750": [0.86225, 1.36, 0.44445, 0],
+        "8896": [0.55001, 1.05, 0, 0],
+        "8897": [0.55001, 1.05, 0, 0],
+        "8898": [0.55001, 1.05, 0, 0],
+        "8899": [0.55001, 1.05, 0, 0],
+        "8968": [0.65002, 1.15, 0, 0],
+        "8969": [0.65002, 1.15, 0, 0],
+        "8970": [0.65002, 1.15, 0, 0],
+        "8971": [0.65002, 1.15, 0, 0],
+        "10216": [0.65002, 1.15, 0, 0],
+        "10217": [0.65002, 1.15, 0, 0],
+        "10752": [0.55001, 1.05, 0, 0],
+        "10753": [0.55001, 1.05, 0, 0],
+        "10754": [0.55001, 1.05, 0, 0],
+        "10756": [0.55001, 1.05, 0, 0],
+        "10758": [0.55001, 1.05, 0, 0],
+    },
+    "Size3-Regular": {
+        "40": [0.95003, 1.45, 0, 0],
+        "41": [0.95003, 1.45, 0, 0],
+        "47": [0.95003, 1.45, 0, 0],
+        "91": [0.95003, 1.45, 0, 0],
+        "92": [0.95003, 1.45, 0, 0],
+        "93": [0.95003, 1.45, 0, 0],
+        "123": [0.95003, 1.45, 0, 0],
+        "125": [0.95003, 1.45, 0, 0],
+        "710": [0, 0.75, 0, 0],
+        "732": [0, 0.75, 0, 0],
+        "770": [0, 0.75, 0, 0],
+        "771": [0, 0.75, 0, 0],
+        "8730": [0.95003, 1.45, 0, 0],
+        "8968": [0.95003, 1.45, 0, 0],
+        "8969": [0.95003, 1.45, 0, 0],
+        "8970": [0.95003, 1.45, 0, 0],
+        "8971": [0.95003, 1.45, 0, 0],
+        "10216": [0.95003, 1.45, 0, 0],
+        "10217": [0.95003, 1.45, 0, 0],
+    },
+    "Size4-Regular": {
+        "40": [1.25003, 1.75, 0, 0],
+        "41": [1.25003, 1.75, 0, 0],
+        "47": [1.25003, 1.75, 0, 0],
+        "91": [1.25003, 1.75, 0, 0],
+        "92": [1.25003, 1.75, 0, 0],
+        "93": [1.25003, 1.75, 0, 0],
+        "123": [1.25003, 1.75, 0, 0],
+        "125": [1.25003, 1.75, 0, 0],
+        "710": [0, 0.825, 0, 0],
+        "732": [0, 0.825, 0, 0],
+        "770": [0, 0.825, 0, 0],
+        "771": [0, 0.825, 0, 0],
+        "8730": [1.25003, 1.75, 0, 0],
+        "8968": [1.25003, 1.75, 0, 0],
+        "8969": [1.25003, 1.75, 0, 0],
+        "8970": [1.25003, 1.75, 0, 0],
+        "8971": [1.25003, 1.75, 0, 0],
+        "9115": [0.64502, 1.155, 0, 0],
+        "9116": [1e-05, 0.6, 0, 0],
+        "9117": [0.64502, 1.155, 0, 0],
+        "9118": [0.64502, 1.155, 0, 0],
+        "9119": [1e-05, 0.6, 0, 0],
+        "9120": [0.64502, 1.155, 0, 0],
+        "9121": [0.64502, 1.155, 0, 0],
+        "9122": [-0.00099, 0.601, 0, 0],
+        "9123": [0.64502, 1.155, 0, 0],
+        "9124": [0.64502, 1.155, 0, 0],
+        "9125": [-0.00099, 0.601, 0, 0],
+        "9126": [0.64502, 1.155, 0, 0],
+        "9127": [1e-05, 0.9, 0, 0],
+        "9128": [0.65002, 1.15, 0, 0],
+        "9129": [0.90001, 0, 0, 0],
+        "9130": [0, 0.3, 0, 0],
+        "9131": [1e-05, 0.9, 0, 0],
+        "9132": [0.65002, 1.15, 0, 0],
+        "9133": [0.90001, 0, 0, 0],
+        "9143": [0.88502, 0.915, 0, 0],
+        "10216": [1.25003, 1.75, 0, 0],
+        "10217": [1.25003, 1.75, 0, 0],
+        "57344": [-0.00499, 0.605, 0, 0],
+        "57345": [-0.00499, 0.605, 0, 0],
+        "57680": [0, 0.12, 0, 0],
+        "57681": [0, 0.12, 0, 0],
+        "57682": [0, 0.12, 0, 0],
+        "57683": [0, 0.12, 0, 0],
+    },
+    "Typewriter-Regular": {
+        "33": [0, 0.61111, 0, 0],
+        "34": [0, 0.61111, 0, 0],
+        "35": [0, 0.61111, 0, 0],
+        "36": [0.08333, 0.69444, 0, 0],
+        "37": [0.08333, 0.69444, 0, 0],
+        "38": [0, 0.61111, 0, 0],
+        "39": [0, 0.61111, 0, 0],
+        "40": [0.08333, 0.69444, 0, 0],
+        "41": [0.08333, 0.69444, 0, 0],
+        "42": [0, 0.52083, 0, 0],
+        "43": [-0.08056, 0.53055, 0, 0],
+        "44": [0.13889, 0.125, 0, 0],
+        "45": [-0.08056, 0.53055, 0, 0],
+        "46": [0, 0.125, 0, 0],
+        "47": [0.08333, 0.69444, 0, 0],
+        "48": [0, 0.61111, 0, 0],
+        "49": [0, 0.61111, 0, 0],
+        "50": [0, 0.61111, 0, 0],
+        "51": [0, 0.61111, 0, 0],
+        "52": [0, 0.61111, 0, 0],
+        "53": [0, 0.61111, 0, 0],
+        "54": [0, 0.61111, 0, 0],
+        "55": [0, 0.61111, 0, 0],
+        "56": [0, 0.61111, 0, 0],
+        "57": [0, 0.61111, 0, 0],
+        "58": [0, 0.43056, 0, 0],
+        "59": [0.13889, 0.43056, 0, 0],
+        "60": [-0.05556, 0.55556, 0, 0],
+        "61": [-0.19549, 0.41562, 0, 0],
+        "62": [-0.05556, 0.55556, 0, 0],
+        "63": [0, 0.61111, 0, 0],
+        "64": [0, 0.61111, 0, 0],
+        "65": [0, 0.61111, 0, 0],
+        "66": [0, 0.61111, 0, 0],
+        "67": [0, 0.61111, 0, 0],
+        "68": [0, 0.61111, 0, 0],
+        "69": [0, 0.61111, 0, 0],
+        "70": [0, 0.61111, 0, 0],
+        "71": [0, 0.61111, 0, 0],
+        "72": [0, 0.61111, 0, 0],
+        "73": [0, 0.61111, 0, 0],
+        "74": [0, 0.61111, 0, 0],
+        "75": [0, 0.61111, 0, 0],
+        "76": [0, 0.61111, 0, 0],
+        "77": [0, 0.61111, 0, 0],
+        "78": [0, 0.61111, 0, 0],
+        "79": [0, 0.61111, 0, 0],
+        "80": [0, 0.61111, 0, 0],
+        "81": [0.13889, 0.61111, 0, 0],
+        "82": [0, 0.61111, 0, 0],
+        "83": [0, 0.61111, 0, 0],
+        "84": [0, 0.61111, 0, 0],
+        "85": [0, 0.61111, 0, 0],
+        "86": [0, 0.61111, 0, 0],
+        "87": [0, 0.61111, 0, 0],
+        "88": [0, 0.61111, 0, 0],
+        "89": [0, 0.61111, 0, 0],
+        "90": [0, 0.61111, 0, 0],
+        "91": [0.08333, 0.69444, 0, 0],
+        "92": [0.08333, 0.69444, 0, 0],
+        "93": [0.08333, 0.69444, 0, 0],
+        "94": [0, 0.61111, 0, 0],
+        "95": [0.09514, 0, 0, 0],
+        "96": [0, 0.61111, 0, 0],
+        "97": [0, 0.43056, 0, 0],
+        "98": [0, 0.61111, 0, 0],
+        "99": [0, 0.43056, 0, 0],
+        "100": [0, 0.61111, 0, 0],
+        "101": [0, 0.43056, 0, 0],
+        "102": [0, 0.61111, 0, 0],
+        "103": [0.22222, 0.43056, 0, 0],
+        "104": [0, 0.61111, 0, 0],
+        "105": [0, 0.61111, 0, 0],
+        "106": [0.22222, 0.61111, 0, 0],
+        "107": [0, 0.61111, 0, 0],
+        "108": [0, 0.61111, 0, 0],
+        "109": [0, 0.43056, 0, 0],
+        "110": [0, 0.43056, 0, 0],
+        "111": [0, 0.43056, 0, 0],
+        "112": [0.22222, 0.43056, 0, 0],
+        "113": [0.22222, 0.43056, 0, 0],
+        "114": [0, 0.43056, 0, 0],
+        "115": [0, 0.43056, 0, 0],
+        "116": [0, 0.55358, 0, 0],
+        "117": [0, 0.43056, 0, 0],
+        "118": [0, 0.43056, 0, 0],
+        "119": [0, 0.43056, 0, 0],
+        "120": [0, 0.43056, 0, 0],
+        "121": [0.22222, 0.43056, 0, 0],
+        "122": [0, 0.43056, 0, 0],
+        "123": [0.08333, 0.69444, 0, 0],
+        "124": [0.08333, 0.69444, 0, 0],
+        "125": [0.08333, 0.69444, 0, 0],
+        "126": [0, 0.61111, 0, 0],
+        "127": [0, 0.61111, 0, 0],
+        "305": [0, 0.43056, 0, 0],
+        "567": [0.22222, 0.43056, 0, 0],
+        "768": [0, 0.61111, 0, 0],
+        "769": [0, 0.61111, 0, 0],
+        "770": [0, 0.61111, 0, 0],
+        "771": [0, 0.61111, 0, 0],
+        "772": [0, 0.56555, 0, 0],
+        "774": [0, 0.61111, 0, 0],
+        "776": [0, 0.61111, 0, 0],
+        "778": [0, 0.61111, 0, 0],
+        "780": [0, 0.56597, 0, 0],
+        "915": [0, 0.61111, 0, 0],
+        "916": [0, 0.61111, 0, 0],
+        "920": [0, 0.61111, 0, 0],
+        "923": [0, 0.61111, 0, 0],
+        "926": [0, 0.61111, 0, 0],
+        "928": [0, 0.61111, 0, 0],
+        "931": [0, 0.61111, 0, 0],
+        "933": [0, 0.61111, 0, 0],
+        "934": [0, 0.61111, 0, 0],
+        "936": [0, 0.61111, 0, 0],
+        "937": [0, 0.61111, 0, 0],
+        "2018": [0, 0.61111, 0, 0],
+        "2019": [0, 0.61111, 0, 0],
+        "8242": [0, 0.61111, 0, 0],
+    },
+};
 
-},{}],152:[function(require,module,exports){
+},{}],158:[function(require,module,exports){
 var utils = require("./utils");
 var ParseError = require("./ParseError");
 
-// This file contains a list of functions that we parse. The functions map
-// contains the following data:
-
-/*
- * Keys are the name of the functions to parse
- * The data contains the following keys:
+/* This file contains a list of functions that we parse, identified by
+ * the calls to defineFunction.
+ *
+ * The first argument to defineFunction is a single name or a list of names.
+ * All functions named in such a list will share a single implementation.
+ *
+ * Each declared function can have associated properties, which
+ * include the following:
+ *
  *  - numArgs: The number of arguments the function takes.
+ *             If this is the only property, it can be passed as a number
+ *             instead of an element of a properties object.
  *  - argTypes: (optional) An array corresponding to each argument of the
  *              function, giving the type of argument that should be parsed. Its
  *              length should be equal to `numArgs + numOptionalArgs`. Valid
@@ -19900,135 +20585,174 @@ var ParseError = require("./ParseError");
  *                     should parse. If the optional arguments aren't found,
  *                     `null` will be passed to the handler in their place.
  *                     (default 0)
- *  - handler: The function that is called to handle this function and its
- *             arguments. The arguments are:
- *              - func: the text of the function
- *              - [args]: the next arguments are the arguments to the function,
- *                        of which there are numArgs of them
- *              - positions: the positions in the overall string of the function
- *                           and the arguments. Should only be used to produce
- *                           error messages
- *             The function should return an object with the following keys:
- *              - type: The type of element that this is. This is then used in
- *                      buildHTML/buildMathML to determine which function
- *                      should be called to build this node into a DOM node
- *             Any other data can be added to the object, which will be passed
- *             in to the function in buildHTML/buildMathML as `group.value`.
+ *
+ * The last argument is that implementation, the handler for the function(s).
+ * It is called to handle these functions and their arguments.
+ * It receives two arguments:
+ *  - context contains information and references provided by the parser
+ *  - args is an array of arguments obtained from TeX input
+ * The context contains the following properties:
+ *  - funcName: the text (i.e. name) of the function, including \
+ *  - parser: the parser object
+ *  - lexer: the lexer object
+ *  - positions: the positions in the overall string of the function
+ *               and the arguments.
+ * The latter three should only be used to produce error messages.
+ *
+ * The function should return an object with the following keys:
+ *  - type: The type of element that this is. This is then used in
+ *          buildHTML/buildMathML to determine which function
+ *          should be called to build this node into a DOM node
+ * Any other data can be added to the object, which will be passed
+ * in to the function in buildHTML/buildMathML as `group.value`.
  */
 
-var functions = {
-    // A normal square root
-    "\\sqrt": {
-        numArgs: 1,
-        numOptionalArgs: 1,
-        handler: function(func, index, body, positions) {
-            return {
-                type: "sqrt",
-                body: body,
-                index: index
-            };
-        }
-    },
-
-    // Some non-mathy text
-    "\\text": {
-        numArgs: 1,
-        argTypes: ["text"],
-        greediness: 2,
-        handler: function(func, body) {
-            // Since the corresponding buildHTML/buildMathML function expects a
-            // list of elements, we normalize for different kinds of arguments
-            // TODO(emily): maybe this should be done somewhere else
-            var inner;
-            if (body.type === "ordgroup") {
-                inner = body.value;
-            } else {
-                inner = [body];
-            }
-
-            return {
-                type: "text",
-                body: inner
-            };
-        }
-    },
-
-    // A two-argument custom color
-    "\\color": {
-        numArgs: 2,
-        allowedInText: true,
-        greediness: 3,
-        argTypes: ["color", "original"],
-        handler: function(func, color, body) {
-            // Normalize the different kinds of bodies (see \text above)
-            var inner;
-            if (body.type === "ordgroup") {
-                inner = body.value;
-            } else {
-                inner = [body];
-            }
-
-            return {
-                type: "color",
-                color: color.value,
-                value: inner
-            };
-        }
-    },
-
-    // An overline
-    "\\overline": {
-        numArgs: 1,
-        handler: function(func, body) {
-            return {
-                type: "overline",
-                body: body
-            };
-        }
-    },
-
-    // A box of the width and height
-    "\\rule": {
-        numArgs: 2,
-        numOptionalArgs: 1,
-        argTypes: ["size", "size", "size"],
-        handler: function(func, shift, width, height) {
-            return {
-                type: "rule",
-                shift: shift && shift.value,
-                width: width.value,
-                height: height.value
-            };
-        }
-    },
-
-    // A KaTeX logo
-    "\\KaTeX": {
-        numArgs: 0,
-        handler: function(func) {
-            return {
-                type: "katex"
-            };
-        }
-    },
-
-    "\\phantom": {
-        numArgs: 1,
-        handler: function(func, body) {
-            var inner;
-            if (body.type === "ordgroup") {
-                inner = body.value;
-            } else {
-                inner = [body];
-            }
-
-            return {
-                type: "phantom",
-                value: inner
-            };
-        }
+function defineFunction(names, props, handler) {
+    if (typeof names === "string") {
+        names = [names];
     }
-};
+    if (typeof props === "number") {
+        props = { numArgs: props };
+    }
+    // Set default values of functions
+    var data = {
+        numArgs: props.numArgs,
+        argTypes: props.argTypes,
+        greediness: (props.greediness === undefined) ? 1 : props.greediness,
+        allowedInText: !!props.allowedInText,
+        numOptionalArgs: props.numOptionalArgs || 0,
+        handler: handler,
+    };
+    for (var i = 0; i < names.length; ++i) {
+        module.exports[names[i]] = data;
+    }
+}
+
+// A normal square root
+defineFunction("\\sqrt", {
+    numArgs: 1,
+    numOptionalArgs: 1,
+}, function(context, args) {
+    var index = args[0];
+    var body = args[1];
+    return {
+        type: "sqrt",
+        body: body,
+        index: index,
+    };
+});
+
+// Some non-mathy text
+defineFunction("\\text", {
+    numArgs: 1,
+    argTypes: ["text"],
+    greediness: 2,
+}, function(context, args) {
+    var body = args[0];
+    // Since the corresponding buildHTML/buildMathML function expects a
+    // list of elements, we normalize for different kinds of arguments
+    // TODO(emily): maybe this should be done somewhere else
+    var inner;
+    if (body.type === "ordgroup") {
+        inner = body.value;
+    } else {
+        inner = [body];
+    }
+
+    return {
+        type: "text",
+        body: inner,
+    };
+});
+
+// A two-argument custom color
+defineFunction("\\color", {
+    numArgs: 2,
+    allowedInText: true,
+    greediness: 3,
+    argTypes: ["color", "original"],
+}, function(context, args) {
+    var color = args[0];
+    var body = args[1];
+    // Normalize the different kinds of bodies (see \text above)
+    var inner;
+    if (body.type === "ordgroup") {
+        inner = body.value;
+    } else {
+        inner = [body];
+    }
+
+    return {
+        type: "color",
+        color: color.value,
+        value: inner,
+    };
+});
+
+// An overline
+defineFunction("\\overline", {
+    numArgs: 1,
+}, function(context, args) {
+    var body = args[0];
+    return {
+        type: "overline",
+        body: body,
+    };
+});
+
+// An underline
+defineFunction("\\underline", {
+    numArgs: 1,
+}, function(context, args) {
+    var body = args[0];
+    return {
+        type: "underline",
+        body: body,
+    };
+});
+
+// A box of the width and height
+defineFunction("\\rule", {
+    numArgs: 2,
+    numOptionalArgs: 1,
+    argTypes: ["size", "size", "size"],
+}, function(context, args) {
+    var shift = args[0];
+    var width = args[1];
+    var height = args[2];
+    return {
+        type: "rule",
+        shift: shift && shift.value,
+        width: width.value,
+        height: height.value,
+    };
+});
+
+// A KaTeX logo
+defineFunction("\\KaTeX", {
+    numArgs: 0,
+}, function(context) {
+    return {
+        type: "katex",
+    };
+});
+
+defineFunction("\\phantom", {
+    numArgs: 1,
+}, function(context, args) {
+    var body = args[0];
+    var inner;
+    if (body.type === "ordgroup") {
+        inner = body.value;
+    } else {
+        inner = [body];
+    }
+
+    return {
+        type: "phantom",
+        value: inner,
+    };
+});
 
 // Extra data needed for the delimiter handler down below
 var delimiterSizes = {
@@ -20047,14 +20771,14 @@ var delimiterSizes = {
     "\\big"  : {type: "textord", size: 1},
     "\\Big"  : {type: "textord", size: 2},
     "\\bigg" : {type: "textord", size: 3},
-    "\\Bigg" : {type: "textord", size: 4}
+    "\\Bigg" : {type: "textord", size: 4},
 };
 
 var delimiters = [
     "(", ")", "[", "\\lbrack", "]", "\\rbrack",
     "\\{", "\\lbrace", "\\}", "\\rbrace",
     "\\lfloor", "\\rfloor", "\\lceil", "\\rceil",
-    "<", ">", "\\langle", "\\rangle",
+    "<", ">", "\\langle", "\\rangle", "\\lt", "\\gt",
     "\\lvert", "\\rvert", "\\lVert", "\\rVert",
     "\\lgroup", "\\rgroup", "\\lmoustache", "\\rmoustache",
     "/", "\\backslash",
@@ -20062,423 +20786,330 @@ var delimiters = [
     "\\uparrow", "\\Uparrow",
     "\\downarrow", "\\Downarrow",
     "\\updownarrow", "\\Updownarrow",
-    "."
+    ".",
 ];
 
 var fontAliases = {
     "\\Bbb": "\\mathbb",
     "\\bold": "\\mathbf",
-    "\\frak": "\\mathfrak"
+    "\\frak": "\\mathfrak",
 };
 
-/*
- * This is a list of functions which each have the same function but have
- * different names so that we don't have to duplicate the data a bunch of times.
- * Each element in the list is an object with the following keys:
- *  - funcs: A list of function names to be associated with the data
- *  - data: An objecty with the same data as in each value of the `function`
- *          table above
- */
-var duplicatedFunctions = [
-    // Single-argument color functions
-    {
-        funcs: [
-            "\\blue", "\\orange", "\\pink", "\\red",
-            "\\green", "\\gray", "\\purple",
-            "\\blueA", "\\blueB", "\\blueC", "\\blueD", "\\blueE",
-            "\\tealA", "\\tealB", "\\tealC", "\\tealD", "\\tealE",
-            "\\greenA", "\\greenB", "\\greenC", "\\greenD", "\\greenE",
-            "\\goldA", "\\goldB", "\\goldC", "\\goldD", "\\goldE",
-            "\\redA", "\\redB", "\\redC", "\\redD", "\\redE",
-            "\\maroonA", "\\maroonB", "\\maroonC", "\\maroonD", "\\maroonE",
-            "\\purpleA", "\\purpleB", "\\purpleC", "\\purpleD", "\\purpleE",
-            "\\mintA", "\\mintB", "\\mintC",
-            "\\grayA", "\\grayB", "\\grayC", "\\grayD", "\\grayE",
-            "\\grayF", "\\grayG", "\\grayH", "\\grayI",
-            "\\kaBlue", "\\kaGreen"
-        ],
-        data: {
-            numArgs: 1,
-            allowedInText: true,
-            greediness: 3,
-            handler: function(func, body) {
-                var atoms;
-                if (body.type === "ordgroup") {
-                    atoms = body.value;
-                } else {
-                    atoms = [body];
-                }
-
-                return {
-                    type: "color",
-                    color: "katex-" + func.slice(1),
-                    value: atoms
-                };
-            }
-        }
-    },
-
-    // There are 2 flags for operators; whether they produce limits in
-    // displaystyle, and whether they are symbols and should grow in
-    // displaystyle. These four groups cover the four possible choices.
-
-    // No limits, not symbols
-    {
-        funcs: [
-            "\\arcsin", "\\arccos", "\\arctan", "\\arg", "\\cos", "\\cosh",
-            "\\cot", "\\coth", "\\csc", "\\deg", "\\dim", "\\exp", "\\hom",
-            "\\ker", "\\lg", "\\ln", "\\log", "\\sec", "\\sin", "\\sinh",
-            "\\tan","\\tanh"
-        ],
-        data: {
-            numArgs: 0,
-            handler: function(func) {
-                return {
-                    type: "op",
-                    limits: false,
-                    symbol: false,
-                    body: func
-                };
-            }
-        }
-    },
-
-    // Limits, not symbols
-    {
-        funcs: [
-            "\\det", "\\gcd", "\\inf", "\\lim", "\\liminf", "\\limsup", "\\max",
-            "\\min", "\\Pr", "\\sup"
-        ],
-        data: {
-            numArgs: 0,
-            handler: function(func) {
-                return {
-                    type: "op",
-                    limits: true,
-                    symbol: false,
-                    body: func
-                };
-            }
-        }
-    },
-
-    // No limits, symbols
-    {
-        funcs: [
-            "\\int", "\\iint", "\\iiint", "\\oint"
-        ],
-        data: {
-            numArgs: 0,
-            handler: function(func) {
-                return {
-                    type: "op",
-                    limits: false,
-                    symbol: true,
-                    body: func
-                };
-            }
-        }
-    },
-
-    // Limits, symbols
-    {
-        funcs: [
-            "\\coprod", "\\bigvee", "\\bigwedge", "\\biguplus", "\\bigcap",
-            "\\bigcup", "\\intop", "\\prod", "\\sum", "\\bigotimes",
-            "\\bigoplus", "\\bigodot", "\\bigsqcup", "\\smallint"
-        ],
-        data: {
-            numArgs: 0,
-            handler: function(func) {
-                return {
-                    type: "op",
-                    limits: true,
-                    symbol: true,
-                    body: func
-                };
-            }
-        }
-    },
-
-    // Fractions
-    {
-        funcs: [
-            "\\dfrac", "\\frac", "\\tfrac",
-            "\\dbinom", "\\binom", "\\tbinom"
-        ],
-        data: {
-            numArgs: 2,
-            greediness: 2,
-            handler: function(func, numer, denom) {
-                var hasBarLine;
-                var leftDelim = null;
-                var rightDelim = null;
-                var size = "auto";
-
-                switch (func) {
-                    case "\\dfrac":
-                    case "\\frac":
-                    case "\\tfrac":
-                        hasBarLine = true;
-                        break;
-                    case "\\dbinom":
-                    case "\\binom":
-                    case "\\tbinom":
-                        hasBarLine = false;
-                        leftDelim = "(";
-                        rightDelim = ")";
-                        break;
-                    default:
-                        throw new Error("Unrecognized genfrac command");
-                }
-
-                switch (func) {
-                    case "\\dfrac":
-                    case "\\dbinom":
-                        size = "display";
-                        break;
-                    case "\\tfrac":
-                    case "\\tbinom":
-                        size = "text";
-                        break;
-                }
-
-                return {
-                    type: "genfrac",
-                    numer: numer,
-                    denom: denom,
-                    hasBarLine: hasBarLine,
-                    leftDelim: leftDelim,
-                    rightDelim: rightDelim,
-                    size: size
-                };
-            }
-        }
-    },
-
-    // Left and right overlap functions
-    {
-        funcs: ["\\llap", "\\rlap"],
-        data: {
-            numArgs: 1,
-            allowedInText: true,
-            handler: function(func, body) {
-                return {
-                    type: func.slice(1),
-                    body: body
-                };
-            }
-        }
-    },
-
-    // Delimiter functions
-    {
-        funcs: [
-            "\\bigl", "\\Bigl", "\\biggl", "\\Biggl",
-            "\\bigr", "\\Bigr", "\\biggr", "\\Biggr",
-            "\\bigm", "\\Bigm", "\\biggm", "\\Biggm",
-            "\\big",  "\\Big",  "\\bigg",  "\\Bigg",
-            "\\left", "\\right"
-        ],
-        data: {
-            numArgs: 1,
-            handler: function(func, delim, positions) {
-                if (!utils.contains(delimiters, delim.value)) {
-                    throw new ParseError(
-                        "Invalid delimiter: '" + delim.value + "' after '" +
-                            func + "'",
-                        this.lexer, positions[1]);
-                }
-
-                // \left and \right are caught somewhere in Parser.js, which is
-                // why this data doesn't match what is in buildHTML.
-                if (func === "\\left" || func === "\\right") {
-                    return {
-                        type: "leftright",
-                        value: delim.value
-                    };
-                } else {
-                    return {
-                        type: "delimsizing",
-                        size: delimiterSizes[func].size,
-                        delimType: delimiterSizes[func].type,
-                        value: delim.value
-                    };
-                }
-            }
-        }
-    },
-
-    // Sizing functions (handled in Parser.js explicitly, hence no handler)
-    {
-        funcs: [
-            "\\tiny", "\\scriptsize", "\\footnotesize", "\\small",
-            "\\normalsize", "\\large", "\\Large", "\\LARGE", "\\huge", "\\Huge"
-        ],
-        data: {
-            numArgs: 0
-        }
-    },
-
-    // Style changing functions (handled in Parser.js explicitly, hence no
-    // handler)
-    {
-        funcs: [
-            "\\displaystyle", "\\textstyle", "\\scriptstyle",
-            "\\scriptscriptstyle"
-        ],
-        data: {
-            numArgs: 0
-        }
-    },
-
-    {
-        funcs: [
-            // styles
-            "\\mathrm", "\\mathit", "\\mathbf",
-
-            // families
-            "\\mathbb", "\\mathcal", "\\mathfrak", "\\mathscr", "\\mathsf",
-            "\\mathtt",
-
-            // aliases
-            "\\Bbb", "\\bold", "\\frak"
-        ],
-        data: {
-            numArgs: 1,
-            handler: function (func, body) {
-                if (func in fontAliases) {
-                    func = fontAliases[func];
-                }
-                return {
-                    type: "font",
-                    font: func.slice(1),
-                    body: body
-                };
-            }
-        }
-    },
-
-    // Accents
-    {
-        funcs: [
-            "\\acute", "\\grave", "\\ddot", "\\tilde", "\\bar", "\\breve",
-            "\\check", "\\hat", "\\vec", "\\dot"
-            // We don't support expanding accents yet
-            // "\\widetilde", "\\widehat"
-        ],
-        data: {
-            numArgs: 1,
-            handler: function(func, base) {
-                return {
-                    type: "accent",
-                    accent: func,
-                    base: base
-                };
-            }
-        }
-    },
-
-    // Infix generalized fractions
-    {
-        funcs: ["\\over", "\\choose"],
-        data: {
-            numArgs: 0,
-            handler: function (func) {
-                var replaceWith;
-                switch (func) {
-                    case "\\over":
-                        replaceWith = "\\frac";
-                        break;
-                    case "\\choose":
-                        replaceWith = "\\binom";
-                        break;
-                    default:
-                        throw new Error("Unrecognized infix genfrac command");
-                }
-                return {
-                    type: "infix",
-                    replaceWith: replaceWith
-                };
-            }
-        }
-    },
-
-    // Row breaks for aligned data
-    {
-        funcs: ["\\\\", "\\cr"],
-        data: {
-            numArgs: 0,
-            numOptionalArgs: 1,
-            argTypes: ["size"],
-            handler: function(func, size) {
-                return {
-                    type: "cr",
-                    size: size
-                };
-            }
-        }
-    },
-
-    // Environment delimiters
-    {
-        funcs: ["\\begin", "\\end"],
-        data: {
-            numArgs: 1,
-            argTypes: ["text"],
-            handler: function(func, nameGroup, positions) {
-                if (nameGroup.type !== "ordgroup") {
-                    throw new ParseError(
-                        "Invalid environment name",
-                        this.lexer, positions[1]);
-                }
-                var name = "";
-                for (var i = 0; i < nameGroup.value.length; ++i) {
-                    name += nameGroup.value[i].value;
-                }
-                return {
-                    type: "environment",
-                    name: name,
-                    namepos: positions[1]
-                };
-            }
-        }
+// Single-argument color functions
+defineFunction([
+    "\\blue", "\\orange", "\\pink", "\\red",
+    "\\green", "\\gray", "\\purple",
+    "\\blueA", "\\blueB", "\\blueC", "\\blueD", "\\blueE",
+    "\\tealA", "\\tealB", "\\tealC", "\\tealD", "\\tealE",
+    "\\greenA", "\\greenB", "\\greenC", "\\greenD", "\\greenE",
+    "\\goldA", "\\goldB", "\\goldC", "\\goldD", "\\goldE",
+    "\\redA", "\\redB", "\\redC", "\\redD", "\\redE",
+    "\\maroonA", "\\maroonB", "\\maroonC", "\\maroonD", "\\maroonE",
+    "\\purpleA", "\\purpleB", "\\purpleC", "\\purpleD", "\\purpleE",
+    "\\mintA", "\\mintB", "\\mintC",
+    "\\grayA", "\\grayB", "\\grayC", "\\grayD", "\\grayE",
+    "\\grayF", "\\grayG", "\\grayH", "\\grayI",
+    "\\kaBlue", "\\kaGreen",
+], {
+    numArgs: 1,
+    allowedInText: true,
+    greediness: 3,
+}, function(context, args) {
+    var body = args[0];
+    var atoms;
+    if (body.type === "ordgroup") {
+        atoms = body.value;
+    } else {
+        atoms = [body];
     }
-];
 
-var addFuncsWithData = function(funcs, data) {
-    for (var i = 0; i < funcs.length; i++) {
-        functions[funcs[i]] = data;
+    return {
+        type: "color",
+        color: "katex-" + context.funcName.slice(1),
+        value: atoms,
+    };
+});
+
+// There are 2 flags for operators; whether they produce limits in
+// displaystyle, and whether they are symbols and should grow in
+// displaystyle. These four groups cover the four possible choices.
+
+// No limits, not symbols
+defineFunction([
+    "\\arcsin", "\\arccos", "\\arctan", "\\arg", "\\cos", "\\cosh",
+    "\\cot", "\\coth", "\\csc", "\\deg", "\\dim", "\\exp", "\\hom",
+    "\\ker", "\\lg", "\\ln", "\\log", "\\sec", "\\sin", "\\sinh",
+    "\\tan", "\\tanh",
+], {
+    numArgs: 0,
+}, function(context) {
+    return {
+        type: "op",
+        limits: false,
+        symbol: false,
+        body: context.funcName,
+    };
+});
+
+// Limits, not symbols
+defineFunction([
+    "\\det", "\\gcd", "\\inf", "\\lim", "\\liminf", "\\limsup", "\\max",
+    "\\min", "\\Pr", "\\sup",
+], {
+    numArgs: 0,
+}, function(context) {
+    return {
+        type: "op",
+        limits: true,
+        symbol: false,
+        body: context.funcName,
+    };
+});
+
+// No limits, symbols
+defineFunction([
+    "\\int", "\\iint", "\\iiint", "\\oint",
+], {
+    numArgs: 0,
+}, function(context) {
+    return {
+        type: "op",
+        limits: false,
+        symbol: true,
+        body: context.funcName,
+    };
+});
+
+// Limits, symbols
+defineFunction([
+    "\\coprod", "\\bigvee", "\\bigwedge", "\\biguplus", "\\bigcap",
+    "\\bigcup", "\\intop", "\\prod", "\\sum", "\\bigotimes",
+    "\\bigoplus", "\\bigodot", "\\bigsqcup", "\\smallint",
+], {
+    numArgs: 0,
+}, function(context) {
+    return {
+        type: "op",
+        limits: true,
+        symbol: true,
+        body: context.funcName,
+    };
+});
+
+// Fractions
+defineFunction([
+    "\\dfrac", "\\frac", "\\tfrac",
+    "\\dbinom", "\\binom", "\\tbinom",
+], {
+    numArgs: 2,
+    greediness: 2,
+}, function(context, args) {
+    var numer = args[0];
+    var denom = args[1];
+    var hasBarLine;
+    var leftDelim = null;
+    var rightDelim = null;
+    var size = "auto";
+
+    switch (context.funcName) {
+        case "\\dfrac":
+        case "\\frac":
+        case "\\tfrac":
+            hasBarLine = true;
+            break;
+        case "\\dbinom":
+        case "\\binom":
+        case "\\tbinom":
+            hasBarLine = false;
+            leftDelim = "(";
+            rightDelim = ")";
+            break;
+        default:
+            throw new Error("Unrecognized genfrac command");
     }
-};
 
-// Add all of the functions in duplicatedFunctions to the functions map
-for (var i = 0; i < duplicatedFunctions.length; i++) {
-    addFuncsWithData(duplicatedFunctions[i].funcs, duplicatedFunctions[i].data);
-}
+    switch (context.funcName) {
+        case "\\dfrac":
+        case "\\dbinom":
+            size = "display";
+            break;
+        case "\\tfrac":
+        case "\\tbinom":
+            size = "text";
+            break;
+    }
 
-// Set default values of functions
-for (var f in functions) {
-    if (functions.hasOwnProperty(f)) {
-        var func = functions[f];
+    return {
+        type: "genfrac",
+        numer: numer,
+        denom: denom,
+        hasBarLine: hasBarLine,
+        leftDelim: leftDelim,
+        rightDelim: rightDelim,
+        size: size,
+    };
+});
 
-        functions[f] = {
-            numArgs: func.numArgs,
-            argTypes: func.argTypes,
-            greediness: (func.greediness === undefined) ? 1 : func.greediness,
-            allowedInText: func.allowedInText ? func.allowedInText : false,
-            numOptionalArgs: (func.numOptionalArgs === undefined) ? 0 :
-                func.numOptionalArgs,
-            handler: func.handler
+// Left and right overlap functions
+defineFunction(["\\llap", "\\rlap"], {
+    numArgs: 1,
+    allowedInText: true,
+}, function(context, args) {
+    var body = args[0];
+    return {
+        type: context.funcName.slice(1),
+        body: body,
+    };
+});
+
+// Delimiter functions
+defineFunction([
+    "\\bigl", "\\Bigl", "\\biggl", "\\Biggl",
+    "\\bigr", "\\Bigr", "\\biggr", "\\Biggr",
+    "\\bigm", "\\Bigm", "\\biggm", "\\Biggm",
+    "\\big",  "\\Big",  "\\bigg",  "\\Bigg",
+    "\\left", "\\right",
+], {
+    numArgs: 1,
+}, function(context, args) {
+    var delim = args[0];
+    if (!utils.contains(delimiters, delim.value)) {
+        throw new ParseError(
+            "Invalid delimiter: '" + delim.value + "' after '" +
+                context.funcName + "'",
+            context.lexer, context.positions[1]);
+    }
+
+    // \left and \right are caught somewhere in Parser.js, which is
+    // why this data doesn't match what is in buildHTML.
+    if (context.funcName === "\\left" || context.funcName === "\\right") {
+        return {
+            type: "leftright",
+            value: delim.value,
+        };
+    } else {
+        return {
+            type: "delimsizing",
+            size: delimiterSizes[context.funcName].size,
+            delimType: delimiterSizes[context.funcName].type,
+            value: delim.value,
         };
     }
-}
+});
 
-module.exports = {
-    funcs: functions
-};
+// Sizing functions (handled in Parser.js explicitly, hence no handler)
+defineFunction([
+    "\\tiny", "\\scriptsize", "\\footnotesize", "\\small",
+    "\\normalsize", "\\large", "\\Large", "\\LARGE", "\\huge", "\\Huge",
+], 0, null);
 
-},{"./ParseError":139,"./utils":157}],153:[function(require,module,exports){
+// Style changing functions (handled in Parser.js explicitly, hence no
+// handler)
+defineFunction([
+    "\\displaystyle", "\\textstyle", "\\scriptstyle",
+    "\\scriptscriptstyle",
+], 0, null);
+
+defineFunction([
+    // styles
+    "\\mathrm", "\\mathit", "\\mathbf",
+
+    // families
+    "\\mathbb", "\\mathcal", "\\mathfrak", "\\mathscr", "\\mathsf",
+    "\\mathtt",
+
+    // aliases
+    "\\Bbb", "\\bold", "\\frak",
+], {
+    numArgs: 1,
+    greediness: 2,
+}, function(context, args) {
+    var body = args[0];
+    var func = context.funcName;
+    if (func in fontAliases) {
+        func = fontAliases[func];
+    }
+    return {
+        type: "font",
+        font: func.slice(1),
+        body: body,
+    };
+});
+
+// Accents
+defineFunction([
+    "\\acute", "\\grave", "\\ddot", "\\tilde", "\\bar", "\\breve",
+    "\\check", "\\hat", "\\vec", "\\dot",
+    // We don't support expanding accents yet
+    // "\\widetilde", "\\widehat"
+], {
+    numArgs: 1,
+}, function(context, args) {
+    var base = args[0];
+    return {
+        type: "accent",
+        accent: context.funcName,
+        base: base,
+    };
+});
+
+// Infix generalized fractions
+defineFunction(["\\over", "\\choose"], {
+    numArgs: 0,
+}, function(context) {
+    var replaceWith;
+    switch (context.funcName) {
+        case "\\over":
+            replaceWith = "\\frac";
+            break;
+        case "\\choose":
+            replaceWith = "\\binom";
+            break;
+        default:
+            throw new Error("Unrecognized infix genfrac command");
+    }
+    return {
+        type: "infix",
+        replaceWith: replaceWith,
+    };
+});
+
+// Row breaks for aligned data
+defineFunction(["\\\\", "\\cr"], {
+    numArgs: 0,
+    numOptionalArgs: 1,
+    argTypes: ["size"],
+}, function(context, args) {
+    var size = args[0];
+    return {
+        type: "cr",
+        size: size,
+    };
+});
+
+// Environment delimiters
+defineFunction(["\\begin", "\\end"], {
+    numArgs: 1,
+    argTypes: ["text"],
+}, function(context, args) {
+    var nameGroup = args[0];
+    if (nameGroup.type !== "ordgroup") {
+        throw new ParseError(
+            "Invalid environment name",
+            context.lexer, context.positions[1]);
+    }
+    var name = "";
+    for (var i = 0; i < nameGroup.value.length; ++i) {
+        name += nameGroup.value[i].value;
+    }
+    return {
+        type: "environment",
+        name: name,
+        namepos: context.positions[1],
+    };
+});
+
+},{"./ParseError":145,"./utils":163}],159:[function(require,module,exports){
 /**
  * These objects store data about MathML nodes. This is the MathML equivalent
  * of the types in domTree.js. Since MathML handles its own rendering, and
@@ -20579,10 +21210,10 @@ TextNode.prototype.toMarkup = function() {
 
 module.exports = {
     MathNode: MathNode,
-    TextNode: TextNode
+    TextNode: TextNode,
 };
 
-},{"./utils":157}],154:[function(require,module,exports){
+},{"./utils":163}],160:[function(require,module,exports){
 /**
  * The resulting parse tree nodes of the parse tree.
  */
@@ -20592,22 +21223,12 @@ function ParseNode(type, value, mode) {
     this.mode = mode;
 }
 
-/**
- * A result and final position returned by the `.parse...` functions.
- * 
- */
-function ParseResult(result, newPosition, peek) {
-    this.result = result;
-    this.position = newPosition;
-}
-
 module.exports = {
     ParseNode: ParseNode,
-    ParseResult: ParseResult
 };
 
 
-},{}],155:[function(require,module,exports){
+},{}],161:[function(require,module,exports){
 /**
  * Provides a single function for parsing an expression using a Parser
  * TODO(emily): Remove this
@@ -20626,7 +21247,7 @@ var parseTree = function(toParse, settings) {
 
 module.exports = parseTree;
 
-},{"./Parser":140}],156:[function(require,module,exports){
+},{"./Parser":146}],162:[function(require,module,exports){
 /**
  * This file holds a list of all no-argument functions and single-character
  * symbols (like 'a' or ';').
@@ -20637,7 +21258,7 @@ module.exports = parseTree;
  * - group (required): the ParseNode group type the symbol should have (i.e.
      "textord", "mathord", etc).
      See https://github.com/Khan/KaTeX/wiki/Examining-TeX#group-types
- * - replace (optional): the character that this symbol or function should be
+ * - replace: the character that this symbol or function should be
  *   replaced with (i.e. "\phi" has a replace value of "\u03d5", the phi
  *   character in the main font).
  *
@@ -20645,2575 +21266,610 @@ module.exports = parseTree;
  * accepted in (e.g. "math" or "text").
  */
 
-var symbols = {
-    "math": {
-        // Relation Symbols
-        "\\equiv": {
-            font: "main",
-            group: "rel",
-            replace: "\u2261"
-        },
-        "\\prec": {
-            font: "main",
-            group: "rel",
-            replace: "\u227a"
-        },
-        "\\succ": {
-            font: "main",
-            group: "rel",
-            replace: "\u227b"
-        },
-        "\\sim": {
-            font: "main",
-            group: "rel",
-            replace: "\u223c"
-        },
-        "\\perp": {
-            font: "main",
-            group: "rel",
-            replace: "\u22a5"
-        },
-        "\\preceq": {
-            font: "main",
-            group: "rel",
-            replace: "\u2aaf"
-        },
-        "\\succeq": {
-            font: "main",
-            group: "rel",
-            replace: "\u2ab0"
-        },
-        "\\simeq": {
-            font: "main",
-            group: "rel",
-            replace: "\u2243"
-        },
-        "\\mid": {
-            font: "main",
-            group: "rel",
-            replace: "\u2223"
-        },
-        "\\ll": {
-            font: "main",
-            group: "rel",
-            replace: "\u226a"
-        },
-        "\\gg": {
-            font: "main",
-            group: "rel",
-            replace: "\u226b"
-        },
-        "\\asymp": {
-            font: "main",
-            group: "rel",
-            replace: "\u224d"
-        },
-        "\\parallel": {
-            font: "main",
-            group: "rel",
-            replace: "\u2225"
-        },
-        "\\bowtie": {
-            font: "main",
-            group: "rel",
-            replace: "\u22c8"
-        },
-        "\\smile": {
-            font: "main",
-            group: "rel",
-            replace: "\u2323"
-        },
-        "\\sqsubseteq": {
-            font: "main",
-            group: "rel",
-            replace: "\u2291"
-        },
-        "\\sqsupseteq": {
-            font: "main",
-            group: "rel",
-            replace: "\u2292"
-        },
-        "\\doteq": {
-            font: "main",
-            group: "rel",
-            replace: "\u2250"
-        },
-        "\\frown": {
-            font: "main",
-            group: "rel",
-            replace: "\u2322"
-        },
-        "\\ni": {
-            font: "main",
-            group: "rel",
-            replace: "\u220b"
-        },
-        "\\propto": {
-            font: "main",
-            group: "rel",
-            replace: "\u221d"
-        },
-        "\\vdash": {
-            font: "main",
-            group: "rel",
-            replace: "\u22a2"
-        },
-        "\\dashv": {
-            font: "main",
-            group: "rel",
-            replace: "\u22a3"
-        },
-        "\\owns": {
-            font: "main",
-            group: "rel",
-            replace: "\u220b"
-        },
-
-        // Punctuation
-        "\\ldotp": {
-            font: "main",
-            group: "punct",
-            replace: "\u002e"
-        },
-        "\\cdotp": {
-            font: "main",
-            group: "punct",
-            replace: "\u22c5"
-        },
-
-        // Misc Symbols
-        "\\#": {
-          font: "main",
-          group: "textord",
-          replace: "\u0023"
-        },
-        "\\&": {
-          font: "main",
-          group: "textord",
-          replace: "\u0026"
-        },
-        "\\aleph": {
-            font: "main",
-            group: "textord",
-            replace: "\u2135"
-        },
-        "\\forall": {
-            font: "main",
-            group: "textord",
-            replace: "\u2200"
-        },
-        "\\hbar": {
-            font: "main",
-            group: "textord",
-            replace: "\u210f"
-        },
-        "\\exists": {
-            font: "main",
-            group: "textord",
-            replace: "\u2203"
-        },
-        "\\nabla": {
-            font: "main",
-            group: "textord",
-            replace: "\u2207"
-        },
-        "\\flat": {
-            font: "main",
-            group: "textord",
-            replace: "\u266d"
-        },
-        "\\ell": {
-            font: "main",
-            group: "textord",
-            replace: "\u2113"
-        },
-        "\\natural": {
-            font: "main",
-            group: "textord",
-            replace: "\u266e"
-        },
-        "\\clubsuit": {
-            font: "main",
-            group: "textord",
-            replace: "\u2663"
-        },
-        "\\wp": {
-            font: "main",
-            group: "textord",
-            replace: "\u2118"
-        },
-        "\\sharp": {
-            font: "main",
-            group: "textord",
-            replace: "\u266f"
-        },
-        "\\diamondsuit": {
-            font: "main",
-            group: "textord",
-            replace: "\u2662"
-        },
-        "\\Re": {
-            font: "main",
-            group: "textord",
-            replace: "\u211c"
-        },
-        "\\heartsuit": {
-            font: "main",
-            group: "textord",
-            replace: "\u2661"
-        },
-        "\\Im": {
-            font: "main",
-            group: "textord",
-            replace: "\u2111"
-        },
-        "\\spadesuit": {
-            font: "main",
-            group: "textord",
-            replace: "\u2660"
-        },
-
-        // Math and Text
-        "\\dag": {
-            font: "main",
-            group: "textord",
-            replace: "\u2020"
-        },
-        "\\ddag": {
-            font: "main",
-            group: "textord",
-            replace: "\u2021"
-        },
-
-        // Large Delimiters
-        "\\rmoustache": {
-            font: "main",
-            group: "close",
-            replace: "\u23b1"
-        },
-        "\\lmoustache": {
-            font: "main",
-            group: "open",
-            replace: "\u23b0"
-        },
-        "\\rgroup": {
-            font: "main",
-            group: "close",
-            replace: "\u27ef"
-        },
-        "\\lgroup": {
-            font: "main",
-            group: "open",
-            replace: "\u27ee"
-        },
-
-        // Binary Operators
-        "\\mp": {
-            font: "main",
-            group: "bin",
-            replace: "\u2213"
-        },
-        "\\ominus": {
-            font: "main",
-            group: "bin",
-            replace: "\u2296"
-        },
-        "\\uplus": {
-            font: "main",
-            group: "bin",
-            replace: "\u228e"
-        },
-        "\\sqcap": {
-            font: "main",
-            group: "bin",
-            replace: "\u2293"
-        },
-        "\\ast": {
-            font: "main",
-            group: "bin",
-            replace: "\u2217"
-        },
-        "\\sqcup": {
-            font: "main",
-            group: "bin",
-            replace: "\u2294"
-        },
-        "\\bigcirc": {
-            font: "main",
-            group: "bin",
-            replace: "\u25ef"
-        },
-        "\\bullet": {
-            font: "main",
-            group: "bin",
-            replace: "\u2219"
-        },
-        "\\ddagger": {
-            font: "main",
-            group: "bin",
-            replace: "\u2021"
-        },
-        "\\wr": {
-            font: "main",
-            group: "bin",
-            replace: "\u2240"
-        },
-        "\\amalg": {
-            font: "main",
-            group: "bin",
-            replace: "\u2a3f"
-        },
-
-        // Arrow Symbols
-        "\\longleftarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u27f5"
-        },
-        "\\Leftarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u21d0"
-        },
-        "\\Longleftarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u27f8"
-        },
-        "\\longrightarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u27f6"
-        },
-        "\\Rightarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u21d2"
-        },
-        "\\Longrightarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u27f9"
-        },
-        "\\leftrightarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u2194"
-        },
-        "\\longleftrightarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u27f7"
-        },
-        "\\Leftrightarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u21d4"
-        },
-        "\\Longleftrightarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u27fa"
-        },
-        "\\mapsto": {
-            font: "main",
-            group: "rel",
-            replace: "\u21a6"
-        },
-        "\\longmapsto": {
-            font: "main",
-            group: "rel",
-            replace: "\u27fc"
-        },
-        "\\nearrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u2197"
-        },
-        "\\hookleftarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u21a9"
-        },
-        "\\hookrightarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u21aa"
-        },
-        "\\searrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u2198"
-        },
-        "\\leftharpoonup": {
-            font: "main",
-            group: "rel",
-            replace: "\u21bc"
-        },
-        "\\rightharpoonup": {
-            font: "main",
-            group: "rel",
-            replace: "\u21c0"
-        },
-        "\\swarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u2199"
-        },
-        "\\leftharpoondown": {
-            font: "main",
-            group: "rel",
-            replace: "\u21bd"
-        },
-        "\\rightharpoondown": {
-            font: "main",
-            group: "rel",
-            replace: "\u21c1"
-        },
-        "\\nwarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u2196"
-        },
-        "\\rightleftharpoons": {
-            font: "main",
-            group: "rel",
-            replace: "\u21cc"
-        },
-
-        // AMS Negated Binary Relations
-        "\\nless": {
-            font: "ams",
-            group: "rel",
-            replace: "\u226e"
-        },
-        "\\nleqslant": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue010"
-        },
-        "\\nleqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue011"
-        },
-        "\\lneq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2a87"
-        },
-        "\\lneqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2268"
-        },
-        "\\lvertneqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue00c"
-        },
-        "\\lnsim": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22e6"
-        },
-        "\\lnapprox": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2a89"
-        },
-        "\\nprec": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2280"
-        },
-        "\\npreceq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22e0"
-        },
-        "\\precnsim": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22e8"
-        },
-        "\\precnapprox": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2ab9"
-        },
-        "\\nsim": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2241"
-        },
-        "\\nshortmid": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue006"
-        },
-        "\\nmid": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2224"
-        },
-        "\\nvdash": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22ac"
-        },
-        "\\nvDash": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22ad"
-        },
-        "\\ntriangleleft": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22ea"
-        },
-        "\\ntrianglelefteq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22ec"
-        },
-        "\\subsetneq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u228a"
-        },
-        "\\varsubsetneq": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue01a"
-        },
-        "\\subsetneqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2acb"
-        },
-        "\\varsubsetneqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue017"
-        },
-        "\\ngtr": {
-            font: "ams",
-            group: "rel",
-            replace: "\u226f"
-        },
-        "\\ngeqslant": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue00f"
-        },
-        "\\ngeqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue00e"
-        },
-        "\\gneq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2a88"
-        },
-        "\\gneqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2269"
-        },
-        "\\gvertneqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue00d"
-        },
-        "\\gnsim": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22e7"
-        },
-        "\\gnapprox": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2a8a"
-        },
-        "\\nsucc": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2281"
-        },
-        "\\nsucceq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22e1"
-        },
-        "\\succnsim": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22e9"
-        },
-        "\\succnapprox": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2aba"
-        },
-        "\\ncong": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2246"
-        },
-        "\\nshortparallel": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue007"
-        },
-        "\\nparallel": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2226"
-        },
-        "\\nVDash": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22af"
-        },
-        "\\ntriangleright": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22eb"
-        },
-        "\\ntrianglerighteq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22ed"
-        },
-        "\\nsupseteqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue018"
-        },
-        "\\supsetneq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u228b"
-        },
-        "\\varsupsetneq": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue01b"
-        },
-        "\\supsetneqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2acc"
-        },
-        "\\varsupsetneqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue019"
-        },
-        "\\nVdash": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22ae"
-        },
-        "\\precneqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2ab5"
-        },
-        "\\succneqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2ab6"
-        },
-        "\\nsubseteqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\ue016"
-        },
-        "\\unlhd": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22b4"
-        },
-        "\\unrhd": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22b5"
-        },
-
-        // AMS Negated Arrows
-         "\\nleftarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u219a"
-        },
-        "\\nrightarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u219b"
-        },
-        "\\nLeftarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21cd"
-        },
-        "\\nRightarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21cf"
-        },
-        "\\nleftrightarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21ae"
-        },
-        "\\nLeftrightarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21ce"
-        },
-
-        // AMS Misc
-        "\\vartriangle": {
-            font: "ams",
-            group: "rel",
-            replace: "\u25b3"
-        },
-        "\\hslash": {
-            font: "ams",
-            group: "textord",
-            replace: "\u210f"
-        },
-        "\\triangledown": {
-            font: "ams",
-            group: "textord",
-            replace: "\u25bd"
-        },
-        "\\lozenge": {
-            font: "ams",
-            group: "textord",
-            replace: "\u25ca"
-        },
-        "\\circledS": {
-            font: "ams",
-            group: "textord",
-            replace: "\u24c8"
-        },
-        "\\circledR": {
-            font: "ams",
-            group: "textord",
-            replace: "\u00ae"
-        },
-        "\\measuredangle": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2221"
-        },
-        "\\nexists": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2204"
-        },
-        "\\mho": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2127"
-        },
-        "\\Finv": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2132"
-        },
-        "\\Game": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2141"
-        },
-        "\\Bbbk": {
-            font: "ams",
-            group: "textord",
-            replace: "\u006b"
-        },
-        "\\backprime": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2035"
-        },
-        "\\blacktriangle": {
-            font: "ams",
-            group: "textord",
-            replace: "\u25b2"
-        },
-        "\\blacktriangledown": {
-            font: "ams",
-            group: "textord",
-            replace: "\u25bc"
-        },
-        "\\blacksquare": {
-            font: "ams",
-            group: "textord",
-            replace: "\u25a0"
-        },
-        "\\blacklozenge": {
-            font: "ams",
-            group: "textord",
-            replace: "\u29eb"
-        },
-        "\\bigstar": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2605"
-        },
-        "\\sphericalangle": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2222"
-        },
-        "\\complement": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2201"
-        },
-        "\\eth": {
-            font: "ams",
-            group: "textord",
-            replace: "\u00f0"
-        },
-        "\\diagup": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2571"
-        },
-        "\\diagdown": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2572"
-        },
-        "\\square": {
-            font: "ams",
-            group: "textord",
-            replace: "\u25a1"
-        },
-        "\\Box": {
-            font: "ams",
-            group: "textord",
-            replace: "\u25a1"
-        },
-        "\\Diamond": {
-            font: "ams",
-            group: "textord",
-            replace: "\u25ca"
-        },
-        "\\yen": {
-            font: "ams",
-            group: "textord",
-            replace: "\u00a5"
-        },
-        "\\checkmark": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2713"
-        },
-
-        // AMS Hebrew
-        "\\beth": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2136"
-        },
-        "\\daleth": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2138"
-        },
-        "\\gimel": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2137"
-        },
-
-        // AMS Greek
-        "\\digamma": {
-            font: "ams",
-            group: "textord",
-            replace: "\u03dd"
-        },
-        "\\varkappa": {
-            font: "ams",
-            group: "textord",
-            replace: "\u03f0"
-        },
-
-        // AMS Delimiters
-        "\\ulcorner": {
-            font: "ams",
-            group: "open",
-            replace: "\u250c"
-        },
-        "\\urcorner": {
-            font: "ams",
-            group: "close",
-            replace: "\u2510"
-        },
-        "\\llcorner": {
-            font: "ams",
-            group: "open",
-            replace: "\u2514"
-        },
-        "\\lrcorner": {
-            font: "ams",
-            group: "close",
-            replace: "\u2518"
-        },
-
-        // AMS Binary Relations
-        "\\leqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2266"
-        },
-        "\\leqslant": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2a7d"
-        },
-        "\\eqslantless": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2a95"
-        },
-        "\\lesssim": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2272"
-        },
-        "\\lessapprox": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2a85"
-        },
-        "\\approxeq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u224a"
-        },
-        "\\lessdot": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22d6"
-        },
-        "\\lll": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22d8"
-        },
-        "\\lessgtr": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2276"
-        },
-        "\\lesseqgtr": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22da"
-        },
-        "\\lesseqqgtr": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2a8b"
-        },
-        "\\doteqdot": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2251"
-        },
-        "\\risingdotseq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2253"
-        },
-        "\\fallingdotseq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2252"
-        },
-        "\\backsim": {
-            font: "ams",
-            group: "rel",
-            replace: "\u223d"
-        },
-        "\\backsimeq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22cd"
-        },
-        "\\subseteqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2ac5"
-        },
-        "\\Subset": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22d0"
-        },
-        "\\sqsubset": {
-            font: "ams",
-            group: "rel",
-            replace: "\u228f"
-        },
-        "\\preccurlyeq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u227c"
-        },
-        "\\curlyeqprec": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22de"
-        },
-        "\\precsim": {
-            font: "ams",
-            group: "rel",
-            replace: "\u227e"
-        },
-        "\\precapprox": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2ab7"
-        },
-        "\\vartriangleleft": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22b2"
-        },
-        "\\trianglelefteq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22b4"
-        },
-        "\\vDash": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22a8"
-        },
-        "\\Vvdash": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22aa"
-        },
-        "\\smallsmile": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2323"
-        },
-        "\\smallfrown": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2322"
-        },
-        "\\bumpeq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u224f"
-        },
-        "\\Bumpeq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u224e"
-        },
-        "\\geqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2267"
-        },
-        "\\geqslant": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2a7e"
-        },
-        "\\eqslantgtr": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2a96"
-        },
-        "\\gtrsim": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2273"
-        },
-        "\\gtrapprox": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2a86"
-        },
-        "\\gtrdot": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22d7"
-        },
-        "\\ggg": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22d9"
-        },
-        "\\gtrless": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2277"
-        },
-        "\\gtreqless": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22db"
-        },
-        "\\gtreqqless": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2a8c"
-        },
-        "\\eqcirc": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2256"
-        },
-        "\\circeq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2257"
-        },
-        "\\triangleq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u225c"
-        },
-        "\\thicksim": {
-            font: "ams",
-            group: "rel",
-            replace: "\u223c"
-        },
-        "\\thickapprox": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2248"
-        },
-        "\\supseteqq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2ac6"
-        },
-        "\\Supset": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22d1"
-        },
-        "\\sqsupset": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2290"
-        },
-        "\\succcurlyeq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u227d"
-        },
-        "\\curlyeqsucc": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22df"
-        },
-        "\\succsim": {
-            font: "ams",
-            group: "rel",
-            replace: "\u227f"
-        },
-        "\\succapprox": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2ab8"
-        },
-        "\\vartriangleright": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22b3"
-        },
-        "\\trianglerighteq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22b5"
-        },
-        "\\Vdash": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22a9"
-        },
-        "\\shortmid": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2223"
-        },
-        "\\shortparallel": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2225"
-        },
-        "\\between": {
-            font: "ams",
-            group: "rel",
-            replace: "\u226c"
-        },
-        "\\pitchfork": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22d4"
-        },
-        "\\varpropto": {
-            font: "ams",
-            group: "rel",
-            replace: "\u221d"
-        },
-        "\\blacktriangleleft": {
-            font: "ams",
-            group: "rel",
-            replace: "\u25c0"
-        },
-        "\\therefore": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2234"
-        },
-        "\\backepsilon": {
-            font: "ams",
-            group: "rel",
-            replace: "\u220d"
-        },
-        "\\blacktriangleright": {
-            font: "ams",
-            group: "rel",
-            replace: "\u25b6"
-        },
-        "\\because": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2235"
-        },
-        "\\llless": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22d8"
-        },
-        "\\gggtr": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22d9"
-        },
-        "\\lhd": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22b2"
-        },
-        "\\rhd": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22b3"
-        },
-        "\\eqsim": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2242"
-        },
-        "\\Join": {
-            font: "main",
-            group: "rel",
-            replace: "\u22c8"
-        },
-        "\\Doteq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2251"
-        },
-
-        // AMS Binary Operators
-        "\\dotplus": {
-            font: "ams",
-            group: "bin",
-            replace: "\u2214"
-        },
-        "\\smallsetminus": {
-            font: "ams",
-            group: "bin",
-            replace: "\u2216"
-        },
-        "\\Cap": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22d2"
-        },
-        "\\Cup": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22d3"
-        },
-        "\\doublebarwedge": {
-            font: "ams",
-            group: "bin",
-            replace: "\u2a5e"
-        },
-        "\\boxminus": {
-            font: "ams",
-            group: "bin",
-            replace: "\u229f"
-        },
-        "\\boxplus": {
-            font: "ams",
-            group: "bin",
-            replace: "\u229e"
-        },
-        "\\divideontimes": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22c7"
-        },
-        "\\ltimes": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22c9"
-        },
-        "\\rtimes": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22ca"
-        },
-        "\\leftthreetimes": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22cb"
-        },
-        "\\rightthreetimes": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22cc"
-        },
-        "\\curlywedge": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22cf"
-        },
-        "\\curlyvee": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22ce"
-        },
-        "\\circleddash": {
-            font: "ams",
-            group: "bin",
-            replace: "\u229d"
-        },
-        "\\circledast": {
-            font: "ams",
-            group: "bin",
-            replace: "\u229b"
-        },
-        "\\centerdot": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22c5"
-        },
-        "\\intercal": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22ba"
-        },
-        "\\doublecap": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22d2"
-        },
-        "\\doublecup": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22d3"
-        },
-        "\\boxtimes": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22a0"
-        },
-
-        // AMS Arrows
-        "\\dashrightarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21e2"
-        },
-        "\\dashleftarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21e0"
-        },
-        "\\leftleftarrows": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21c7"
-        },
-        "\\leftrightarrows": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21c6"
-        },
-        "\\Lleftarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21da"
-        },
-        "\\twoheadleftarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u219e"
-        },
-        "\\leftarrowtail": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21a2"
-        },
-        "\\looparrowleft": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21ab"
-        },
-        "\\leftrightharpoons": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21cb"
-        },
-        "\\curvearrowleft": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21b6"
-        },
-        "\\circlearrowleft": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21ba"
-        },
-        "\\Lsh": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21b0"
-        },
-        "\\upuparrows": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21c8"
-        },
-        "\\upharpoonleft": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21bf"
-        },
-        "\\downharpoonleft": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21c3"
-        },
-        "\\multimap": {
-            font: "ams",
-            group: "rel",
-            replace: "\u22b8"
-        },
-        "\\leftrightsquigarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21ad"
-        },
-        "\\rightrightarrows": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21c9"
-        },
-        "\\rightleftarrows": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21c4"
-        },
-        "\\twoheadrightarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21a0"
-        },
-        "\\rightarrowtail": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21a3"
-        },
-        "\\looparrowright": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21ac"
-        },
-        "\\curvearrowright": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21b7"
-        },
-        "\\circlearrowright": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21bb"
-        },
-        "\\Rsh": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21b1"
-        },
-        "\\downdownarrows": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21ca"
-        },
-        "\\upharpoonright": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21be"
-        },
-        "\\downharpoonright": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21c2"
-        },
-        "\\rightsquigarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21dd"
-        },
-        "\\leadsto": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21dd"
-        },
-        "\\Rrightarrow": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21db"
-        },
-        "\\restriction": {
-            font: "ams",
-            group: "rel",
-            replace: "\u21be"
-        },
-
-        "`": {
-            font: "main",
-            group: "textord",
-            replace: "\u2018"
-        },
-        "\\$": {
-            font: "main",
-            group: "textord",
-            replace: "$"
-        },
-        "\\%": {
-            font: "main",
-            group: "textord",
-            replace: "%"
-        },
-        "\\_": {
-            font: "main",
-            group: "textord",
-            replace: "_"
-        },
-        "\\angle": {
-            font: "main",
-            group: "textord",
-            replace: "\u2220"
-        },
-        "\\infty": {
-            font: "main",
-            group: "textord",
-            replace: "\u221e"
-        },
-        "\\prime": {
-            font: "main",
-            group: "textord",
-            replace: "\u2032"
-        },
-        "\\triangle": {
-            font: "main",
-            group: "textord",
-            replace: "\u25b3"
-        },
-        "\\Gamma": {
-            font: "main",
-            group: "textord",
-            replace: "\u0393"
-        },
-        "\\Delta": {
-            font: "main",
-            group: "textord",
-            replace: "\u0394"
-        },
-        "\\Theta": {
-            font: "main",
-            group: "textord",
-            replace: "\u0398"
-        },
-        "\\Lambda": {
-            font: "main",
-            group: "textord",
-            replace: "\u039b"
-        },
-        "\\Xi": {
-            font: "main",
-            group: "textord",
-            replace: "\u039e"
-        },
-        "\\Pi": {
-            font: "main",
-            group: "textord",
-            replace: "\u03a0"
-        },
-        "\\Sigma": {
-            font: "main",
-            group: "textord",
-            replace: "\u03a3"
-        },
-        "\\Upsilon": {
-            font: "main",
-            group: "textord",
-            replace: "\u03a5"
-        },
-        "\\Phi": {
-            font: "main",
-            group: "textord",
-            replace: "\u03a6"
-        },
-        "\\Psi": {
-            font: "main",
-            group: "textord",
-            replace: "\u03a8"
-        },
-        "\\Omega": {
-            font: "main",
-            group: "textord",
-            replace: "\u03a9"
-        },
-        "\\neg": {
-            font: "main",
-            group: "textord",
-            replace: "\u00ac"
-        },
-        "\\lnot": {
-            font: "main",
-            group: "textord",
-            replace: "\u00ac"
-        },
-        "\\top": {
-            font: "main",
-            group: "textord",
-            replace: "\u22a4"
-        },
-        "\\bot": {
-            font: "main",
-            group: "textord",
-            replace: "\u22a5"
-        },
-        "\\emptyset": {
-            font: "main",
-            group: "textord",
-            replace: "\u2205"
-        },
-        "\\varnothing": {
-            font: "ams",
-            group: "textord",
-            replace: "\u2205"
-        },
-        "\\alpha": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03b1"
-        },
-        "\\beta": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03b2"
-        },
-        "\\gamma": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03b3"
-        },
-        "\\delta": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03b4"
-        },
-        "\\epsilon": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03f5"
-        },
-        "\\zeta": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03b6"
-        },
-        "\\eta": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03b7"
-        },
-        "\\theta": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03b8"
-        },
-        "\\iota": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03b9"
-        },
-        "\\kappa": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03ba"
-        },
-        "\\lambda": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03bb"
-        },
-        "\\mu": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03bc"
-        },
-        "\\nu": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03bd"
-        },
-        "\\xi": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03be"
-        },
-        "\\omicron": {
-            font: "main",
-            group: "mathord",
-            replace: "o"
-        },
-        "\\pi": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03c0"
-        },
-        "\\rho": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03c1"
-        },
-        "\\sigma": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03c3"
-        },
-        "\\tau": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03c4"
-        },
-        "\\upsilon": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03c5"
-        },
-        "\\phi": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03d5"
-        },
-        "\\chi": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03c7"
-        },
-        "\\psi": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03c8"
-        },
-        "\\omega": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03c9"
-        },
-        "\\varepsilon": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03b5"
-        },
-        "\\vartheta": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03d1"
-        },
-        "\\varpi": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03d6"
-        },
-        "\\varrho": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03f1"
-        },
-        "\\varsigma": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03c2"
-        },
-        "\\varphi": {
-            font: "main",
-            group: "mathord",
-            replace: "\u03c6"
-        },
-        "*": {
-            font: "main",
-            group: "bin",
-            replace: "\u2217"
-        },
-        "+": {
-            font: "main",
-            group: "bin"
-        },
-        "-": {
-            font: "main",
-            group: "bin",
-            replace: "\u2212"
-        },
-        "\\cdot": {
-            font: "main",
-            group: "bin",
-            replace: "\u22c5"
-        },
-        "\\circ": {
-            font: "main",
-            group: "bin",
-            replace: "\u2218"
-        },
-        "\\div": {
-            font: "main",
-            group: "bin",
-            replace: "\u00f7"
-        },
-        "\\pm": {
-            font: "main",
-            group: "bin",
-            replace: "\u00b1"
-        },
-        "\\times": {
-            font: "main",
-            group: "bin",
-            replace: "\u00d7"
-        },
-        "\\cap": {
-            font: "main",
-            group: "bin",
-            replace: "\u2229"
-        },
-        "\\cup": {
-            font: "main",
-            group: "bin",
-            replace: "\u222a"
-        },
-        "\\setminus": {
-            font: "main",
-            group: "bin",
-            replace: "\u2216"
-        },
-        "\\land": {
-            font: "main",
-            group: "bin",
-            replace: "\u2227"
-        },
-        "\\lor": {
-            font: "main",
-            group: "bin",
-            replace: "\u2228"
-        },
-        "\\wedge": {
-            font: "main",
-            group: "bin",
-            replace: "\u2227"
-        },
-        "\\vee": {
-            font: "main",
-            group: "bin",
-            replace: "\u2228"
-        },
-        "\\surd": {
-            font: "main",
-            group: "textord",
-            replace: "\u221a"
-        },
-        "(": {
-            font: "main",
-            group: "open"
-        },
-        "[": {
-            font: "main",
-            group: "open"
-        },
-        "\\langle": {
-            font: "main",
-            group: "open",
-            replace: "\u27e8"
-        },
-        "\\lvert": {
-            font: "main",
-            group: "open",
-            replace: "\u2223"
-        },
-        "\\lVert": {
-            font: "main",
-            group: "open",
-            replace: "\u2225"
-        },
-        ")": {
-            font: "main",
-            group: "close"
-        },
-        "]": {
-            font: "main",
-            group: "close"
-        },
-        "?": {
-            font: "main",
-            group: "close"
-        },
-        "!": {
-            font: "main",
-            group: "close"
-        },
-        "\\rangle": {
-            font: "main",
-            group: "close",
-            replace: "\u27e9"
-        },
-        "\\rvert": {
-            font: "main",
-            group: "close",
-            replace: "\u2223"
-        },
-        "\\rVert": {
-            font: "main",
-            group: "close",
-            replace: "\u2225"
-        },
-        "=": {
-            font: "main",
-            group: "rel"
-        },
-        "<": {
-            font: "main",
-            group: "rel"
-        },
-        ">": {
-            font: "main",
-            group: "rel"
-        },
-        ":": {
-            font: "main",
-            group: "rel"
-        },
-        "\\approx": {
-            font: "main",
-            group: "rel",
-            replace: "\u2248"
-        },
-        "\\cong": {
-            font: "main",
-            group: "rel",
-            replace: "\u2245"
-        },
-        "\\ge": {
-            font: "main",
-            group: "rel",
-            replace: "\u2265"
-        },
-        "\\geq": {
-            font: "main",
-            group: "rel",
-            replace: "\u2265"
-        },
-        "\\gets": {
-            font: "main",
-            group: "rel",
-            replace: "\u2190"
-        },
-        "\\in": {
-            font: "main",
-            group: "rel",
-            replace: "\u2208"
-        },
-        "\\notin": {
-            font: "main",
-            group: "rel",
-            replace: "\u2209"
-        },
-        "\\subset": {
-            font: "main",
-            group: "rel",
-            replace: "\u2282"
-        },
-        "\\supset": {
-            font: "main",
-            group: "rel",
-            replace: "\u2283"
-        },
-        "\\subseteq": {
-            font: "main",
-            group: "rel",
-            replace: "\u2286"
-        },
-        "\\supseteq": {
-            font: "main",
-            group: "rel",
-            replace: "\u2287"
-        },
-        "\\nsubseteq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2288"
-        },
-        "\\nsupseteq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2289"
-        },
-        "\\models": {
-            font: "main",
-            group: "rel",
-            replace: "\u22a8"
-        },
-        "\\leftarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u2190"
-        },
-        "\\le": {
-            font: "main",
-            group: "rel",
-            replace: "\u2264"
-        },
-        "\\leq": {
-            font: "main",
-            group: "rel",
-            replace: "\u2264"
-        },
-        "\\ne": {
-            font: "main",
-            group: "rel",
-            replace: "\u2260"
-        },
-        "\\neq": {
-            font: "main",
-            group: "rel",
-            replace: "\u2260"
-        },
-        "\\rightarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u2192"
-        },
-        "\\to": {
-            font: "main",
-            group: "rel",
-            replace: "\u2192"
-        },
-        "\\ngeq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2271"
-        },
-        "\\nleq": {
-            font: "ams",
-            group: "rel",
-            replace: "\u2270"
-        },
-        "\\!": {
-            font: "main",
-            group: "spacing"
-        },
-        "\\ ": {
-            font: "main",
-            group: "spacing",
-            replace: "\u00a0"
-        },
-        "~": {
-            font: "main",
-            group: "spacing",
-            replace: "\u00a0"
-        },
-        "\\,": {
-            font: "main",
-            group: "spacing"
-        },
-        "\\:": {
-            font: "main",
-            group: "spacing"
-        },
-        "\\;": {
-            font: "main",
-            group: "spacing"
-        },
-        "\\enspace": {
-            font: "main",
-            group: "spacing"
-        },
-        "\\qquad": {
-            font: "main",
-            group: "spacing"
-        },
-        "\\quad": {
-            font: "main",
-            group: "spacing"
-        },
-        "\\space": {
-            font: "main",
-            group: "spacing",
-            replace: "\u00a0"
-        },
-        ",": {
-            font: "main",
-            group: "punct"
-        },
-        ";": {
-            font: "main",
-            group: "punct"
-        },
-        "\\colon": {
-            font: "main",
-            group: "punct",
-            replace: ":"
-        },
-        "\\barwedge": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22bc"
-        },
-        "\\veebar": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22bb"
-        },
-        "\\odot": {
-            font: "main",
-            group: "bin",
-            replace: "\u2299"
-        },
-        "\\oplus": {
-            font: "main",
-            group: "bin",
-            replace: "\u2295"
-        },
-        "\\otimes": {
-            font: "main",
-            group: "bin",
-            replace: "\u2297"
-        },
-        "\\partial":{
-            font: "main",
-            group: "textord",
-            replace: "\u2202"
-        },
-        "\\oslash": {
-            font: "main",
-            group: "bin",
-            replace: "\u2298"
-        },
-        "\\circledcirc": {
-            font: "ams",
-            group: "bin",
-            replace: "\u229a"
-        },
-        "\\boxdot": {
-            font: "ams",
-            group: "bin",
-            replace: "\u22a1"
-        },
-        "\\bigtriangleup": {
-            font: "main",
-            group: "bin",
-            replace: "\u25b3"
-        },
-        "\\bigtriangledown": {
-            font: "main",
-            group: "bin",
-            replace: "\u25bd"
-        },
-        "\\dagger": {
-            font: "main",
-            group: "bin",
-            replace: "\u2020"
-        },
-        "\\diamond": {
-            font: "main",
-            group: "bin",
-            replace: "\u22c4"
-        },
-        "\\star": {
-            font: "main",
-            group: "bin",
-            replace: "\u22c6"
-        },
-        "\\triangleleft": {
-            font: "main",
-            group: "bin",
-            replace: "\u25c3"
-        },
-        "\\triangleright": {
-            font: "main",
-            group: "bin",
-            replace: "\u25b9"
-        },
-        "\\{": {
-            font: "main",
-            group: "open",
-            replace: "{"
-        },
-        "\\}": {
-            font: "main",
-            group: "close",
-            replace: "}"
-        },
-        "\\lbrace": {
-            font: "main",
-            group: "open",
-            replace: "{"
-        },
-        "\\rbrace": {
-            font: "main",
-            group: "close",
-            replace: "}"
-        },
-        "\\lbrack": {
-            font: "main",
-            group: "open",
-            replace: "["
-        },
-        "\\rbrack": {
-            font: "main",
-            group: "close",
-            replace: "]"
-        },
-        "\\lfloor": {
-            font: "main",
-            group: "open",
-            replace: "\u230a"
-        },
-        "\\rfloor": {
-            font: "main",
-            group: "close",
-            replace: "\u230b"
-        },
-        "\\lceil": {
-            font: "main",
-            group: "open",
-            replace: "\u2308"
-        },
-        "\\rceil": {
-            font: "main",
-            group: "close",
-            replace: "\u2309"
-        },
-        "\\backslash": {
-            font: "main",
-            group: "textord",
-            replace: "\\"
-        },
-        "|": {
-            font: "main",
-            group: "textord",
-            replace: "\u2223"
-        },
-        "\\vert": {
-            font: "main",
-            group: "textord",
-            replace: "\u2223"
-        },
-        "\\|": {
-            font: "main",
-            group: "textord",
-            replace: "\u2225"
-        },
-        "\\Vert": {
-            font: "main",
-            group: "textord",
-            replace: "\u2225"
-        },
-        "\\uparrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u2191"
-        },
-        "\\Uparrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u21d1"
-        },
-        "\\downarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u2193"
-        },
-        "\\Downarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u21d3"
-        },
-        "\\updownarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u2195"
-        },
-        "\\Updownarrow": {
-            font: "main",
-            group: "rel",
-            replace: "\u21d5"
-        },
-        "\\coprod": {
-            font: "math",
-            group: "op",
-            replace: "\u2210"
-        },
-        "\\bigvee": {
-            font: "math",
-            group: "op",
-            replace: "\u22c1"
-        },
-        "\\bigwedge": {
-            font: "math",
-            group: "op",
-            replace: "\u22c0"
-        },
-        "\\biguplus": {
-            font: "math",
-            group: "op",
-            replace: "\u2a04"
-        },
-        "\\bigcap": {
-            font: "math",
-            group: "op",
-            replace: "\u22c2"
-        },
-        "\\bigcup": {
-            font: "math",
-            group: "op",
-            replace: "\u22c3"
-        },
-        "\\int": {
-            font: "math",
-            group: "op",
-            replace: "\u222b"
-        },
-        "\\intop": {
-            font: "math",
-            group: "op",
-            replace: "\u222b"
-        },
-        "\\iint": {
-            font: "math",
-            group: "op",
-            replace: "\u222c"
-        },
-        "\\iiint": {
-            font: "math",
-            group: "op",
-            replace: "\u222d"
-        },
-        "\\prod": {
-            font: "math",
-            group: "op",
-            replace: "\u220f"
-        },
-        "\\sum": {
-            font: "math",
-            group: "op",
-            replace: "\u2211"
-        },
-        "\\bigotimes": {
-            font: "math",
-            group: "op",
-            replace: "\u2a02"
-        },
-        "\\bigoplus": {
-            font: "math",
-            group: "op",
-            replace: "\u2a01"
-        },
-        "\\bigodot": {
-            font: "math",
-            group: "op",
-            replace: "\u2a00"
-        },
-        "\\oint": {
-            font: "math",
-            group: "op",
-            replace: "\u222e"
-        },
-        "\\bigsqcup": {
-            font: "math",
-            group: "op",
-            replace: "\u2a06"
-        },
-        "\\smallint": {
-            font: "math",
-            group: "op",
-            replace: "\u222b"
-        },
-        "\\ldots": {
-            font: "main",
-            group: "inner",
-            replace: "\u2026"
-        },
-        "\\cdots": {
-            font: "main",
-            group: "inner",
-            replace: "\u22ef"
-        },
-        "\\ddots": {
-            font: "main",
-            group: "inner",
-            replace: "\u22f1"
-        },
-        "\\vdots": {
-            font: "main",
-            group: "textord",
-            replace: "\u22ee"
-        },
-        "\\acute": {
-            font: "main",
-            group: "accent",
-            replace: "\u00b4"
-        },
-        "\\grave": {
-            font: "main",
-            group: "accent",
-            replace: "\u0060"
-        },
-        "\\ddot": {
-            font: "main",
-            group: "accent",
-            replace: "\u00a8"
-        },
-        "\\tilde": {
-            font: "main",
-            group: "accent",
-            replace: "\u007e"
-        },
-        "\\bar": {
-            font: "main",
-            group: "accent",
-            replace: "\u00af"
-        },
-        "\\breve": {
-            font: "main",
-            group: "accent",
-            replace: "\u02d8"
-        },
-        "\\check": {
-            font: "main",
-            group: "accent",
-            replace: "\u02c7"
-        },
-        "\\hat": {
-            font: "main",
-            group: "accent",
-            replace: "\u005e"
-        },
-        "\\vec": {
-            font: "main",
-            group: "accent",
-            replace: "\u20d7"
-        },
-        "\\dot": {
-            font: "main",
-            group: "accent",
-            replace: "\u02d9"
-        },
-
-        "\\imath": {
-            font: "main",
-            group: "mathord",
-            replace: "\u0131"
-        },
-        "\\jmath": {
-            font: "main",
-            group: "mathord",
-            replace: "\u0237"
-        }
-    },
-    "text": {
-        "\\ ": {
-            font: "main",
-            group: "spacing",
-            replace: "\u00a0"
-        },
-        " ": {
-            font: "main",
-            group: "spacing",
-            replace: "\u00a0"
-        },
-        "~": {
-            font: "main",
-            group: "spacing",
-            replace: "\u00a0"
-        }
-    }
+module.exports = {
+    math: {},
+    text: {},
 };
 
+function defineSymbol(mode, font, group, replace, name) {
+    module.exports[mode][name] = {
+        font: font,
+        group: group,
+        replace: replace,
+    };
+}
+
+// Some abbreviations for commonly used strings.
+// This helps minify the code, and also spotting typos using jshint.
+
+// modes:
+var math = "math";
+var text = "text";
+
+// fonts:
+var main = "main";
+var ams = "ams";
+
+// groups:
+var accent = "accent";
+var bin = "bin";
+var close = "close";
+var inner = "inner";
+var mathord = "mathord";
+var op = "op";
+var open = "open";
+var punct = "punct";
+var rel = "rel";
+var spacing = "spacing";
+var textord = "textord";
+
+// Now comes the symbol table
+
+// Relation Symbols
+defineSymbol(math, main, rel, "\u2261", "\\equiv");
+defineSymbol(math, main, rel, "\u227a", "\\prec");
+defineSymbol(math, main, rel, "\u227b", "\\succ");
+defineSymbol(math, main, rel, "\u223c", "\\sim");
+defineSymbol(math, main, rel, "\u22a5", "\\perp");
+defineSymbol(math, main, rel, "\u2aaf", "\\preceq");
+defineSymbol(math, main, rel, "\u2ab0", "\\succeq");
+defineSymbol(math, main, rel, "\u2243", "\\simeq");
+defineSymbol(math, main, rel, "\u2223", "\\mid");
+defineSymbol(math, main, rel, "\u226a", "\\ll");
+defineSymbol(math, main, rel, "\u226b", "\\gg");
+defineSymbol(math, main, rel, "\u224d", "\\asymp");
+defineSymbol(math, main, rel, "\u2225", "\\parallel");
+defineSymbol(math, main, rel, "\u22c8", "\\bowtie");
+defineSymbol(math, main, rel, "\u2323", "\\smile");
+defineSymbol(math, main, rel, "\u2291", "\\sqsubseteq");
+defineSymbol(math, main, rel, "\u2292", "\\sqsupseteq");
+defineSymbol(math, main, rel, "\u2250", "\\doteq");
+defineSymbol(math, main, rel, "\u2322", "\\frown");
+defineSymbol(math, main, rel, "\u220b", "\\ni");
+defineSymbol(math, main, rel, "\u221d", "\\propto");
+defineSymbol(math, main, rel, "\u22a2", "\\vdash");
+defineSymbol(math, main, rel, "\u22a3", "\\dashv");
+defineSymbol(math, main, rel, "\u220b", "\\owns");
+
+// Punctuation
+defineSymbol(math, main, punct, "\u002e", "\\ldotp");
+defineSymbol(math, main, punct, "\u22c5", "\\cdotp");
+
+// Misc Symbols
+defineSymbol(math, main, textord, "\u0023", "\\#");
+defineSymbol(math, main, textord, "\u0026", "\\&");
+defineSymbol(math, main, textord, "\u2135", "\\aleph");
+defineSymbol(math, main, textord, "\u2200", "\\forall");
+defineSymbol(math, main, textord, "\u210f", "\\hbar");
+defineSymbol(math, main, textord, "\u2203", "\\exists");
+defineSymbol(math, main, textord, "\u2207", "\\nabla");
+defineSymbol(math, main, textord, "\u266d", "\\flat");
+defineSymbol(math, main, textord, "\u2113", "\\ell");
+defineSymbol(math, main, textord, "\u266e", "\\natural");
+defineSymbol(math, main, textord, "\u2663", "\\clubsuit");
+defineSymbol(math, main, textord, "\u2118", "\\wp");
+defineSymbol(math, main, textord, "\u266f", "\\sharp");
+defineSymbol(math, main, textord, "\u2662", "\\diamondsuit");
+defineSymbol(math, main, textord, "\u211c", "\\Re");
+defineSymbol(math, main, textord, "\u2661", "\\heartsuit");
+defineSymbol(math, main, textord, "\u2111", "\\Im");
+defineSymbol(math, main, textord, "\u2660", "\\spadesuit");
+
+// Math and Text
+defineSymbol(math, main, textord, "\u2020", "\\dag");
+defineSymbol(math, main, textord, "\u2021", "\\ddag");
+
+// Large Delimiters
+defineSymbol(math, main, close, "\u23b1", "\\rmoustache");
+defineSymbol(math, main, open, "\u23b0", "\\lmoustache");
+defineSymbol(math, main, close, "\u27ef", "\\rgroup");
+defineSymbol(math, main, open, "\u27ee", "\\lgroup");
+
+// Binary Operators
+defineSymbol(math, main, bin, "\u2213", "\\mp");
+defineSymbol(math, main, bin, "\u2296", "\\ominus");
+defineSymbol(math, main, bin, "\u228e", "\\uplus");
+defineSymbol(math, main, bin, "\u2293", "\\sqcap");
+defineSymbol(math, main, bin, "\u2217", "\\ast");
+defineSymbol(math, main, bin, "\u2294", "\\sqcup");
+defineSymbol(math, main, bin, "\u25ef", "\\bigcirc");
+defineSymbol(math, main, bin, "\u2219", "\\bullet");
+defineSymbol(math, main, bin, "\u2021", "\\ddagger");
+defineSymbol(math, main, bin, "\u2240", "\\wr");
+defineSymbol(math, main, bin, "\u2a3f", "\\amalg");
+
+// Arrow Symbols
+defineSymbol(math, main, rel, "\u27f5", "\\longleftarrow");
+defineSymbol(math, main, rel, "\u21d0", "\\Leftarrow");
+defineSymbol(math, main, rel, "\u27f8", "\\Longleftarrow");
+defineSymbol(math, main, rel, "\u27f6", "\\longrightarrow");
+defineSymbol(math, main, rel, "\u21d2", "\\Rightarrow");
+defineSymbol(math, main, rel, "\u27f9", "\\Longrightarrow");
+defineSymbol(math, main, rel, "\u2194", "\\leftrightarrow");
+defineSymbol(math, main, rel, "\u27f7", "\\longleftrightarrow");
+defineSymbol(math, main, rel, "\u21d4", "\\Leftrightarrow");
+defineSymbol(math, main, rel, "\u27fa", "\\Longleftrightarrow");
+defineSymbol(math, main, rel, "\u21a6", "\\mapsto");
+defineSymbol(math, main, rel, "\u27fc", "\\longmapsto");
+defineSymbol(math, main, rel, "\u2197", "\\nearrow");
+defineSymbol(math, main, rel, "\u21a9", "\\hookleftarrow");
+defineSymbol(math, main, rel, "\u21aa", "\\hookrightarrow");
+defineSymbol(math, main, rel, "\u2198", "\\searrow");
+defineSymbol(math, main, rel, "\u21bc", "\\leftharpoonup");
+defineSymbol(math, main, rel, "\u21c0", "\\rightharpoonup");
+defineSymbol(math, main, rel, "\u2199", "\\swarrow");
+defineSymbol(math, main, rel, "\u21bd", "\\leftharpoondown");
+defineSymbol(math, main, rel, "\u21c1", "\\rightharpoondown");
+defineSymbol(math, main, rel, "\u2196", "\\nwarrow");
+defineSymbol(math, main, rel, "\u21cc", "\\rightleftharpoons");
+
+// AMS Negated Binary Relations
+defineSymbol(math, ams, rel, "\u226e", "\\nless");
+defineSymbol(math, ams, rel, "\ue010", "\\nleqslant");
+defineSymbol(math, ams, rel, "\ue011", "\\nleqq");
+defineSymbol(math, ams, rel, "\u2a87", "\\lneq");
+defineSymbol(math, ams, rel, "\u2268", "\\lneqq");
+defineSymbol(math, ams, rel, "\ue00c", "\\lvertneqq");
+defineSymbol(math, ams, rel, "\u22e6", "\\lnsim");
+defineSymbol(math, ams, rel, "\u2a89", "\\lnapprox");
+defineSymbol(math, ams, rel, "\u2280", "\\nprec");
+defineSymbol(math, ams, rel, "\u22e0", "\\npreceq");
+defineSymbol(math, ams, rel, "\u22e8", "\\precnsim");
+defineSymbol(math, ams, rel, "\u2ab9", "\\precnapprox");
+defineSymbol(math, ams, rel, "\u2241", "\\nsim");
+defineSymbol(math, ams, rel, "\ue006", "\\nshortmid");
+defineSymbol(math, ams, rel, "\u2224", "\\nmid");
+defineSymbol(math, ams, rel, "\u22ac", "\\nvdash");
+defineSymbol(math, ams, rel, "\u22ad", "\\nvDash");
+defineSymbol(math, ams, rel, "\u22ea", "\\ntriangleleft");
+defineSymbol(math, ams, rel, "\u22ec", "\\ntrianglelefteq");
+defineSymbol(math, ams, rel, "\u228a", "\\subsetneq");
+defineSymbol(math, ams, rel, "\ue01a", "\\varsubsetneq");
+defineSymbol(math, ams, rel, "\u2acb", "\\subsetneqq");
+defineSymbol(math, ams, rel, "\ue017", "\\varsubsetneqq");
+defineSymbol(math, ams, rel, "\u226f", "\\ngtr");
+defineSymbol(math, ams, rel, "\ue00f", "\\ngeqslant");
+defineSymbol(math, ams, rel, "\ue00e", "\\ngeqq");
+defineSymbol(math, ams, rel, "\u2a88", "\\gneq");
+defineSymbol(math, ams, rel, "\u2269", "\\gneqq");
+defineSymbol(math, ams, rel, "\ue00d", "\\gvertneqq");
+defineSymbol(math, ams, rel, "\u22e7", "\\gnsim");
+defineSymbol(math, ams, rel, "\u2a8a", "\\gnapprox");
+defineSymbol(math, ams, rel, "\u2281", "\\nsucc");
+defineSymbol(math, ams, rel, "\u22e1", "\\nsucceq");
+defineSymbol(math, ams, rel, "\u22e9", "\\succnsim");
+defineSymbol(math, ams, rel, "\u2aba", "\\succnapprox");
+defineSymbol(math, ams, rel, "\u2246", "\\ncong");
+defineSymbol(math, ams, rel, "\ue007", "\\nshortparallel");
+defineSymbol(math, ams, rel, "\u2226", "\\nparallel");
+defineSymbol(math, ams, rel, "\u22af", "\\nVDash");
+defineSymbol(math, ams, rel, "\u22eb", "\\ntriangleright");
+defineSymbol(math, ams, rel, "\u22ed", "\\ntrianglerighteq");
+defineSymbol(math, ams, rel, "\ue018", "\\nsupseteqq");
+defineSymbol(math, ams, rel, "\u228b", "\\supsetneq");
+defineSymbol(math, ams, rel, "\ue01b", "\\varsupsetneq");
+defineSymbol(math, ams, rel, "\u2acc", "\\supsetneqq");
+defineSymbol(math, ams, rel, "\ue019", "\\varsupsetneqq");
+defineSymbol(math, ams, rel, "\u22ae", "\\nVdash");
+defineSymbol(math, ams, rel, "\u2ab5", "\\precneqq");
+defineSymbol(math, ams, rel, "\u2ab6", "\\succneqq");
+defineSymbol(math, ams, rel, "\ue016", "\\nsubseteqq");
+defineSymbol(math, ams, bin, "\u22b4", "\\unlhd");
+defineSymbol(math, ams, bin, "\u22b5", "\\unrhd");
+
+// AMS Negated Arrows
+defineSymbol(math, ams, rel, "\u219a", "\\nleftarrow");
+defineSymbol(math, ams, rel, "\u219b", "\\nrightarrow");
+defineSymbol(math, ams, rel, "\u21cd", "\\nLeftarrow");
+defineSymbol(math, ams, rel, "\u21cf", "\\nRightarrow");
+defineSymbol(math, ams, rel, "\u21ae", "\\nleftrightarrow");
+defineSymbol(math, ams, rel, "\u21ce", "\\nLeftrightarrow");
+
+// AMS Misc
+defineSymbol(math, ams, rel, "\u25b3", "\\vartriangle");
+defineSymbol(math, ams, textord, "\u210f", "\\hslash");
+defineSymbol(math, ams, textord, "\u25bd", "\\triangledown");
+defineSymbol(math, ams, textord, "\u25ca", "\\lozenge");
+defineSymbol(math, ams, textord, "\u24c8", "\\circledS");
+defineSymbol(math, ams, textord, "\u00ae", "\\circledR");
+defineSymbol(math, ams, textord, "\u2221", "\\measuredangle");
+defineSymbol(math, ams, textord, "\u2204", "\\nexists");
+defineSymbol(math, ams, textord, "\u2127", "\\mho");
+defineSymbol(math, ams, textord, "\u2132", "\\Finv");
+defineSymbol(math, ams, textord, "\u2141", "\\Game");
+defineSymbol(math, ams, textord, "\u006b", "\\Bbbk");
+defineSymbol(math, ams, textord, "\u2035", "\\backprime");
+defineSymbol(math, ams, textord, "\u25b2", "\\blacktriangle");
+defineSymbol(math, ams, textord, "\u25bc", "\\blacktriangledown");
+defineSymbol(math, ams, textord, "\u25a0", "\\blacksquare");
+defineSymbol(math, ams, textord, "\u29eb", "\\blacklozenge");
+defineSymbol(math, ams, textord, "\u2605", "\\bigstar");
+defineSymbol(math, ams, textord, "\u2222", "\\sphericalangle");
+defineSymbol(math, ams, textord, "\u2201", "\\complement");
+defineSymbol(math, ams, textord, "\u00f0", "\\eth");
+defineSymbol(math, ams, textord, "\u2571", "\\diagup");
+defineSymbol(math, ams, textord, "\u2572", "\\diagdown");
+defineSymbol(math, ams, textord, "\u25a1", "\\square");
+defineSymbol(math, ams, textord, "\u25a1", "\\Box");
+defineSymbol(math, ams, textord, "\u25ca", "\\Diamond");
+defineSymbol(math, ams, textord, "\u00a5", "\\yen");
+defineSymbol(math, ams, textord, "\u2713", "\\checkmark");
+
+// AMS Hebrew
+defineSymbol(math, ams, textord, "\u2136", "\\beth");
+defineSymbol(math, ams, textord, "\u2138", "\\daleth");
+defineSymbol(math, ams, textord, "\u2137", "\\gimel");
+
+// AMS Greek
+defineSymbol(math, ams, textord, "\u03dd", "\\digamma");
+defineSymbol(math, ams, textord, "\u03f0", "\\varkappa");
+
+// AMS Delimiters
+defineSymbol(math, ams, open, "\u250c", "\\ulcorner");
+defineSymbol(math, ams, close, "\u2510", "\\urcorner");
+defineSymbol(math, ams, open, "\u2514", "\\llcorner");
+defineSymbol(math, ams, close, "\u2518", "\\lrcorner");
+
+// AMS Binary Relations
+defineSymbol(math, ams, rel, "\u2266", "\\leqq");
+defineSymbol(math, ams, rel, "\u2a7d", "\\leqslant");
+defineSymbol(math, ams, rel, "\u2a95", "\\eqslantless");
+defineSymbol(math, ams, rel, "\u2272", "\\lesssim");
+defineSymbol(math, ams, rel, "\u2a85", "\\lessapprox");
+defineSymbol(math, ams, rel, "\u224a", "\\approxeq");
+defineSymbol(math, ams, bin, "\u22d6", "\\lessdot");
+defineSymbol(math, ams, rel, "\u22d8", "\\lll");
+defineSymbol(math, ams, rel, "\u2276", "\\lessgtr");
+defineSymbol(math, ams, rel, "\u22da", "\\lesseqgtr");
+defineSymbol(math, ams, rel, "\u2a8b", "\\lesseqqgtr");
+defineSymbol(math, ams, rel, "\u2251", "\\doteqdot");
+defineSymbol(math, ams, rel, "\u2253", "\\risingdotseq");
+defineSymbol(math, ams, rel, "\u2252", "\\fallingdotseq");
+defineSymbol(math, ams, rel, "\u223d", "\\backsim");
+defineSymbol(math, ams, rel, "\u22cd", "\\backsimeq");
+defineSymbol(math, ams, rel, "\u2ac5", "\\subseteqq");
+defineSymbol(math, ams, rel, "\u22d0", "\\Subset");
+defineSymbol(math, ams, rel, "\u228f", "\\sqsubset");
+defineSymbol(math, ams, rel, "\u227c", "\\preccurlyeq");
+defineSymbol(math, ams, rel, "\u22de", "\\curlyeqprec");
+defineSymbol(math, ams, rel, "\u227e", "\\precsim");
+defineSymbol(math, ams, rel, "\u2ab7", "\\precapprox");
+defineSymbol(math, ams, rel, "\u22b2", "\\vartriangleleft");
+defineSymbol(math, ams, rel, "\u22b4", "\\trianglelefteq");
+defineSymbol(math, ams, rel, "\u22a8", "\\vDash");
+defineSymbol(math, ams, rel, "\u22aa", "\\Vvdash");
+defineSymbol(math, ams, rel, "\u2323", "\\smallsmile");
+defineSymbol(math, ams, rel, "\u2322", "\\smallfrown");
+defineSymbol(math, ams, rel, "\u224f", "\\bumpeq");
+defineSymbol(math, ams, rel, "\u224e", "\\Bumpeq");
+defineSymbol(math, ams, rel, "\u2267", "\\geqq");
+defineSymbol(math, ams, rel, "\u2a7e", "\\geqslant");
+defineSymbol(math, ams, rel, "\u2a96", "\\eqslantgtr");
+defineSymbol(math, ams, rel, "\u2273", "\\gtrsim");
+defineSymbol(math, ams, rel, "\u2a86", "\\gtrapprox");
+defineSymbol(math, ams, bin, "\u22d7", "\\gtrdot");
+defineSymbol(math, ams, rel, "\u22d9", "\\ggg");
+defineSymbol(math, ams, rel, "\u2277", "\\gtrless");
+defineSymbol(math, ams, rel, "\u22db", "\\gtreqless");
+defineSymbol(math, ams, rel, "\u2a8c", "\\gtreqqless");
+defineSymbol(math, ams, rel, "\u2256", "\\eqcirc");
+defineSymbol(math, ams, rel, "\u2257", "\\circeq");
+defineSymbol(math, ams, rel, "\u225c", "\\triangleq");
+defineSymbol(math, ams, rel, "\u223c", "\\thicksim");
+defineSymbol(math, ams, rel, "\u2248", "\\thickapprox");
+defineSymbol(math, ams, rel, "\u2ac6", "\\supseteqq");
+defineSymbol(math, ams, rel, "\u22d1", "\\Supset");
+defineSymbol(math, ams, rel, "\u2290", "\\sqsupset");
+defineSymbol(math, ams, rel, "\u227d", "\\succcurlyeq");
+defineSymbol(math, ams, rel, "\u22df", "\\curlyeqsucc");
+defineSymbol(math, ams, rel, "\u227f", "\\succsim");
+defineSymbol(math, ams, rel, "\u2ab8", "\\succapprox");
+defineSymbol(math, ams, rel, "\u22b3", "\\vartriangleright");
+defineSymbol(math, ams, rel, "\u22b5", "\\trianglerighteq");
+defineSymbol(math, ams, rel, "\u22a9", "\\Vdash");
+defineSymbol(math, ams, rel, "\u2223", "\\shortmid");
+defineSymbol(math, ams, rel, "\u2225", "\\shortparallel");
+defineSymbol(math, ams, rel, "\u226c", "\\between");
+defineSymbol(math, ams, rel, "\u22d4", "\\pitchfork");
+defineSymbol(math, ams, rel, "\u221d", "\\varpropto");
+defineSymbol(math, ams, rel, "\u25c0", "\\blacktriangleleft");
+defineSymbol(math, ams, rel, "\u2234", "\\therefore");
+defineSymbol(math, ams, rel, "\u220d", "\\backepsilon");
+defineSymbol(math, ams, rel, "\u25b6", "\\blacktriangleright");
+defineSymbol(math, ams, rel, "\u2235", "\\because");
+defineSymbol(math, ams, rel, "\u22d8", "\\llless");
+defineSymbol(math, ams, rel, "\u22d9", "\\gggtr");
+defineSymbol(math, ams, bin, "\u22b2", "\\lhd");
+defineSymbol(math, ams, bin, "\u22b3", "\\rhd");
+defineSymbol(math, ams, rel, "\u2242", "\\eqsim");
+defineSymbol(math, main, rel, "\u22c8", "\\Join");
+defineSymbol(math, ams, rel, "\u2251", "\\Doteq");
+
+// AMS Binary Operators
+defineSymbol(math, ams, bin, "\u2214", "\\dotplus");
+defineSymbol(math, ams, bin, "\u2216", "\\smallsetminus");
+defineSymbol(math, ams, bin, "\u22d2", "\\Cap");
+defineSymbol(math, ams, bin, "\u22d3", "\\Cup");
+defineSymbol(math, ams, bin, "\u2a5e", "\\doublebarwedge");
+defineSymbol(math, ams, bin, "\u229f", "\\boxminus");
+defineSymbol(math, ams, bin, "\u229e", "\\boxplus");
+defineSymbol(math, ams, bin, "\u22c7", "\\divideontimes");
+defineSymbol(math, ams, bin, "\u22c9", "\\ltimes");
+defineSymbol(math, ams, bin, "\u22ca", "\\rtimes");
+defineSymbol(math, ams, bin, "\u22cb", "\\leftthreetimes");
+defineSymbol(math, ams, bin, "\u22cc", "\\rightthreetimes");
+defineSymbol(math, ams, bin, "\u22cf", "\\curlywedge");
+defineSymbol(math, ams, bin, "\u22ce", "\\curlyvee");
+defineSymbol(math, ams, bin, "\u229d", "\\circleddash");
+defineSymbol(math, ams, bin, "\u229b", "\\circledast");
+defineSymbol(math, ams, bin, "\u22c5", "\\centerdot");
+defineSymbol(math, ams, bin, "\u22ba", "\\intercal");
+defineSymbol(math, ams, bin, "\u22d2", "\\doublecap");
+defineSymbol(math, ams, bin, "\u22d3", "\\doublecup");
+defineSymbol(math, ams, bin, "\u22a0", "\\boxtimes");
+
+// AMS Arrows
+defineSymbol(math, ams, rel, "\u21e2", "\\dashrightarrow");
+defineSymbol(math, ams, rel, "\u21e0", "\\dashleftarrow");
+defineSymbol(math, ams, rel, "\u21c7", "\\leftleftarrows");
+defineSymbol(math, ams, rel, "\u21c6", "\\leftrightarrows");
+defineSymbol(math, ams, rel, "\u21da", "\\Lleftarrow");
+defineSymbol(math, ams, rel, "\u219e", "\\twoheadleftarrow");
+defineSymbol(math, ams, rel, "\u21a2", "\\leftarrowtail");
+defineSymbol(math, ams, rel, "\u21ab", "\\looparrowleft");
+defineSymbol(math, ams, rel, "\u21cb", "\\leftrightharpoons");
+defineSymbol(math, ams, rel, "\u21b6", "\\curvearrowleft");
+defineSymbol(math, ams, rel, "\u21ba", "\\circlearrowleft");
+defineSymbol(math, ams, rel, "\u21b0", "\\Lsh");
+defineSymbol(math, ams, rel, "\u21c8", "\\upuparrows");
+defineSymbol(math, ams, rel, "\u21bf", "\\upharpoonleft");
+defineSymbol(math, ams, rel, "\u21c3", "\\downharpoonleft");
+defineSymbol(math, ams, rel, "\u22b8", "\\multimap");
+defineSymbol(math, ams, rel, "\u21ad", "\\leftrightsquigarrow");
+defineSymbol(math, ams, rel, "\u21c9", "\\rightrightarrows");
+defineSymbol(math, ams, rel, "\u21c4", "\\rightleftarrows");
+defineSymbol(math, ams, rel, "\u21a0", "\\twoheadrightarrow");
+defineSymbol(math, ams, rel, "\u21a3", "\\rightarrowtail");
+defineSymbol(math, ams, rel, "\u21ac", "\\looparrowright");
+defineSymbol(math, ams, rel, "\u21b7", "\\curvearrowright");
+defineSymbol(math, ams, rel, "\u21bb", "\\circlearrowright");
+defineSymbol(math, ams, rel, "\u21b1", "\\Rsh");
+defineSymbol(math, ams, rel, "\u21ca", "\\downdownarrows");
+defineSymbol(math, ams, rel, "\u21be", "\\upharpoonright");
+defineSymbol(math, ams, rel, "\u21c2", "\\downharpoonright");
+defineSymbol(math, ams, rel, "\u21dd", "\\rightsquigarrow");
+defineSymbol(math, ams, rel, "\u21dd", "\\leadsto");
+defineSymbol(math, ams, rel, "\u21db", "\\Rrightarrow");
+defineSymbol(math, ams, rel, "\u21be", "\\restriction");
+
+defineSymbol(math, main, textord, "\u2018", "`");
+defineSymbol(math, main, textord, "$", "\\$");
+defineSymbol(math, main, textord, "%", "\\%");
+defineSymbol(math, main, textord, "_", "\\_");
+defineSymbol(math, main, textord, "\u2220", "\\angle");
+defineSymbol(math, main, textord, "\u221e", "\\infty");
+defineSymbol(math, main, textord, "\u2032", "\\prime");
+defineSymbol(math, main, textord, "\u25b3", "\\triangle");
+defineSymbol(math, main, textord, "\u0393", "\\Gamma");
+defineSymbol(math, main, textord, "\u0394", "\\Delta");
+defineSymbol(math, main, textord, "\u0398", "\\Theta");
+defineSymbol(math, main, textord, "\u039b", "\\Lambda");
+defineSymbol(math, main, textord, "\u039e", "\\Xi");
+defineSymbol(math, main, textord, "\u03a0", "\\Pi");
+defineSymbol(math, main, textord, "\u03a3", "\\Sigma");
+defineSymbol(math, main, textord, "\u03a5", "\\Upsilon");
+defineSymbol(math, main, textord, "\u03a6", "\\Phi");
+defineSymbol(math, main, textord, "\u03a8", "\\Psi");
+defineSymbol(math, main, textord, "\u03a9", "\\Omega");
+defineSymbol(math, main, textord, "\u00ac", "\\neg");
+defineSymbol(math, main, textord, "\u00ac", "\\lnot");
+defineSymbol(math, main, textord, "\u22a4", "\\top");
+defineSymbol(math, main, textord, "\u22a5", "\\bot");
+defineSymbol(math, main, textord, "\u2205", "\\emptyset");
+defineSymbol(math, ams, textord, "\u2205", "\\varnothing");
+defineSymbol(math, main, mathord, "\u03b1", "\\alpha");
+defineSymbol(math, main, mathord, "\u03b2", "\\beta");
+defineSymbol(math, main, mathord, "\u03b3", "\\gamma");
+defineSymbol(math, main, mathord, "\u03b4", "\\delta");
+defineSymbol(math, main, mathord, "\u03f5", "\\epsilon");
+defineSymbol(math, main, mathord, "\u03b6", "\\zeta");
+defineSymbol(math, main, mathord, "\u03b7", "\\eta");
+defineSymbol(math, main, mathord, "\u03b8", "\\theta");
+defineSymbol(math, main, mathord, "\u03b9", "\\iota");
+defineSymbol(math, main, mathord, "\u03ba", "\\kappa");
+defineSymbol(math, main, mathord, "\u03bb", "\\lambda");
+defineSymbol(math, main, mathord, "\u03bc", "\\mu");
+defineSymbol(math, main, mathord, "\u03bd", "\\nu");
+defineSymbol(math, main, mathord, "\u03be", "\\xi");
+defineSymbol(math, main, mathord, "o", "\\omicron");
+defineSymbol(math, main, mathord, "\u03c0", "\\pi");
+defineSymbol(math, main, mathord, "\u03c1", "\\rho");
+defineSymbol(math, main, mathord, "\u03c3", "\\sigma");
+defineSymbol(math, main, mathord, "\u03c4", "\\tau");
+defineSymbol(math, main, mathord, "\u03c5", "\\upsilon");
+defineSymbol(math, main, mathord, "\u03d5", "\\phi");
+defineSymbol(math, main, mathord, "\u03c7", "\\chi");
+defineSymbol(math, main, mathord, "\u03c8", "\\psi");
+defineSymbol(math, main, mathord, "\u03c9", "\\omega");
+defineSymbol(math, main, mathord, "\u03b5", "\\varepsilon");
+defineSymbol(math, main, mathord, "\u03d1", "\\vartheta");
+defineSymbol(math, main, mathord, "\u03d6", "\\varpi");
+defineSymbol(math, main, mathord, "\u03f1", "\\varrho");
+defineSymbol(math, main, mathord, "\u03c2", "\\varsigma");
+defineSymbol(math, main, mathord, "\u03c6", "\\varphi");
+defineSymbol(math, main, bin, "\u2217", "*");
+defineSymbol(math, main, bin, "+", "+");
+defineSymbol(math, main, bin, "\u2212", "-");
+defineSymbol(math, main, bin, "\u22c5", "\\cdot");
+defineSymbol(math, main, bin, "\u2218", "\\circ");
+defineSymbol(math, main, bin, "\u00f7", "\\div");
+defineSymbol(math, main, bin, "\u00b1", "\\pm");
+defineSymbol(math, main, bin, "\u00d7", "\\times");
+defineSymbol(math, main, bin, "\u2229", "\\cap");
+defineSymbol(math, main, bin, "\u222a", "\\cup");
+defineSymbol(math, main, bin, "\u2216", "\\setminus");
+defineSymbol(math, main, bin, "\u2227", "\\land");
+defineSymbol(math, main, bin, "\u2228", "\\lor");
+defineSymbol(math, main, bin, "\u2227", "\\wedge");
+defineSymbol(math, main, bin, "\u2228", "\\vee");
+defineSymbol(math, main, textord, "\u221a", "\\surd");
+defineSymbol(math, main, open, "(", "(");
+defineSymbol(math, main, open, "[", "[");
+defineSymbol(math, main, open, "\u27e8", "\\langle");
+defineSymbol(math, main, open, "\u2223", "\\lvert");
+defineSymbol(math, main, open, "\u2225", "\\lVert");
+defineSymbol(math, main, close, ")", ")");
+defineSymbol(math, main, close, "]", "]");
+defineSymbol(math, main, close, "?", "?");
+defineSymbol(math, main, close, "!", "!");
+defineSymbol(math, main, close, "\u27e9", "\\rangle");
+defineSymbol(math, main, close, "\u2223", "\\rvert");
+defineSymbol(math, main, close, "\u2225", "\\rVert");
+defineSymbol(math, main, rel, "=", "=");
+defineSymbol(math, main, rel, "<", "<");
+defineSymbol(math, main, rel, ">", ">");
+defineSymbol(math, main, rel, ":", ":");
+defineSymbol(math, main, rel, "\u2248", "\\approx");
+defineSymbol(math, main, rel, "\u2245", "\\cong");
+defineSymbol(math, main, rel, "\u2265", "\\ge");
+defineSymbol(math, main, rel, "\u2265", "\\geq");
+defineSymbol(math, main, rel, "\u2190", "\\gets");
+defineSymbol(math, main, rel, ">", "\\gt");
+defineSymbol(math, main, rel, "\u2208", "\\in");
+defineSymbol(math, main, rel, "\u2209", "\\notin");
+defineSymbol(math, main, rel, "\u2282", "\\subset");
+defineSymbol(math, main, rel, "\u2283", "\\supset");
+defineSymbol(math, main, rel, "\u2286", "\\subseteq");
+defineSymbol(math, main, rel, "\u2287", "\\supseteq");
+defineSymbol(math, ams, rel, "\u2288", "\\nsubseteq");
+defineSymbol(math, ams, rel, "\u2289", "\\nsupseteq");
+defineSymbol(math, main, rel, "\u22a8", "\\models");
+defineSymbol(math, main, rel, "\u2190", "\\leftarrow");
+defineSymbol(math, main, rel, "\u2264", "\\le");
+defineSymbol(math, main, rel, "\u2264", "\\leq");
+defineSymbol(math, main, rel, "<", "\\lt");
+defineSymbol(math, main, rel, "\u2260", "\\ne");
+defineSymbol(math, main, rel, "\u2260", "\\neq");
+defineSymbol(math, main, rel, "\u2192", "\\rightarrow");
+defineSymbol(math, main, rel, "\u2192", "\\to");
+defineSymbol(math, ams, rel, "\u2271", "\\ngeq");
+defineSymbol(math, ams, rel, "\u2270", "\\nleq");
+defineSymbol(math, main, spacing, null, "\\!");
+defineSymbol(math, main, spacing, "\u00a0", "\\ ");
+defineSymbol(math, main, spacing, "\u00a0", "~");
+defineSymbol(math, main, spacing, null, "\\,");
+defineSymbol(math, main, spacing, null, "\\:");
+defineSymbol(math, main, spacing, null, "\\;");
+defineSymbol(math, main, spacing, null, "\\enspace");
+defineSymbol(math, main, spacing, null, "\\qquad");
+defineSymbol(math, main, spacing, null, "\\quad");
+defineSymbol(math, main, spacing, "\u00a0", "\\space");
+defineSymbol(math, main, punct, ",", ",");
+defineSymbol(math, main, punct, ";", ";");
+defineSymbol(math, main, punct, ":", "\\colon");
+defineSymbol(math, ams, bin, "\u22bc", "\\barwedge");
+defineSymbol(math, ams, bin, "\u22bb", "\\veebar");
+defineSymbol(math, main, bin, "\u2299", "\\odot");
+defineSymbol(math, main, bin, "\u2295", "\\oplus");
+defineSymbol(math, main, bin, "\u2297", "\\otimes");
+defineSymbol(math, main, textord, "\u2202", "\\partial");
+defineSymbol(math, main, bin, "\u2298", "\\oslash");
+defineSymbol(math, ams, bin, "\u229a", "\\circledcirc");
+defineSymbol(math, ams, bin, "\u22a1", "\\boxdot");
+defineSymbol(math, main, bin, "\u25b3", "\\bigtriangleup");
+defineSymbol(math, main, bin, "\u25bd", "\\bigtriangledown");
+defineSymbol(math, main, bin, "\u2020", "\\dagger");
+defineSymbol(math, main, bin, "\u22c4", "\\diamond");
+defineSymbol(math, main, bin, "\u22c6", "\\star");
+defineSymbol(math, main, bin, "\u25c3", "\\triangleleft");
+defineSymbol(math, main, bin, "\u25b9", "\\triangleright");
+defineSymbol(math, main, open, "{", "\\{");
+defineSymbol(math, main, close, "}", "\\}");
+defineSymbol(math, main, open, "{", "\\lbrace");
+defineSymbol(math, main, close, "}", "\\rbrace");
+defineSymbol(math, main, open, "[", "\\lbrack");
+defineSymbol(math, main, close, "]", "\\rbrack");
+defineSymbol(math, main, open, "\u230a", "\\lfloor");
+defineSymbol(math, main, close, "\u230b", "\\rfloor");
+defineSymbol(math, main, open, "\u2308", "\\lceil");
+defineSymbol(math, main, close, "\u2309", "\\rceil");
+defineSymbol(math, main, textord, "\\", "\\backslash");
+defineSymbol(math, main, textord, "\u2223", "|");
+defineSymbol(math, main, textord, "\u2223", "\\vert");
+defineSymbol(math, main, textord, "\u2225", "\\|");
+defineSymbol(math, main, textord, "\u2225", "\\Vert");
+defineSymbol(math, main, rel, "\u2191", "\\uparrow");
+defineSymbol(math, main, rel, "\u21d1", "\\Uparrow");
+defineSymbol(math, main, rel, "\u2193", "\\downarrow");
+defineSymbol(math, main, rel, "\u21d3", "\\Downarrow");
+defineSymbol(math, main, rel, "\u2195", "\\updownarrow");
+defineSymbol(math, main, rel, "\u21d5", "\\Updownarrow");
+defineSymbol(math, math, op, "\u2210", "\\coprod");
+defineSymbol(math, math, op, "\u22c1", "\\bigvee");
+defineSymbol(math, math, op, "\u22c0", "\\bigwedge");
+defineSymbol(math, math, op, "\u2a04", "\\biguplus");
+defineSymbol(math, math, op, "\u22c2", "\\bigcap");
+defineSymbol(math, math, op, "\u22c3", "\\bigcup");
+defineSymbol(math, math, op, "\u222b", "\\int");
+defineSymbol(math, math, op, "\u222b", "\\intop");
+defineSymbol(math, math, op, "\u222c", "\\iint");
+defineSymbol(math, math, op, "\u222d", "\\iiint");
+defineSymbol(math, math, op, "\u220f", "\\prod");
+defineSymbol(math, math, op, "\u2211", "\\sum");
+defineSymbol(math, math, op, "\u2a02", "\\bigotimes");
+defineSymbol(math, math, op, "\u2a01", "\\bigoplus");
+defineSymbol(math, math, op, "\u2a00", "\\bigodot");
+defineSymbol(math, math, op, "\u222e", "\\oint");
+defineSymbol(math, math, op, "\u2a06", "\\bigsqcup");
+defineSymbol(math, math, op, "\u222b", "\\smallint");
+defineSymbol(math, main, inner, "\u2026", "\\ldots");
+defineSymbol(math, main, inner, "\u22ef", "\\cdots");
+defineSymbol(math, main, inner, "\u22f1", "\\ddots");
+defineSymbol(math, main, textord, "\u22ee", "\\vdots");
+defineSymbol(math, main, accent, "\u00b4", "\\acute");
+defineSymbol(math, main, accent, "\u0060", "\\grave");
+defineSymbol(math, main, accent, "\u00a8", "\\ddot");
+defineSymbol(math, main, accent, "\u007e", "\\tilde");
+defineSymbol(math, main, accent, "\u00af", "\\bar");
+defineSymbol(math, main, accent, "\u02d8", "\\breve");
+defineSymbol(math, main, accent, "\u02c7", "\\check");
+defineSymbol(math, main, accent, "\u005e", "\\hat");
+defineSymbol(math, main, accent, "\u20d7", "\\vec");
+defineSymbol(math, main, accent, "\u02d9", "\\dot");
+defineSymbol(math, main, mathord, "\u0131", "\\imath");
+defineSymbol(math, main, mathord, "\u0237", "\\jmath");
+
+defineSymbol(text, main, spacing, "\u00a0", "\\ ");
+defineSymbol(text, main, spacing, "\u00a0", " ");
+defineSymbol(text, main, spacing, "\u00a0", "~");
+
 // There are lots of symbols which are the same, so we add them in afterwards.
+var i;
+var ch;
 
 // All of these are textords in math mode
 var mathTextSymbols = "0123456789/@.\"";
-for (var i = 0; i < mathTextSymbols.length; i++) {
-    var ch = mathTextSymbols.charAt(i);
-    symbols.math[ch] = {
-        font: "main",
-        group: "textord"
-    };
+for (i = 0; i < mathTextSymbols.length; i++) {
+    ch = mathTextSymbols.charAt(i);
+    defineSymbol(math, main, textord, ch, ch);
 }
 
 // All of these are textords in text mode
 var textSymbols = "0123456789`!@*()-=+[]'\";:?/.,";
-for (var i = 0; i < textSymbols.length; i++) {
-    var ch = textSymbols.charAt(i);
-    symbols.text[ch] = {
-        font: "main",
-        group: "textord"
-    };
+for (i = 0; i < textSymbols.length; i++) {
+    ch = textSymbols.charAt(i);
+    defineSymbol(text, main, textord, ch, ch);
 }
 
 // All of these are textords in text mode, and mathords in math mode
 var letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-for (var i = 0; i < letters.length; i++) {
-    var ch = letters.charAt(i);
-    symbols.math[ch] = {
-        font: "main",
-        group: "mathord"
-    };
-    symbols.text[ch] = {
-        font: "main",
-        group: "textord"
-    };
+for (i = 0; i < letters.length; i++) {
+    ch = letters.charAt(i);
+    defineSymbol(math, main, mathord, ch, ch);
+    defineSymbol(text, main, textord, ch, ch);
 }
 
-module.exports = symbols;
-
-},{}],157:[function(require,module,exports){
+},{}],163:[function(require,module,exports){
 /**
  * This file contains a list of utility functions which are useful in other
  * files.
@@ -23231,7 +21887,8 @@ var indexOf = function(list, elem) {
     if (nativeIndexOf && list.indexOf === nativeIndexOf) {
         return list.indexOf(elem);
     }
-    var i = 0, l = list.length;
+    var i = 0;
+    var l = list.length;
     for (; i < l; i++) {
         if (list[i] === elem) {
             return i;
@@ -23262,17 +21919,17 @@ var hyphenate = function(str) {
 };
 
 var ESCAPE_LOOKUP = {
-  "&": "&amp;",
-  ">": "&gt;",
-  "<": "&lt;",
-  "\"": "&quot;",
-  "'": "&#x27;"
+    "&": "&amp;",
+    ">": "&gt;",
+    "<": "&lt;",
+    "\"": "&quot;",
+    "'": "&#x27;",
 };
 
 var ESCAPE_REGEX = /[&><"']/g;
 
 function escaper(match) {
-  return ESCAPE_LOOKUP[match];
+    return ESCAPE_LOOKUP[match];
 }
 
 /**
@@ -23282,7 +21939,7 @@ function escaper(match) {
  * @return {string} An escaped string.
  */
 function escape(text) {
-  return ("" + text).replace(ESCAPE_REGEX, escaper);
+    return ("" + text).replace(ESCAPE_REGEX, escaper);
 }
 
 /**
@@ -23317,10 +21974,10 @@ module.exports = {
     hyphenate: hyphenate,
     indexOf: indexOf,
     setTextContent: setTextContent,
-    clearNode: clearNode
+    clearNode: clearNode,
 };
 
-},{}],158:[function(require,module,exports){
+},{}],164:[function(require,module,exports){
 (function (global){
 /**
  * marked - a markdown parser
@@ -24609,4 +23266,47 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],165:[function(require,module,exports){
+/** @flow */
+
+"use strict";
+
+function getRelocatable(re) {
+  // In the future, this could use a WeakMap instead of an expando.
+  if (!re.__matchAtRelocatable) {
+    // Disjunctions are the lowest-precedence operator, so we can make any
+    // pattern match the empty string by appending `|()` to it:
+    // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-patterns
+    var source = re.source + "|()";
+
+    // We always make the new regex global.
+    var flags = "g" + (re.ignoreCase ? "i" : "") + (re.multiline ? "m" : "") + (re.unicode ? "u" : "")
+    // sticky (/.../y) doesn't make sense in conjunction with our relocation
+    // logic, so we ignore it here.
+    ;
+
+    re.__matchAtRelocatable = new RegExp(source, flags);
+  }
+  return re.__matchAtRelocatable;
+}
+
+function matchAt(re, str, pos) {
+  if (re.global || re.sticky) {
+    throw new Error("matchAt(...): Only non-global regexes are supported");
+  }
+  var reloc = getRelocatable(re);
+  reloc.lastIndex = pos;
+  var match = reloc.exec(str);
+  // Last capturing group is our sentinel that indicates whether the regex
+  // matched at the given location.
+  if (match[match.length - 1] == null) {
+    // Original regex matched.
+    match.length = match.length - 1;
+    return match;
+  } else {
+    return null;
+  }
+}
+
+module.exports = matchAt;
 },{}]},{},[2]);

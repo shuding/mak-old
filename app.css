@@ -42,6 +42,10 @@ body {
   border: none;
 }
 
+iframe {
+  padding: 0 20px;
+}
+
 @media screen and (max-width: 640px) {
   .mak-container {
     -webkit-flex-direction: column;
