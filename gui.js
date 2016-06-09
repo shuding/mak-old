@@ -21,7 +21,7 @@ function mainEditorCtrl($scope, $sce) {
         if (window.location.search == '?0') {
             // Mode 0: hide preview
             var previewEl = document.getElementsByClassName('mak-preview')[0];
-            previewEl.style.marginRight = '100%';
+            previewEl.style.marginRight = '-100%';
             previewEl.style.padding = 0;
         }
         // Bind change event
