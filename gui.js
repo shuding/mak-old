@@ -23,6 +23,10 @@ function mainEditorCtrl($scope, $sce) {
             var previewEl = document.getElementsByClassName('mak-preview')[0];
             previewEl.style.marginRight = '-100%';
             previewEl.style.padding = 0;
+        } else if (window.location.search == '?1') {
+            // Mode 1: hide editor
+            var editorEl = document.getElementsByClassName('mak-editor')[0];
+            editorEl.style.marginLeft = '-100%';
         }
         // Bind change event
         $scope.$watch('editor.context', function (newContext) {
@@ -31,7 +35,7 @@ function mainEditorCtrl($scope, $sce) {
             $scope.editor.compiled = $sce.trustAsHtml(mak.marked(newContext));
         });
         
-        var context = (localStorage.getItem && localStorage.getItem('mak')) || '# Mak\n\nA minimal Markdown editor on the web.\n\n---\n\n```js\nconsole.log("hello"); /* code highlighting */\n```\n\nLaTeX expression: $x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}$.\n\n---\n\n[GitHub](https://github.com/quietshu/mak), MIT licensed.\n\n<3\n';
+        var context = (localStorage.getItem && localStorage.getItem('mak')) || '# Mak\n\nA minimal Markdown editor on the web.\n\nChanges will be saved into browser\'s localStorage.\n\nEditor only: [/?0](/mak/?0). Preview only: [/?1](/mal/?1) and then you can save it as a PDF. \n\n---\n\n```js\nconsole.log("hello"); /* code highlighting */\n```\n\nInline LaTeX expression: $x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}$.\n\nMath equation: $$X_{k}=\sum_{n=0}^{N}x(n)e^{-i2\pi nk/N}$$\n\n---\n\n[GitHub](https://github.com/quietshu/mak), MIT licensed.\n\n<3\n';
         
         $scope.editor.context = context;
 
