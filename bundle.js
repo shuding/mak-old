@@ -9,14 +9,16 @@ var katex     = require('katex');
 var highlight = require('highlight.js');
 
 var katexRender = new marked.Renderer();
-var tags = {'<a href': '<a target="_blank" href'};
+var tags = {};
 
 katexRender.paragraph = function (text) {
     // TODO
     for (var t in tags) {
-	text = text.replace(t, tags[t]);
+		text = text.replace(t, tags[t]);
     }
-    
+
+    text = text.replace('<a href', '<a target="_blank" href');
+
     return '<p>' + text + '</p>';
 };
 
