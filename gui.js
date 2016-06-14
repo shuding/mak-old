@@ -21,12 +21,12 @@ function mainEditorCtrl($scope, $sce) {
         if (window.location.search == '?0') {
             // Mode 0: hide preview
             var previewEl = document.getElementsByClassName('mak-preview')[0];
-            previewEl.style.marginRight = '-100%';
+            previewEl.style.display = 'none';
             previewEl.style.padding = 0;
         } else if (window.location.search == '?1') {
             // Mode 1: hide editor
             var editorEl = document.getElementsByClassName('mak-editor')[0];
-            editorEl.style.marginLeft = '-100%';
+            editorEl.style.display = 'none';
         }
         // Bind change event
         $scope.$watch('editor.context', function (newContext) {
