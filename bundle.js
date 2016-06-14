@@ -17,7 +17,7 @@ katexRender.paragraph = function (text) {
 		text = text.replace(t, tags[t]);
     }
 
-    text = text.replace('<a href', '<a target="_blank" href');
+    text = text.replace(/<a href/g, '<a target="_blank" href');
 
     return '<p>' + text + '</p>';
 };
