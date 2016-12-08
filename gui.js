@@ -27,6 +27,9 @@ function mainEditorCtrl($scope, $sce) {
             // Mode 1: hide editor
             var editorEl = document.getElementsByClassName('mak-editor')[0];
             editorEl.style.display = 'none';
+            var previewEl = document.getElementsByClassName('mak-preview')[0];
+            previewEl.style.display = 'none';
+            previewEl.style.padding = 0;
         }
         // Bind change event
         $scope.$watch('editor.context', function (newContext) {
