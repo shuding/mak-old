@@ -77,7 +77,7 @@ function previewIframe() {
                 window.document.head.appendChild($scope.preview.codeStyleElement);
                 window.document.head.appendChild($scope.preview.katexStyleElement);
                 var D = window.document.createElement('DIV');
-                window.document.getElementsByClassName('mak-container').appendChild(D);
+                window.document.getElementsByClassName('mak-container')[0].appendChild(D);
                 D.appendChild(document.body);
             }
 
