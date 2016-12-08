@@ -71,6 +71,15 @@ function previewIframe() {
             document.head.appendChild($scope.preview.styleElement);
             document.head.appendChild($scope.preview.codeStyleElement);
             document.head.appendChild($scope.preview.katexStyleElement);
+            
+            if (window.location.search == '?1') {
+                window.document.head.appendChild($scope.preview.styleElement);
+                window.document.head.appendChild($scope.preview.codeStyleElement);
+                window.document.head.appendChild($scope.preview.katexStyleElement);
+                var D = window.document.createElement('DIV');
+                window.document.getElementsByClassName('mak-container').appendChild(D);
+                D.appendChild(document.body);
+            }
 
             $scope.$watch('editor.compiled', function (newCompiled) {
                 document.body.innerHTML = newCompiled;
