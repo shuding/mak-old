@@ -14,7 +14,7 @@ function mainEditorCtrl($scope, $sce) {
         codeStyleElement: null,
         katexStyleElement: null,
         theme:        'default',
-        codeTheme:    'xcode'
+        codeTheme:    'github'
     };
 
     function init() {
