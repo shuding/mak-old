@@ -58,7 +58,7 @@ function mainEditorCtrl($scope, $sce) {
     }
 
     function loadTheme() {
-        $scope.preview.styleElement.href = 'https://raw.githubusercontent.com/quietshu/mak/gh-pages/node_modules/theme/' + ($scope.preview.theme || 'default') + '.css';
+        $scope.preview.styleElement.href = 'https://raw.githubusercontent.com/quietshu/mak/gh-pages/theme/' + ($scope.preview.theme || 'default') + '.css';
         $scope.preview.codeStyleElement.href = 'https://raw.githubusercontent.com/quietshu/mak/gh-pages/node_modules/highlight.js/styles/' + ($scope.preview.codeTheme || 'default') + '.css';
         $scope.preview.katexStyleElement.href = 'https://raw.githubusercontent.com/quietshu/mak/gh-pages/bower_components/katex/dist/katex.min.css';
     }
