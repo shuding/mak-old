@@ -78,6 +78,7 @@ function previewIframe() {
                 window.document.head.appendChild($scope.preview.codeStyleElement);
                 window.document.head.appendChild($scope.preview.katexStyleElement);
                 D = window.document.createElement('DIV');
+                D.className = 'outer-preview';
                 window.document.getElementsByClassName('mak-container')[0].appendChild(D);
             }
 
