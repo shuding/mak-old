@@ -4,6 +4,7 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
+  max-width: 100% !important;
 }
 
 * {
@@ -40,6 +41,10 @@ body {
   overflow: scroll;
   -webkit-appearance: none;
   border: none;
+}
+
+.outer-preview {
+  flex: 1;
 }
 
 iframe {
