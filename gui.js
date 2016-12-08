@@ -72,17 +72,21 @@ function previewIframe() {
             document.head.appendChild($scope.preview.codeStyleElement);
             document.head.appendChild($scope.preview.katexStyleElement);
             
+            var D = null;
             if (window.location.search == '?1') {
                 window.document.head.appendChild($scope.preview.styleElement);
                 window.document.head.appendChild($scope.preview.codeStyleElement);
                 window.document.head.appendChild($scope.preview.katexStyleElement);
-                var D = window.document.createElement('DIV');
+                D = window.document.createElement('DIV');
                 window.document.getElementsByClassName('mak-container')[0].appendChild(D);
-                D.appendChild(document.body);
             }
 
             $scope.$watch('editor.compiled', function (newCompiled) {
-                document.body.innerHTML = newCompiled;
+                if (D) {
+                    D.innerHTML = newCompiled;
+                } else {
+                    document.body.innerHTML = newCompiled;
+                }
             });
         }
     }
