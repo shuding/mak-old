@@ -59,7 +59,7 @@ function mainEditorCtrl($scope, $sce) {
 
     function loadTheme() {
         $scope.preview.styleElement.href = 'theme/' + ($scope.preview.theme || 'default') + '.css';
-        $scope.preview.codeStyleElement.href = 'node_modules/highlight.js/styles/' + ($scope.preview.codeTheme || 'default') + '.css';
+        $scope.preview.codeStyleElement.href = 'highlight.js/styles/' + ($scope.preview.codeTheme || 'default') + '.css';
         $scope.preview.katexStyleElement.href = 'bower_components/katex/dist/katex.min.css';
     }
 
