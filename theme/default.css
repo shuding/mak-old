@@ -28,6 +28,14 @@
  * @valid        true
  */
 
+.word-count {
+  position: absolute;
+  right: 1em;
+  bottom: 1em;
+  color: #ccc;
+  font-size: .8em;
+}
+
 body {
   font-family: Helvetica, Arial, Freesans, clean, sans-serif;
   padding:1em;
