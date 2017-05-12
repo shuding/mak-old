@@ -39,7 +39,7 @@ function mainEditorCtrl($scope, $sce) {
             $scope.editor.compiled = $sce.trustAsHtml(mak.marked(newContext));
         });
 
-        var context = (localStorage.getItem && localStorage.getItem('mak')) || '# Mak\n\nA minimal Markdown editor on the web.\n\nChanges will be saved into browser\'s localStorage.\n\nEditor only: [/?editor](/mak/?editor). Preview only: [/?preview](/mak/?preview) and then you can save it as a PDF. \n\n---\n\n```js\nconsole.log("hello"); /* code highlighting */\n```\n\nInline LaTeX expression: $x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}$.\n\nMath equation: $$X_{k}=\\sum_{n=0}^{N}x(n)e^{-i2\\pi nk/N}$$\n\n---\n\n[GitHub](https://github.com/quietshu/mak), MIT licensed.\n\n<3\n';
+        var context = (localStorage.getItem && localStorage.getItem('mak')) || '# Mak\n\nA minimal Markdown editor on the web.\n\nAuto-save your changes in the browser cache.\n\nNotepad mode: [/?0](/mak/?0), preview & print mode: [/?1](/mak/?1). \n\n---\n\n```js\nconsole.log("hello"); /* code highlighting */\n```\n\nInline LaTeX expression: $x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}$.\n\nMath equation: $$X_{k}=\\sum_{n=0}^{N}x(n)e^{-i2\\pi nk/N}$$\n\n---\n\n[GitHub](https://github.com/quietshu/mak), MIT licensed.\n\n<3\n';
 
         $scope.editor.context = context;
 
