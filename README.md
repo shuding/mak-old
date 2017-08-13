@@ -12,4 +12,4 @@ http://mak-beta.shud.in#readme
 
 ## old version
 
-[Demo](http://quietshu.github.io/mak) / [GitHub](https://github.com/quietshu/mak).
+https://shud.in/mak
